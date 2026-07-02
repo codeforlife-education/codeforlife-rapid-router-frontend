@@ -469,6 +469,31 @@ export default class extends BaseManager {
         left: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
         topLeft: ["top", "left", "inTopLeft", "outTopLeft"],
       })
+    // Outside-corner variants (turn only).
+    if (key === "outTopLeft")
+      return collisions({
+        bottom: ["bottom", "inBottomLeft"],
+        right: ["right", "inTopRight"],
+        bottomRight: ["inBottomRight"],
+      })
+    if (key === "outTopRight")
+      return collisions({
+        bottom: ["bottom", "inBottomRight"],
+        left: ["left", "inTopLeft"],
+        bottomLeft: ["inBottomLeft"],
+      })
+    if (key === "outBottomLeft")
+      return collisions({
+        top: ["top", "inTopLeft"],
+        right: ["right", "inBottomRight"],
+        topRight: ["inTopRight"],
+      })
+    if (key === "outBottomRight")
+      return collisions({
+        top: ["top", "inTopRight"],
+        left: ["left", "inBottomLeft"],
+        topLeft: ["inTopLeft"],
+      })
     return []
   }
 
