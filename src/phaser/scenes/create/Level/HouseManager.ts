@@ -344,14 +344,19 @@ export default class extends BaseManager {
             return (
               houses === null ||
               (Array.isArray(houses) &&
-                houses.every(
-                  house =>
-                    (excludeHouse &&
-                      house.col === excludeHouse.col &&
-                      house.row === excludeHouse.row &&
-                      house.variant.key === excludeHouse.variant.key) ||
-                    !this.variantCollisions(cTile, house).includes(key),
-                ))
+                houses.every(cHouse => {
+                  if (
+                    excludeHouse &&
+                    cHouse.col === excludeHouse.col &&
+                    cHouse.row === excludeHouse.row
+                    //cHouse.variant.key === excludeHouse.variant.key
+                  )
+                    return true
+
+                  const collisions = this.variantCollisions(cTile, cHouse)
+                  // console.log({ cTile, cHouse, collisions, key })
+                  return !collisions.includes(key)
+                }))
             )
           }),
         )
@@ -396,9 +401,10 @@ export default class extends BaseManager {
     }
 
     const key = house.variant.key
+    // Straight and dead-end variants.
     if (key === "left")
       return collisions({
-        topRight: ["outTopRight"],
+        topRight: ["inTopRight"],
         right: [
           "right",
           "outTopRight",
@@ -406,11 +412,11 @@ export default class extends BaseManager {
           "inTopRight",
           "inBottomRight",
         ],
-        bottomRight: ["outBottomRight"],
+        bottomRight: ["inBottomRight"],
       })
     if (key === "top")
       return collisions({
-        bottomLeft: ["outBottomLeft"],
+        bottomLeft: ["inBottomLeft"],
         bottom: [
           "bottom",
           "outBottomLeft",
@@ -418,11 +424,11 @@ export default class extends BaseManager {
           "inBottomLeft",
           "inBottomRight",
         ],
-        bottomRight: ["outBottomRight"],
+        bottomRight: ["inBottomRight"],
       })
     if (key === "right")
       return collisions({
-        topLeft: ["outTopLeft"],
+        topLeft: ["inTopLeft"],
         left: [
           "left",
           "outTopLeft",
@@ -430,33 +436,34 @@ export default class extends BaseManager {
           "inTopLeft",
           "inBottomLeft",
         ],
-        bottomLeft: ["outBottomLeft"],
+        bottomLeft: ["inBottomLeft"],
       })
     if (key === "bottom")
       return collisions({
-        topLeft: ["outTopLeft"],
+        topLeft: ["inTopLeft"],
         top: ["top", "outTopLeft", "outTopRight", "inTopLeft", "inTopRight"],
-        topRight: ["outTopRight"],
+        topRight: ["inTopRight"],
       })
-    if (key === "outTopLeft")
+    // Inside-corner variants (turn and t-junction and crossroads).
+    if (key === "inTopLeft")
       return collisions({
         bottom: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
         right: ["top", "right", "inTopRight", "outTopRight"],
         bottomRight: ["bottom", "right", "inBottomRight", "outBottomRight"],
       })
-    if (key === "outTopRight")
+    if (key === "inTopRight")
       return collisions({
         bottom: ["bottom", "right", "inBottomRight", "outBottomRight"],
         left: ["top", "left", "inTopLeft", "outTopLeft"],
         bottomLeft: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
       })
-    if (key === "outBottomLeft")
+    if (key === "inBottomLeft")
       return collisions({
         top: ["top", "left", "inTopLeft", "outTopLeft"],
         right: ["bottom", "right", "inBottomRight", "outBottomRight"],
         topRight: ["top", "right", "inTopRight", "outTopRight"],
       })
-    if (key === "outBottomRight")
+    if (key === "inBottomRight")
       return collisions({
         top: ["top", "right", "inTopRight", "outTopRight"],
         left: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
