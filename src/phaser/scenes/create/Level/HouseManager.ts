@@ -365,45 +365,23 @@ export default class extends BaseManager {
 
   /** Returns the colliding variant keys for a tile that a house occupies. */
   private variantCollisions(tile: Tile, house: House): VariantKey[] {
-    const isDirections = (dirs: Direction[]) => {
-      const newTile = this.level.moveFromTile(house, dirs)
-      return newTile && newTile.col === tile.col && newTile.row === tile.row
-    }
-
-    const collisions = ({
-      left = [],
-      right = [],
-      top = [],
-      bottom = [],
-      topLeft = [],
-      topRight = [],
-      bottomLeft = [],
-      bottomRight = [],
-    }: {
-      left?: VariantKey[]
-      right?: VariantKey[]
-      top?: VariantKey[]
-      bottom?: VariantKey[]
-      topLeft?: VariantKey[]
-      topRight?: VariantKey[]
-      bottomLeft?: VariantKey[]
-      bottomRight?: VariantKey[]
-    }): VariantKey[] => {
-      if (isDirections(["left"])) return left
-      if (isDirections(["right"])) return right
-      if (isDirections(["top"])) return top
-      if (isDirections(["bottom"])) return bottom
-      if (isDirections(["top", "left"])) return topLeft
-      if (isDirections(["top", "right"])) return topRight
-      if (isDirections(["bottom", "left"])) return bottomLeft
-      if (isDirections(["bottom", "right"])) return bottomRight
-      return []
-    }
-
     const key = house.variant.key
-    // Straight and dead-end variants.
+    let collisions: Partial<
+      Record<
+        | "left"
+        | "right"
+        | "top"
+        | "bottom"
+        | "topLeft"
+        | "topRight"
+        | "bottomLeft"
+        | "bottomRight",
+        VariantKey[]
+      >
+    > = {}
+    // Straight variants (straight, dead-end, t-junction).
     if (key === "left")
-      return collisions({
+      collisions = {
         topRight: ["inTopRight"],
         right: [
           "right",
@@ -413,9 +391,9 @@ export default class extends BaseManager {
           "inBottomRight",
         ],
         bottomRight: ["inBottomRight"],
-      })
-    if (key === "top")
-      return collisions({
+      }
+    else if (key === "top")
+      collisions = {
         bottomLeft: ["inBottomLeft"],
         bottom: [
           "bottom",
@@ -425,9 +403,9 @@ export default class extends BaseManager {
           "inBottomRight",
         ],
         bottomRight: ["inBottomRight"],
-      })
-    if (key === "right")
-      return collisions({
+      }
+    else if (key === "right")
+      collisions = {
         topLeft: ["inTopLeft"],
         left: [
           "left",
@@ -437,63 +415,77 @@ export default class extends BaseManager {
           "inBottomLeft",
         ],
         bottomLeft: ["inBottomLeft"],
-      })
-    if (key === "bottom")
-      return collisions({
+      }
+    else if (key === "bottom")
+      collisions = {
         topLeft: ["inTopLeft"],
         top: ["top", "outTopLeft", "outTopRight", "inTopLeft", "inTopRight"],
         topRight: ["inTopRight"],
-      })
-    // Inside-corner variants (turn and t-junction and crossroads).
-    if (key === "inTopLeft")
-      return collisions({
+      }
+    // Inside-corner variants (turn, t-junction, crossroads).
+    else if (key === "inTopLeft")
+      collisions = {
         bottom: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
         right: ["top", "right", "inTopRight", "outTopRight"],
         bottomRight: ["bottom", "right", "inBottomRight", "outBottomRight"],
-      })
-    if (key === "inTopRight")
-      return collisions({
+      }
+    else if (key === "inTopRight")
+      collisions = {
         bottom: ["bottom", "right", "inBottomRight", "outBottomRight"],
         left: ["top", "left", "inTopLeft", "outTopLeft"],
         bottomLeft: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
-      })
-    if (key === "inBottomLeft")
-      return collisions({
+      }
+    else if (key === "inBottomLeft")
+      collisions = {
         top: ["top", "left", "inTopLeft", "outTopLeft"],
         right: ["bottom", "right", "inBottomRight", "outBottomRight"],
         topRight: ["top", "right", "inTopRight", "outTopRight"],
-      })
-    if (key === "inBottomRight")
-      return collisions({
+      }
+    else if (key === "inBottomRight")
+      collisions = {
         top: ["top", "right", "inTopRight", "outTopRight"],
         left: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
         topLeft: ["top", "left", "inTopLeft", "outTopLeft"],
-      })
+      }
     // Outside-corner variants (turn only).
-    if (key === "outTopLeft")
-      return collisions({
+    else if (key === "outTopLeft")
+      collisions = {
         bottom: ["bottom", "inBottomLeft"],
         right: ["right", "inTopRight"],
         bottomRight: ["inBottomRight"],
-      })
-    if (key === "outTopRight")
-      return collisions({
+      }
+    else if (key === "outTopRight")
+      collisions = {
         bottom: ["bottom", "inBottomRight"],
         left: ["left", "inTopLeft"],
         bottomLeft: ["inBottomLeft"],
-      })
-    if (key === "outBottomLeft")
-      return collisions({
+      }
+    else if (key === "outBottomLeft")
+      collisions = {
         top: ["top", "inTopLeft"],
         right: ["right", "inBottomRight"],
         topRight: ["inTopRight"],
-      })
-    if (key === "outBottomRight")
-      return collisions({
+      }
+    else if (key === "outBottomRight")
+      collisions = {
         top: ["top", "inTopRight"],
         left: ["left", "inBottomLeft"],
         topLeft: ["inTopLeft"],
-      })
+      }
+
+    const isDirections = (dirs: Direction[]) => {
+      const newTile = this.level.moveFromTile(house, dirs)
+      return newTile && newTile.col === tile.col && newTile.row === tile.row
+    }
+
+    if (isDirections(["left"])) return collisions.left ?? []
+    if (isDirections(["right"])) return collisions.right ?? []
+    if (isDirections(["top"])) return collisions.top ?? []
+    if (isDirections(["bottom"])) return collisions.bottom ?? []
+    if (isDirections(["top", "left"])) return collisions.topLeft ?? []
+    if (isDirections(["top", "right"])) return collisions.topRight ?? []
+    if (isDirections(["bottom", "left"])) return collisions.bottomLeft ?? []
+    if (isDirections(["bottom", "right"])) return collisions.bottomRight ?? []
     return []
   }
 
