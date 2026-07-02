@@ -17,13 +17,13 @@ type Style = Tile & { type: "add" | "rotate" | "delete" }
 export default class extends BaseManager {
   /**
    * Persistent 2D array [row][col] indicating if a house is occupying a tile.
-   * - A value of `null` means the tile is unoccupied.
-   * - A value of `Tile` means the tile is occupied by a crossover tile of a
-   *   house. The value points to the main tile of the house.
-   * - A value of `Variant` means the tile is occupied by the main tile of a
-   *   house.
+   * - `null` means the tile is unoccupied.
+   * - `House` means the tile is occupied by the 'main tile' of a house.
+   * - `House[]` means the tile is occupied by one or more 'non-colliding
+   *    crossover tiles' of a house. Each value points to the house that is
+   *    crossing over into this tile.
    */
-  private readonly _houses: (House | Tile | null)[][] = Array.from(
+  private readonly _houses: (House | House[] | null)[][] = Array.from(
     { length: this.level.tilemap.height },
     () => Array.from({ length: this.level.tilemap.width }, () => null),
   )
@@ -63,56 +63,52 @@ export default class extends BaseManager {
    * Get the house variant for a given tile.
    * If the tile is a crossover tile, returns the main house variant.
    */
-  private houses(tile: Tile): House | null
+  private houses(tile: Tile): House | House[] | null
   /**
    * Set the house variant for a given tile.
    * If the tile is already occupied by a house, it's main and crossover tiles
    * will first be removed before the new house is placed.
    */
   private houses(tile: Tile, house: Omit<House, keyof Tile> | null): void
-  private houses(tile: Tile, house?: Omit<House, keyof Tile> | null) {
-    // Get the main house tile or null.
-    const get = ({ row, col }: Tile) => {
-      const house = this._houses[row][col]
+  private houses({ row, col }: Tile, house?: Omit<House, keyof Tile> | null) {
+    const currentValue = this._houses[row][col]
+    if (house === undefined) return currentValue
 
-      return house === null || "variant" in house
-        ? house
-        : (this._houses[house.row][house.col] as House)
-    }
-
-    const set = ({ row, col }: Tile, value: House | Tile | null) => {
-      const currentHouse = get({ row, col })
-
-      // Clear the current house's main and crossover tiles.
-      if (currentHouse !== null) {
-        // Check if the current tile is a crossover tile.
-        // If so, clear the main tile.
-        const house = this._houses[row][col]
-        if (house !== null && !("variant" in house)) {
+    // Clear any currently occupied tiles.
+    if (currentValue !== null) {
+      ;(Array.isArray(currentValue) ? currentValue : [currentValue]).forEach(
+        house => {
+          // Clear the house's main tile.
           this._houses[house.row][house.col] = null
-        }
-
-        // Clear the current tile (may be a main or crossover tile).
-        this._houses[row][col] = null
-
-        // Clear the crossover tiles.
-        currentHouse.variant.crossoverTiles.forEach(cTile => {
-          this._houses[cTile.row][cTile.col] = null
-        })
-      }
-
-      // Set the new current (may be null, a main, or a crossover tile).
-      this._houses[row][col] = value
-
-      // Set the crossover tiles if the current tile is a main tile.
-      if (value !== null && "variant" in value) {
-        value.variant.crossoverTiles.forEach(cTile => set(cTile, { row, col }))
-      }
+          // Remove the house from the crossover tiles.
+          house.variant.crossoverTiles.forEach(cTile => {
+            let value: House[] | null = null
+            let houses = this._houses[cTile.row][cTile.col]
+            if (Array.isArray(houses)) {
+              houses = houses.filter(h => h !== house)
+              if (houses.length > 0) value = houses
+            }
+            this._houses[cTile.row][cTile.col] = value
+          })
+        },
+      )
     }
 
-    if (house === undefined) return get(tile)
+    let value: House | null = null
+    if (house !== null) {
+      value = { row, col, ...house }
 
-    set(tile, house === null ? null : { ...tile, ...house })
+      // Set the house's crossover tiles.
+      value.variant.crossoverTiles.forEach(cTile => {
+        let houses = this._houses[cTile.row][cTile.col]
+        if (!Array.isArray(houses))
+          this._houses[cTile.row][cTile.col] = houses = []
+        houses.push(value!)
+      })
+    }
+
+    // Set the new value (may be null or a main tile).
+    this._houses[row][col] = value
   }
 
   private set style(value: Style | null) {
@@ -151,20 +147,29 @@ export default class extends BaseManager {
   }
 
   /** Checks if the given tile is the main tile of a house. */
-  private isMainTile(tile: Tile, house?: House | null) {
-    house = house === undefined ? this.houses(tile) : house
-    return house !== null && house.col === tile.col && house.row === tile.row
+  private isMainTile(tile: Tile, houses?: House | House[] | null) {
+    houses = houses === undefined ? this.houses(tile) : houses
+    return (
+      houses !== null &&
+      !Array.isArray(houses) &&
+      houses.col === tile.col &&
+      houses.row === tile.row
+    )
   }
 
   /** Checks if a house can be added at the given tile. */
   private canAdd = (tile: Tile) =>
-    this.level.road.dirs(tile).size > 0 &&
-    !this.houses(tile) &&
-    this.variants(tile).length > 0
+    !this.isMainTile(tile) && this.variants(tile).length > 0
 
   /** Checks if a house can be rotated at the given tile. */
-  private canRotate = (tile: Tile) =>
-    this.isMainTile(tile) && this.variants(tile).length >= 2
+  private canRotate = (tile: Tile) => {
+    const house = this.houses(tile)
+    return (
+      house !== null &&
+      !Array.isArray(house) &&
+      this.variants(house, undefined, house).length >= 2
+    )
+  }
 
   /** Checks if a house can be deleted at the given tile. */
   private canDelete = (tile: Tile) => this.isMainTile(tile)
@@ -207,9 +212,10 @@ export default class extends BaseManager {
   /** Rotates the house at the given tile to the next available variant. */
   private rotate(tile: Tile) {
     const house = this.houses(tile)
-    if (!house) return
+    if (!house || Array.isArray(house)) return
 
-    const variants = this.variants(house)
+    // Exclude the current house so its own crossovers don't block other variants.
+    const variants = this.variants(house, undefined, house)
     if (variants.length < 2) return // No other variants to rotate to.
 
     let variantIndex = variants.findIndex(v => v.key === house.variant.key)
@@ -306,8 +312,18 @@ export default class extends BaseManager {
     return [] // No crossover tiles for variant.
   }
 
-  /** Returns the house variants that can be placed on a given tile. */
-  private variants(tile: Tile, roadId?: layers.tile.data.RoadID): Variant[] {
+  /**
+   * Returns the house variants that can be placed on a given tile.
+   *
+   * @param excludeHouse - A house already placed at `tile` that should be
+   * ignored during collision checks (used when rotating, so the current house
+   * does not block its own replacement variants).
+   */
+  private variants(
+    tile: Tile,
+    roadId?: layers.tile.data.RoadID,
+    excludeHouse?: House,
+  ): Variant[] {
     roadId ??= this.level.road.dirsToId(this.level.road.dirs(tile))
 
     return (
@@ -317,36 +333,154 @@ export default class extends BaseManager {
           key: variantKey,
           crossoverTiles: this.variantKeyToCrossoverTiles(tile, variantKey),
         }))
-        // Filter out variants that have crossover tiles already occupied by
-        // other houses. A crossover tile is considered occupied if it is either
-        // a main tile of another house or a crossover tile of another house.
-        .filter(({ crossoverTiles }) =>
+        // Filter out variants where the main tile or any crossover tile is
+        // already occupied by a colliding house.
+        // - A `House` entry (main tile of another house) always blocks.
+        // - A `House[]` entry (non-colliding crossovers) blocks only if
+        //   variantCollisions() says the new key conflicts with one of them.
+        .filter(({ key, crossoverTiles }) =>
           crossoverTiles.every(cTile => {
-            const house = this.houses(cTile)
+            const houses = this.houses(cTile)
             return (
-              house === null ||
-              (house.row === tile.row && house.col === tile.col)
+              houses === null ||
+              (Array.isArray(houses) &&
+                houses.every(
+                  house =>
+                    (excludeHouse &&
+                      house.col === excludeHouse.col &&
+                      house.row === excludeHouse.row &&
+                      house.variant.key === excludeHouse.variant.key) ||
+                    !this.variantCollisions(cTile, house).includes(key),
+                ))
             )
           }),
         )
     )
   }
 
+  /** Returns the colliding variant keys for a tile that a house occupies. */
+  private variantCollisions(tile: Tile, house: House): VariantKey[] {
+    const isDirections = (dirs: Direction[]) => {
+      const newTile = this.level.moveFromTile(house, dirs)
+      return newTile && newTile.col === tile.col && newTile.row === tile.row
+    }
+
+    const collisions = ({
+      left = [],
+      right = [],
+      top = [],
+      bottom = [],
+      topLeft = [],
+      topRight = [],
+      bottomLeft = [],
+      bottomRight = [],
+    }: {
+      left?: VariantKey[]
+      right?: VariantKey[]
+      top?: VariantKey[]
+      bottom?: VariantKey[]
+      topLeft?: VariantKey[]
+      topRight?: VariantKey[]
+      bottomLeft?: VariantKey[]
+      bottomRight?: VariantKey[]
+    }): VariantKey[] => {
+      if (isDirections(["left"])) return left
+      if (isDirections(["right"])) return right
+      if (isDirections(["top"])) return top
+      if (isDirections(["bottom"])) return bottom
+      if (isDirections(["top", "left"])) return topLeft
+      if (isDirections(["top", "right"])) return topRight
+      if (isDirections(["bottom", "left"])) return bottomLeft
+      if (isDirections(["bottom", "right"])) return bottomRight
+      return []
+    }
+
+    const key = house.variant.key
+    if (key === "left")
+      return collisions({
+        topRight: ["outTopRight"],
+        right: [
+          "right",
+          "outTopRight",
+          "outBottomRight",
+          "inTopRight",
+          "inBottomRight",
+        ],
+        bottomRight: ["outBottomRight"],
+      })
+    if (key === "top")
+      return collisions({
+        bottomLeft: ["outBottomLeft"],
+        bottom: [
+          "bottom",
+          "outBottomLeft",
+          "outBottomRight",
+          "inBottomLeft",
+          "inBottomRight",
+        ],
+        bottomRight: ["outBottomRight"],
+      })
+    if (key === "right")
+      return collisions({
+        topLeft: ["outTopLeft"],
+        left: [
+          "left",
+          "outTopLeft",
+          "outBottomLeft",
+          "inTopLeft",
+          "inBottomLeft",
+        ],
+        bottomLeft: ["outBottomLeft"],
+      })
+    if (key === "bottom")
+      return collisions({
+        topLeft: ["outTopLeft"],
+        top: ["top", "outTopLeft", "outTopRight", "inTopLeft", "inTopRight"],
+        topRight: ["outTopRight"],
+      })
+    if (key === "outTopLeft")
+      return collisions({
+        bottom: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
+        right: ["top", "right", "inTopRight", "outTopRight"],
+        bottomRight: ["bottom", "right", "inBottomRight", "outBottomRight"],
+      })
+    if (key === "outTopRight")
+      return collisions({
+        bottom: ["bottom", "right", "inBottomRight", "outBottomRight"],
+        left: ["top", "left", "inTopLeft", "outTopLeft"],
+        bottomLeft: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
+      })
+    if (key === "outBottomLeft")
+      return collisions({
+        top: ["top", "left", "inTopLeft", "outTopLeft"],
+        right: ["bottom", "right", "inBottomRight", "outBottomRight"],
+        topRight: ["top", "right", "inTopRight", "outTopRight"],
+      })
+    if (key === "outBottomRight")
+      return collisions({
+        top: ["top", "right", "inTopRight", "outTopRight"],
+        left: ["bottom", "left", "inBottomLeft", "outBottomLeft"],
+        topLeft: ["top", "left", "inTopLeft", "outTopLeft"],
+      })
+    return []
+  }
+
   /** Handles the addition of a road on the map. */
   private onAddRoad({ id: roadId, ...tile }: AddRoadEventData) {
     const house = this.houses(tile)
-    if (!this.isMainTile(tile, house)) return
+    if (!house || Array.isArray(house)) return
 
     const variants = this.variants(tile, roadId)
-    if (variants.length === 0) this.delete(house!)
-    else if (variants.every(v => v.key !== house!.variant.key)) {
-      this.deleteAndAddVariant({ ...house!, variant: variants[0] })
+    if (variants.length === 0) this.delete(house)
+    else if (variants.every(v => v.key !== house.variant.key)) {
+      this.deleteAndAddVariant({ ...house, variant: variants[0] })
     }
   }
 
   /** Handles the deletion of a road on the map. */
   private onDeleteRoad(tile: DeleteRoadEventData) {
-    if (this.canDelete(tile)) this.delete(this.houses(tile)!)
+    // NOTE: `canDelete` asserts this is the main tile of a house.
+    if (this.canDelete(tile)) this.delete(this.houses(tile) as House)
   }
 
   private onPointerDown(pointer: Phaser.Input.Pointer) {
@@ -371,7 +505,8 @@ export default class extends BaseManager {
         this.style = { ...tile, type: "rotate" }
       } else this.style = null // Clear the style.
     } else if (this.canDelete(tile)) {
-      this.delete(this.houses(tile)!)
+      // NOTE: `canDelete` asserts this is the main tile of a house.
+      this.delete(this.houses(tile) as House)
       this.style = null // Clear the style.
     }
   }
