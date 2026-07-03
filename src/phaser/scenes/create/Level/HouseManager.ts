@@ -17,16 +17,20 @@ type Style = Tile & { type: "add" | "rotate" | "delete" }
 
 export default class extends BaseManager {
   /**
-   * Persistent 2D arrays [row][col] tracking house occupancy.
-   * - `_main[r][c]` is the house whose **main tile** is at (r, c), or `null`.
-   * - `_crossovers[r][c]` is the list of houses that have a **crossover tile**
-   *   at (r, c). A tile can simultaneously have a main house and crossovers
-   *   from non-colliding houses, so these must be tracked separately.
+   * Persistent 2D array [row][col] tracking a house's **main tile**. `null`
+   * means no house has its main tile at that position.
    */
   private readonly _main: (House | null)[][] = Array.from(
     { length: this.level.tilemap.height },
     () => Array.from({ length: this.level.tilemap.width }, () => null),
   )
+
+  /**
+   * Persistent 2D array [row][col] tracking houses' **crossover tiles**. A
+   * crossover tile is a tile that's occupied by a house, but is not the house's
+   * main tile. Multiple houses can share a crossover tile so long as they don't
+   * collide.
+   */
   private readonly _crossovers: Crossover[][][] = Array.from(
     { length: this.level.tilemap.height },
     () => Array.from({ length: this.level.tilemap.width }, () => []),
@@ -38,6 +42,7 @@ export default class extends BaseManager {
   /** The current style applied to the level. */
   private _style: Style | null = null
 
+  /** A record of variant collisions for each variant key. */
   private readonly _variantCollisions: Record<
     VariantKey,
     Partial<
@@ -167,7 +172,6 @@ export default class extends BaseManager {
   /**
    * Set the house at the given tile.
    * If another house already has its main tile here, it is cleared first.
-   * Crossover entries from non-colliding houses are preserved.
    */
   private houses(tile: Tile, house: House | null): House | null
   private houses({ row, col }: Tile, house?: House | null) {
@@ -254,7 +258,7 @@ export default class extends BaseManager {
     return house
   }
 
-  /** Clears the house from the tracking arrays and destroys its Phaser object. */
+  /** Delete a house from the given tile. */
   private delete(tile: Tile, { obj }: House) {
     this.houses(tile, null)
     this.level.destroyObject("ObjectGroup.ENDPOINTS", obj)
@@ -361,9 +365,8 @@ export default class extends BaseManager {
   /**
    * Returns the house variants that can be placed on a given tile.
    *
-   * @param excludeHouse - A house already placed at `tile` that should be
-   * ignored during collision checks (used when rotating, so the current house
-   * does not block its own replacement variants).
+   * A variant is valid if the main tile and all crossover tiles are unoccupied
+   * by a colliding house.
    */
   private variants(
     tile: Tile,
@@ -376,56 +379,56 @@ export default class extends BaseManager {
     }> = {},
   ): Variant[] {
     return (
+      // Get all variants for the given road ID.
       this.roadIdToVariantKeys(roadId)
-        // Map each variant key to its crossover tiles.
+        // For each variant, compute its crossover tiles.
         .map(variantKey => ({
           key: variantKey,
           crossoverTiles: this.variantKeyToCrossoverTiles(tile, variantKey),
         }))
         // Filter out variants where the main tile or any crossover tile is
         // already occupied by a colliding house.
-        // - A `House` entry (main tile of another house) always blocks.
-        // - A `House[]` entry (non-colliding crossovers) blocks only if
-        //   variantCollisions() says the new key conflicts with one of them.
+        // - A main tile of another house always blocks.
+        // - A crossover tile blocks only if it collides with the new variant.
         .filter(({ key, crossoverTiles }) =>
-          // Check the main tile and every crossover tile of the candidate variant.
-          [tile, ...crossoverTiles].every(cTile => {
-            const main = this._main[cTile.row][cTile.col]
-            const crossovers = this._crossovers[cTile.row][cTile.col]
+          [tile, ...crossoverTiles].every(t => {
+            const main = this._main[t.row][t.col]
+            const crossovers = this._crossovers[t.row][t.col]
 
-            // If another house has its main tile here, check whether the new
-            // variant actually conflicts with it (not all overlaps are collisions).
             if (
-              main !== null &&
-              !(
-                excludeTile &&
-                cTile.col === tile.col &&
-                cTile.row === tile.row
-              ) &&
-              // Ask from the new variant's perspective: placing `key` at `tile`
-              // with a crossover at `cTile` — does that conflict with `main`?
-              this.variantCollisions(tile, cTile, key).includes(
-                main.variant.key,
-              )
+              // If this is the main tile of a house...
+              main !== null && //
+              // ...and we're not excluding the variant's main tile (or it's not
+              // the variant's main tile)...
+              !(excludeTile && t.col === tile.col && t.row === tile.row) &&
+              // ...and the new variant collides with the main tile's variant...
+              this.variantCollisions(tile, t, key).includes(main.variant.key)
             )
-              return false
+              return false // ...then the variant is invalid.
 
-            // Crossovers at this tile block only if they collide with the key.
+            // The new variant is valid if every crossover tile is...
             return crossovers.every(
               c =>
+                // ...the variant's main tile and is being excluded...
                 (excludeTile &&
                   c.main.col === tile.col &&
                   c.main.row === tile.row) ||
-                !this.variantCollisions(c.main, cTile, c.variant.key).includes(
-                  key,
-                ),
+                // ...or does not collide with the existing variant.
+                !this.variantCollisions(c.main, t, c.variant.key).includes(key),
             )
           }),
         )
     )
   }
 
-  /** Returns the colliding variant keys for a tile that a house occupies. */
+  /**
+   * Returns the colliding variants for a tile that a house occupies.
+   *
+   * Collisions are determined by the direction from the house's main tile to
+   * the crossover tile. For example, if a house's main tile is at (1, 1) and it
+   * has a crossover tile at (1, 2), then the direction is "right" and the
+   * colliding variants are determined accordingly.
+   */
   private variantCollisions(
     from: Tile,
     to: Tile,
@@ -447,6 +450,8 @@ export default class extends BaseManager {
       return newTile && newTile.col === to.col && newTile.row === to.row
     }
 
+    // Determine the direction from the main tile to the crossover tile and
+    // return the colliding variants.
     if (isDirections(["left"])) return left
     if (isDirections(["right"])) return right
     if (isDirections(["top"])) return top
@@ -477,6 +482,14 @@ export default class extends BaseManager {
     if (house) this.delete(tile, house)
   }
 
+  /**
+   * Handles pointer events on the map.
+   *
+   * This ensures a valid tool is active and that the pointer is over a valid
+   * tile before calling the provided handler function. The handler function is
+   * responsible for determining the appropriate style to apply based on the
+   * tool, tile, and house state.
+   */
   private onPointer(
     pointer: Phaser.Input.Pointer,
     handle: (
