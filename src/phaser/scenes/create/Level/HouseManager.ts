@@ -388,8 +388,10 @@ export default class extends BaseManager {
         }))
         // Filter out variants where the main tile or any crossover tile is
         // already occupied by a colliding house.
-        // - A main tile of another house always blocks.
-        // - A crossover tile blocks only if it collides with the new variant.
+        // - A main tile of another house blocks only if it collides with the
+        //   new variant.
+        // - A crossover of another house blocks only if it collides with the
+        //   new variant.
         .filter(({ key, crossoverTiles }) =>
           [tile, ...crossoverTiles].every(t => {
             const main = this._main[t.row][t.col]
@@ -398,23 +400,27 @@ export default class extends BaseManager {
             if (
               // If this is the main tile of a house...
               main !== null && //
-              // ...and we're not excluding the variant's main tile (or it's not
-              // the variant's main tile)...
+              // ...and we're not excluding the house at the variant's main
+              // tile (or `t` is not the variant's main tile)...
               !(excludeTile && t.col === tile.col && t.row === tile.row) &&
-              // ...and the new variant collides with the main tile's variant...
+              // ...and the new variant collides with the existing main tile...
               this.variantCollisions(tile, t, key).includes(main.variant.key)
             )
               return false // ...then the variant is invalid.
 
-            // The new variant is valid if every crossover tile is...
+            // The variant is also invalid if any existing house with a
+            // crossover at `t` collides with the new variant `key` at `tile`.
             return crossovers.every(
               c =>
-                // ...the variant's main tile and is being excluded...
+                // Ignore the house at `tile` if it's being excluded (i.e. the
+                // house currently being rotated).
                 (excludeTile &&
                   c.main.col === tile.col &&
                   c.main.row === tile.row) ||
-                // ...or does not collide with the existing variant.
-                !this.variantCollisions(c.main, t, c.variant.key).includes(key),
+                // The new variant is valid if it doesn't collide with `c`.
+                !this.variantCollisions(c.main, tile, c.variant.key).includes(
+                  key,
+                ),
             )
           }),
         )
@@ -528,10 +534,7 @@ export default class extends BaseManager {
   private onPointerMove = (pointer: Phaser.Input.Pointer) =>
     this.onPointer(pointer, (tool, tile, house) => {
       if (tool === "add-house") {
-        if (!house) {
-          const roadDirs = this.level.road.dirs(tile)
-          return roadDirs.size > 0 ? "add" : undefined
-        }
+        if (!house) return this.variants(tile).length > 0 ? "add" : undefined
         const variants = this.variants(tile, { excludeTile: true })
         if (this.canRotate(house, variants)) return "rotate"
       } else if (house) return "delete"
