@@ -12,7 +12,7 @@ type VariantKey =
   | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants
 type Variant = { key: VariantKey; crossoverTiles: Tile[] }
 type House = { obj: Phaser.GameObjects.Image; variant: Variant }
-type Crossover = House & Tile
+type Crossover = House & { main: Tile }
 type Style = Tile & { type: "add" | "rotate" | "delete" }
 
 export default class extends BaseManager {
@@ -179,7 +179,9 @@ export default class extends BaseManager {
       // Remove it from its crossover tiles.
       currentMain.variant.crossoverTiles.forEach(cTile => {
         const arr = this._crossovers[cTile.row][cTile.col]
-        const idx = arr.findIndex(c => c.col === col && c.row === row)
+        const idx = arr.findIndex(
+          ({ main }) => main.col === col && main.row === row,
+        )
         if (idx !== -1) arr.splice(idx, 1)
       })
       this._main[row][col] = null
@@ -189,7 +191,8 @@ export default class extends BaseManager {
       this._main[row][col] = house
       // Register this house as a crossover in each of its crossover tiles.
       house.variant.crossoverTiles.forEach(cTile => {
-        this._crossovers[cTile.row][cTile.col].push({ row, col, ...house })
+        const crossover: Crossover = { main: { row, col }, ...house }
+        this._crossovers[cTile.row][cTile.col].push(crossover)
       })
     }
 
@@ -366,10 +369,10 @@ export default class extends BaseManager {
     tile: Tile,
     {
       roadId = this.level.road.dirsToId(this.level.road.dirs(tile)),
-      exclude,
+      excludeTile = false,
     }: Partial<{
       roadId?: layers.tile.data.RoadID
-      exclude?: Tile
+      excludeTile?: boolean
     }> = {},
   ): Variant[] {
     return (
@@ -395,24 +398,27 @@ export default class extends BaseManager {
             if (
               main !== null &&
               !(
-                exclude &&
-                cTile.col === exclude.col &&
-                cTile.row === exclude.row
+                excludeTile &&
+                cTile.col === tile.col &&
+                cTile.row === tile.row
               ) &&
               // Ask from the new variant's perspective: placing `key` at `tile`
               // with a crossover at `cTile` — does that conflict with `main`?
-              this.variantCollisions(cTile, {
-                ...tile,
-                variant: { key, crossoverTiles: [] },
-              } as unknown as Crossover).includes(main.variant.key)
+              this.variantCollisions(tile, cTile, key).includes(
+                main.variant.key,
+              )
             )
               return false
 
             // Crossovers at this tile block only if they collide with the key.
             return crossovers.every(
               c =>
-                (exclude && c.col === exclude.col && c.row === exclude.row) ||
-                !this.variantCollisions(cTile, c).includes(key),
+                (excludeTile &&
+                  c.main.col === tile.col &&
+                  c.main.row === tile.row) ||
+                !this.variantCollisions(c.main, cTile, c.variant.key).includes(
+                  key,
+                ),
             )
           }),
         )
@@ -420,7 +426,11 @@ export default class extends BaseManager {
   }
 
   /** Returns the colliding variant keys for a tile that a house occupies. */
-  private variantCollisions(tile: Tile, crossover: Crossover): VariantKey[] {
+  private variantCollisions(
+    from: Tile,
+    to: Tile,
+    key: VariantKey,
+  ): VariantKey[] {
     const {
       left = [],
       right = [],
@@ -430,11 +440,11 @@ export default class extends BaseManager {
       topRight = [],
       bottomLeft = [],
       bottomRight = [],
-    } = this._variantCollisions[crossover.variant.key]
+    } = this._variantCollisions[key]
 
     const isDirections = (dirs: Direction[]) => {
-      const newTile = this.level.moveFromTile(crossover, dirs)
-      return newTile && newTile.col === tile.col && newTile.row === tile.row
+      const newTile = this.level.moveFromTile(from, dirs)
+      return newTile && newTile.col === to.col && newTile.row === to.row
     }
 
     if (isDirections(["left"])) return left
@@ -453,7 +463,7 @@ export default class extends BaseManager {
     const house = this.houses(tile)
     if (!house) return
 
-    const variants = this.variants(tile, { roadId: id, exclude: tile })
+    const variants = this.variants(tile, { roadId: id, excludeTile: true })
     if (variants.length === 0) this.delete(tile, house)
     else if (variants.every(({ key }) => key !== house.variant.key)) {
       this.delete(tile, house)
@@ -491,10 +501,10 @@ export default class extends BaseManager {
           let variants = this.variants(tile)
           if (variants.length === 0) return
           house = this.add(tile, variants[0])
-          variants = this.variants(tile, { exclude: tile })
+          variants = this.variants(tile, { excludeTile: true })
           if (this.canRotate(house, variants)) return "rotate"
         } else {
-          const variants = this.variants(tile, { exclude: tile })
+          const variants = this.variants(tile, { excludeTile: true })
           if (!this.canRotate(house, variants)) return
           this.rotate(tile, house, variants)
           return "rotate"
@@ -509,7 +519,7 @@ export default class extends BaseManager {
           const roadDirs = this.level.road.dirs(tile)
           return roadDirs.size > 0 ? "add" : undefined
         }
-        const variants = this.variants(tile, { exclude: tile })
+        const variants = this.variants(tile, { excludeTile: true })
         if (this.canRotate(house, variants)) return "rotate"
       } else if (house) return "delete"
     })
