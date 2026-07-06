@@ -11,3 +11,5 @@ jobs:
   main:
     uses: codeforlife-education/codeforlife-workspace/.github/workflows/frontend.yaml@main
     secrets: inherit
+    permissions:
+      id-token: write
