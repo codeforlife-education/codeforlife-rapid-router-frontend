@@ -1,3 +1,7 @@
+import {
+  AddRoad as AddRoadIcon,
+  RemoveRoad as RemoveRoadIcon,
+} from "@mui/icons-material"
 import Phaser from "phaser"
 
 import * as layers from "../../../layers"
@@ -26,14 +30,25 @@ export default class extends BaseManager {
   /** The type of road currently being placed. */
   private type: keyof typeof layers.tile.data.IDs.Road = "Asphalt"
 
+  /** CSS cursor string for the add-road icon, pre-computed once. */
+  private readonly addRoadCursor = this.level.muiIconToCursor(AddRoadIcon)
+
+  /** CSS cursor string for the delete-road icon, pre-computed once. */
+  private readonly deleteRoadCursor = this.level.muiIconToCursor(RemoveRoadIcon)
+
   constructor(level: Level) {
     super(level)
 
     const onDragEnd = (event: DragEndEventData) => this.onDragEnd(event)
     level.game.events.on(Events.DRAG_END, onDragEnd)
 
+    const onPointerMove = (pointer: Phaser.Input.Pointer) =>
+      this.onPointerMove(pointer)
+    level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.game.events.off(Events.DRAG_END, onDragEnd)
+      level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
     })
   }
 
@@ -154,6 +169,21 @@ export default class extends BaseManager {
   private onDragEnd({ tool, ...drag }: DragEndEventData) {
     if (tool === "add-road") this.finalizeAddDrag(drag)
     else if (tool === "delete-road") this.finalizeDeleteDrag(drag)
+  }
+
+  private onPointerMove(pointer: Phaser.Input.Pointer) {
+    const tool = this.level.toolbox?.activeTool
+    if (tool !== "add-road" && tool !== "delete-road") return
+
+    let cursor = "pointer"
+    const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
+    if (tile) {
+      const dirs = this.dirs(tile)
+      if (tool === "add-road") {
+        if (dirs.size < 4) cursor = this.addRoadCursor
+      } else if (dirs.size > 0) cursor = this.deleteRoadCursor
+    }
+    this.level.input.setDefaultCursor(cursor)
   }
 
   dirsToId(dirs: DirectionSet): layers.tile.data.RoadID {
