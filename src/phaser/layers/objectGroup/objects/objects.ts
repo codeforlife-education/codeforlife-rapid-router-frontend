@@ -79,8 +79,8 @@ export const factory = <
     name,
     x: baseX = 0,
     y: baseY = 0,
-    col: baseCol = 1,
-    row: baseRow = 1,
+    col: baseCol = 0,
+    row: baseRow = 0,
     width: baseWidth = TILE_WIDTH,
     height: baseHeight = TILE_HEIGHT,
     properties: baseProperties = [],
@@ -90,8 +90,8 @@ export const factory = <
   }: FactoryKwArgs<N, GID>,
   variants: V = {} as V,
 ): Factory<N, GID, V> => {
-  baseX += (baseCol - 1) * TILE_WIDTH
-  baseY += (baseRow - 1) * TILE_HEIGHT
+  baseX += baseCol * TILE_WIDTH
+  baseY += baseRow * TILE_HEIGHT
 
   const base: FactoryBase<N, GID> = ({
     x,
@@ -107,8 +107,8 @@ export const factory = <
   }) => ({
     type: name,
     name,
-    x: (x ? baseX + x : baseX) + (col ? (col - 1) * TILE_WIDTH : 0),
-    y: (y ? baseY + y : baseY) + (row ? (row - 1) * TILE_HEIGHT : 0),
+    x: (x ? baseX + x : baseX) + (col ? col * TILE_WIDTH : 0),
+    y: (y ? baseY + y : baseY) + (row ? row * TILE_HEIGHT : 0),
     width: width ? baseWidth + width : baseWidth,
     height: height ? baseHeight + height : baseHeight,
     properties: properties

@@ -38,17 +38,17 @@ export default tilemaps.makeOrthogonal({
       endpoints: {
         objects: [
           layers.objectGroup.objects.endpoints.cfc.warehouse.default.right({
-            row: 3,
+            row: 2,
           }),
           layers.objectGroup.objects.endpoints.house.common.orange.top({
-            col: 3,
-            row: 3,
+            col: 2,
+            row: 2,
           }),
         ],
       },
       scenery: {
         objects: [
-          layers.objectGroup.objects.scenery.common.tree1({ col: 2, row: 4 }),
+          layers.objectGroup.objects.scenery.common.tree1({ col: 1, row: 3 }),
         ],
       },
     },

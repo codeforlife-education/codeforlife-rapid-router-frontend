@@ -248,8 +248,7 @@ export default class extends BaseManager {
     // Add the house object to the endpoints layer.
     const obj = this.level.addObject(
       "ObjectGroup.ENDPOINTS",
-      // TODO: fix the +1 offset so the house is centered on the tile.
-      this.type[variant.key]({ col: tile.col + 1, row: tile.row + 1 }),
+      this.type[variant.key](tile),
     )
 
     // Occupy the tile and any crossover tiles for the house variant.
