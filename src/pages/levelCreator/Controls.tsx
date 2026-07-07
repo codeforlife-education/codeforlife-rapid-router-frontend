@@ -17,9 +17,11 @@ import { Divider } from "@mui/material"
 
 import * as miniDrawers from "../../components/miniDrawers"
 
-export interface ControlsProps {}
+export interface ControlsProps {
+  onSelectCodeClick: () => void
+}
 
-const Controls: FC<ControlsProps> = () => {
+const Controls: FC<ControlsProps> = ({ onSelectCodeClick }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const [selected, setSelected] = useState("")
 
@@ -61,6 +63,7 @@ const Controls: FC<ControlsProps> = () => {
         {...makeSelectableButtonItemProps("code")}
         text="Code"
         icon={<ExtensionIcon />}
+        onClick={onSelectCodeClick}
       />
       <miniDrawers.ButtonItem
         {...makeSelectableButtonItemProps("random")}
