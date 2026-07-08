@@ -26,7 +26,7 @@ export default class extends BasePreloader {
 
     // Dynamically import the tilemap JSON file based on the level ID.
     const { default: tilemap } = (await import(
-      `../../tilemaps/level${levelId}`
+      `../../tilemaps/level${levelId}.ts`
     )) as { default: OrthogonalTilemap }
 
     this.loadTilemap(tilemap)
