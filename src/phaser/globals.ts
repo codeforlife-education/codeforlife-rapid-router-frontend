@@ -14,6 +14,9 @@ export const Events = createIdRegistry({
   "set-commands": "SET_COMMANDS",
   "set-level-id": "SET_LEVEL_ID",
   "gameplay-scene-ready": "GAMEPLAY_SCENE_READY",
+  "add-road": "ADD_ROAD",
+  "delete-road": "DELETE_ROAD",
+  "drag-end": "DRAG_END",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 
@@ -22,13 +25,3 @@ export const Variables = createIdRegistry({
   levelId: "LEVEL_ID",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
-
-export const Directions = {
-  TOP: "top",
-  BOTTOM: "bottom",
-  LEFT: "left",
-  RIGHT: "right",
-} as const
-export const DIRECTIONS = Object.values(Directions)
-export type Direction = (typeof DIRECTIONS)[number]
-export type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
