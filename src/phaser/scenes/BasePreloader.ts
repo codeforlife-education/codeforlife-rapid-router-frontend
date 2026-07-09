@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import * as backgrounds from "../backgrounds"
+import * as images from "../images"
 import * as tilesets from "../tilesets"
 import type { default as BaseLevel, BaseLevelData } from "./BaseLevel"
 import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
@@ -12,7 +12,7 @@ export default class BasePreloader<
 > extends BaseScene<Data> {
   static readonly KEY = "Preloader"
   levelData: BaseLevelData = {
-    background: "grass",
+    background: images.Paths.Background.GRASS,
     tilesets: {
       "Tile.ROAD": [],
       "Tile.ENVIRONMENT": [],
@@ -35,7 +35,7 @@ export default class BasePreloader<
         centerY,
         this.scale.width,
         this.scale.height,
-        backgrounds.Backgrounds.GRASS,
+        images.Paths.Background.GRASS,
       )
       .setDepth(-1) // Render behind everything
 
@@ -64,7 +64,7 @@ export default class BasePreloader<
 
     // Load the background image specified in the tilemap properties.
     const background = tilemap.properties[0].value
-    this.load.svg(background, backgrounds.getSvgUrl(background), {
+    this.load.svg(background, images.getUrl(background), {
       width: tilemap.tilewidth ?? TILE_WIDTH,
       height: tilemap.tileheight ?? TILE_HEIGHT,
     })

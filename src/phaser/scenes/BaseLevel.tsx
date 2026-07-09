@@ -1,11 +1,12 @@
+import type { DeepStringsOf } from "codeforlife/utils/object"
 import Phaser from "phaser"
 
+import type * as images from "../images"
 import * as layers from "../layers"
-import type { Background } from "../backgrounds"
 import BaseScene from "./BaseScene"
 
 export interface BaseLevelData {
-  background: Background
+  background: DeepStringsOf<typeof images.Paths.Background>
   tilesets: Record<layers.tile.Name, Array<{ name: string }>> &
     Record<layers.objectGroup.Name, Array<{ name: string; gid: number }>>
 }
