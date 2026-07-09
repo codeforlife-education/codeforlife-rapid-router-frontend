@@ -7,31 +7,56 @@ import type { Direction, default as Level, Tile } from "."
 import BaseManager from "./BaseManager"
 import { Events } from "../../../globals"
 
-type VariantKey =
+type VariantBase<K extends string> = { key: K; crossoverTiles: Tile[] }
+type EndpointBase<T extends string, V extends VariantBase<string>> = {
+  type: T
+  obj: Phaser.GameObjects.Image
+  variant: V
+}
+
+type HouseVariantKey =
   | keyof layers.objectGroup.objects.StraightRotationVariants
   | keyof layers.objectGroup.objects.endpoints.house.DiagonalRotationVariants
-type Variant = { key: VariantKey; crossoverTiles: Tile[] }
-type House = { obj: Phaser.GameObjects.Image; variant: Variant }
-type Crossover = House & { main: Tile }
+type HouseVariant = VariantBase<HouseVariantKey>
+type HouseType = "house"
+type House = EndpointBase<HouseType, HouseVariant>
+
+type CfcVariantKey = keyof layers.objectGroup.objects.StraightRotationVariants
+type CfcVariant = VariantBase<CfcVariantKey>
+type CfcType = "cfc"
+type Cfc = EndpointBase<CfcType, CfcVariant>
+
+type VariantKey = HouseVariantKey | CfcVariantKey
+type Variant = HouseVariant | CfcVariant
+type Type = HouseType | CfcType
+type Endpoint = House | Cfc
+type Pointer<E extends Endpoint = Endpoint> = { main: Tile; endpoint: E }
 type Style = Tile & { type: "add" | "rotate" | "delete" }
 
 export default class extends BaseManager {
   /**
-   * Persistent 2D array [row][col] tracking a house's **main tile**. `null`
-   * means no house has its main tile at that position.
+   * The current CFC endpoint tile, if any.
+   *
+   * There can only be one CFC endpoint at a time.
    */
-  private readonly _main: (House | null)[][] = Array.from(
+  private _cfc: Pointer<Cfc> | null = null
+
+  /**
+   * Persistent 2D array [row][col] tracking a endpoint's **main tile**. `null`
+   * means no endpoint has its main tile at that position.
+   */
+  private readonly _main: (Endpoint | null)[][] = Array.from(
     { length: this.level.tilemap.height },
     () => Array.from({ length: this.level.tilemap.width }, () => null),
   )
 
   /**
-   * Persistent 2D array [row][col] tracking houses' **crossover tiles**. A
-   * crossover tile is a tile that's occupied by a house, but is not the house's
-   * main tile. Multiple houses can share a crossover tile so long as they don't
-   * collide.
+   * Persistent 2D array [row][col] tracking endpoints' **crossover tiles**. A
+   * crossover tile is a tile that's occupied by an endpoint, but is not the
+   * endpoint's main tile. Multiple endpoints can share a crossover tile so long
+   * as they don't collide.
    */
-  private readonly _crossovers: Crossover[][][] = Array.from(
+  private readonly _crossovers: Pointer[][][] = Array.from(
     { length: this.level.tilemap.height },
     () => Array.from({ length: this.level.tilemap.width }, () => []),
   )
@@ -43,8 +68,8 @@ export default class extends BaseManager {
   private _style: Style | null = null
 
   /** A record of variant collisions for each variant key. */
-  private readonly _variantCollisions: Record<
-    VariantKey,
+  private readonly _houseVariantCollisions: Record<
+    HouseVariantKey,
     Partial<
       Record<
         | "left"
@@ -55,7 +80,7 @@ export default class extends BaseManager {
         | "topRight"
         | "bottomLeft"
         | "bottomRight",
-        VariantKey[]
+        HouseVariantKey[]
       >
     >
   > = {
@@ -167,18 +192,18 @@ export default class extends BaseManager {
     })
   }
 
-  /** Get the house whose main tile is at the given tile, or `null`. */
-  private houses(tile: Tile): House | null
+  /** Get the endpoint whose main tile is at the given tile, or `null`. */
+  private endpoint(tile: Tile): Endpoint | null
   /**
-   * Set the house at the given tile.
-   * If another house already has its main tile here, it is cleared first.
+   * Set the endpoint at the given tile.
+   * If another endpoint already has its main tile here, it is cleared first.
    */
-  private houses(tile: Tile, house: House | null): House | null
-  private houses({ row, col }: Tile, house?: House | null) {
+  private endpoint(tile: Tile, endpoint: Endpoint | null): Endpoint | null
+  private endpoint({ row, col }: Tile, endpoint?: Endpoint | null) {
     const currentMain = this._main[row][col]
-    if (house === undefined) return currentMain
+    if (endpoint === undefined) return currentMain
 
-    // Clear the existing main house at this tile (if any).
+    // Clear the existing main endpoint at this tile (if any).
     if (currentMain !== null) {
       // Remove it from its crossover tiles.
       currentMain.variant.crossoverTiles.forEach(cTile => {
@@ -189,13 +214,17 @@ export default class extends BaseManager {
         if (idx !== -1) arr.splice(idx, 1)
       })
       this._main[row][col] = null
+      // Clear the tracked CFC endpoint if it is being removed.
+      if (currentMain.type === "cfc") this._cfc = null
     }
 
-    if (house !== null) {
-      this._main[row][col] = house
-      // Register this house as a crossover in each of its crossover tiles.
-      house.variant.crossoverTiles.forEach(cTile => {
-        const crossover: Crossover = { main: { row, col }, ...house }
+    if (endpoint !== null) {
+      this._main[row][col] = endpoint
+      // Track the CFC endpoint if applicable.
+      if (endpoint.type === "cfc") this._cfc = { main: { row, col }, endpoint }
+      // Register this endpoint as a crossover in each of its crossover tiles.
+      endpoint.variant.crossoverTiles.forEach(cTile => {
+        const crossover: Pointer = { main: { row, col }, endpoint }
         this._crossovers[cTile.row][cTile.col].push(crossover)
       })
     }
@@ -233,50 +262,58 @@ export default class extends BaseManager {
     }
   }
 
-  private get type() {
+  private get house() {
     // TODO: select the house type from the toolbox.
     return layers.objectGroup.objects.endpoints.house.common.orange
   }
 
-  /** Checks if a house can be rotated at the given tile. */
-  private canRotate = (house: House, variants: Variant[]) => {
-    return variants.some(({ key }) => key !== house.variant.key)
+  private get cfc() {
+    // TODO: select the cfc type from the toolbox.
+    return layers.objectGroup.objects.endpoints.cfc.warehouse.default
   }
 
-  /** Adds a house variant to the given tile. */
-  private add(tile: Tile, variant: Variant) {
-    // Add the house object to the endpoints layer.
-    const obj = this.level.addObject(
-      "ObjectGroup.ENDPOINTS",
-      this.type[variant.key](tile),
-    )
-
-    // Occupy the tile and any crossover tiles for the house variant.
-    const house: House = { obj, variant }
-    this.houses(tile, house)
-    return house
+  /** Checks if an endpoint can be rotated at the given tile. */
+  private canRotate(endpoint: Endpoint, variants: Variant[]) {
+    return variants.some(({ key }) => key !== endpoint.variant.key)
   }
 
-  /** Delete a house from the given tile. */
-  private delete(tile: Tile, { obj }: House) {
-    this.houses(tile, null)
+  /** Adds an endpoint variant to the given tile. */
+  private add(tile: Tile, type: Type, variant: Variant) {
+    // Get the factory function for the specified type and variant.
+    const factory =
+      type === "house"
+        ? this.house[variant.key as HouseVariantKey]
+        : this.cfc[variant.key as CfcVariantKey]
+
+    // Add the endpoint object to the endpoints layer.
+    const obj = this.level.addObject("ObjectGroup.ENDPOINTS", factory(tile))
+
+    // Occupy the tile and any crossover tiles for the endpoint variant.
+    const endpoint = { type, obj, variant } as Endpoint
+    this.endpoint(tile, endpoint)
+    return endpoint
+  }
+
+  /** Delete an endpoint from the given tile. */
+  private delete(tile: Tile, { obj }: Endpoint) {
+    this.endpoint(tile, null)
     this.level.destroyObject("ObjectGroup.ENDPOINTS", obj)
   }
 
-  /** Rotates the house at the given tile to the next available variant. */
-  private rotate(tile: Tile, house: House, variants: Variant[]) {
-    this.delete(tile, house)
+  /** Rotates the endpoint at the given tile to the next available variant. */
+  private rotate(tile: Tile, endpoint: Endpoint, variants: Variant[]) {
+    this.delete(tile, endpoint)
 
-    let variantIndex = variants.findIndex(v => v.key === house.variant.key)
+    let variantIndex = variants.findIndex(v => v.key === endpoint.variant.key)
     // Current variant is no longer valid, so reset to first.
     if (variantIndex === -1 || ++variantIndex >= variants.length)
       variantIndex = 0
 
-    return this.add(tile, variants[variantIndex])
+    return this.add(tile, endpoint.type, variants[variantIndex])
   }
 
   /**
-   * Returns the house variants for a given road ID.
+   * Returns the endpoint variants for a given road ID.
    *
    * Variants are ordered in a clockwise direction starting from left:
    * 1. Left
@@ -288,51 +325,65 @@ export default class extends BaseManager {
    * 7. Bottom
    * 8. Bottom Left
    */
-  private roadIdToVariantKeys(roadId: layers.tile.data.RoadID): VariantKey[] {
-    // Straight
-    if (roadId === this.level.road.ids.Straight.HORIZONTAL)
-      return ["top", "bottom"]
-    if (roadId === this.level.road.ids.Straight.VERTICAL)
-      return ["left", "right"]
-    // Dead end
-    if (roadId === this.level.road.ids.DeadEnd.TOP)
-      return ["left", "top", "right"]
-    if (roadId === this.level.road.ids.DeadEnd.BOTTOM)
-      return ["left", "right", "bottom"]
-    if (roadId === this.level.road.ids.DeadEnd.LEFT)
-      return ["left", "top", "bottom"]
-    if (roadId === this.level.road.ids.DeadEnd.RIGHT)
-      return ["top", "right", "bottom"]
-    // Turn
-    if (roadId === this.level.road.ids.Turn.TOP_LEFT)
-      return ["outTopLeft", "inBottomRight"]
-    if (roadId === this.level.road.ids.Turn.TOP_RIGHT)
-      return ["outTopRight", "inBottomLeft"]
-    if (roadId === this.level.road.ids.Turn.BOTTOM_LEFT)
-      return ["inTopRight", "outBottomLeft"]
-    if (roadId === this.level.road.ids.Turn.BOTTOM_RIGHT)
-      return ["inTopLeft", "outBottomRight"]
-    // T-junction
-    if (roadId === this.level.road.ids.TJunction.TOP_LEFT_RIGHT)
-      return ["top", "inBottomRight", "inBottomLeft"]
-    if (roadId === this.level.road.ids.TJunction.LEFT_RIGHT_BOTTOM)
-      return ["inTopLeft", "inTopRight", "bottom"]
-    if (roadId === this.level.road.ids.TJunction.TOP_RIGHT_BOTTOM)
-      return ["inTopLeft", "right", "inBottomLeft"]
-    if (roadId === this.level.road.ids.TJunction.TOP_LEFT_BOTTOM)
-      return ["left", "inTopRight", "inBottomRight"]
-    // Crossroads
-    if (roadId === this.level.road.ids.CROSSROADS)
-      return ["inTopLeft", "inTopRight", "inBottomRight", "inBottomLeft"]
-    // No road tile means no house can be placed, so skip.
+  private roadIdToVariantKeys(
+    type: Type,
+    roadId: layers.tile.data.RoadID,
+  ): VariantKey[] {
+    if (type === "cfc") {
+      if (roadId === this.level.road.ids.DeadEnd.TOP) return ["top"]
+      if (roadId === this.level.road.ids.DeadEnd.BOTTOM) return ["bottom"]
+      if (roadId === this.level.road.ids.DeadEnd.LEFT) return ["left"]
+      if (roadId === this.level.road.ids.DeadEnd.RIGHT) return ["right"]
+    } else {
+      // Straight
+      if (roadId === this.level.road.ids.Straight.HORIZONTAL)
+        return ["top", "bottom"]
+      if (roadId === this.level.road.ids.Straight.VERTICAL)
+        return ["left", "right"]
+      // Dead end
+      if (roadId === this.level.road.ids.DeadEnd.TOP)
+        return ["left", "top", "right"]
+      if (roadId === this.level.road.ids.DeadEnd.BOTTOM)
+        return ["left", "right", "bottom"]
+      if (roadId === this.level.road.ids.DeadEnd.LEFT)
+        return ["left", "top", "bottom"]
+      if (roadId === this.level.road.ids.DeadEnd.RIGHT)
+        return ["top", "right", "bottom"]
+      // Turn
+      if (roadId === this.level.road.ids.Turn.TOP_LEFT)
+        return ["outTopLeft", "inBottomRight"]
+      if (roadId === this.level.road.ids.Turn.TOP_RIGHT)
+        return ["outTopRight", "inBottomLeft"]
+      if (roadId === this.level.road.ids.Turn.BOTTOM_LEFT)
+        return ["inTopRight", "outBottomLeft"]
+      if (roadId === this.level.road.ids.Turn.BOTTOM_RIGHT)
+        return ["inTopLeft", "outBottomRight"]
+      // T-junction
+      if (roadId === this.level.road.ids.TJunction.TOP_LEFT_RIGHT)
+        return ["top", "inBottomRight", "inBottomLeft"]
+      if (roadId === this.level.road.ids.TJunction.LEFT_RIGHT_BOTTOM)
+        return ["inTopLeft", "inTopRight", "bottom"]
+      if (roadId === this.level.road.ids.TJunction.TOP_RIGHT_BOTTOM)
+        return ["inTopLeft", "right", "inBottomLeft"]
+      if (roadId === this.level.road.ids.TJunction.TOP_LEFT_BOTTOM)
+        return ["left", "inTopRight", "inBottomRight"]
+      // Crossroads
+      if (roadId === this.level.road.ids.CROSSROADS)
+        return ["inTopLeft", "inTopRight", "inBottomRight", "inBottomLeft"]
+    }
+
+    // No road tile means no endpoint can be placed, so skip.
     return []
   }
 
-  /** Returns the tiles that a house variant crosses over into. */
+  /** Returns the tiles that a endpoint variant crosses over into. */
   private variantKeyToCrossoverTiles(
     tile: Tile,
+    type: Type,
     variantKey: VariantKey,
   ): Tile[] {
+    if (type === "cfc") return [] // CFC endpoints do not cross over into tiles.
+
     const step = (dirs: Direction[]) => {
       const destination = this.level.moveFromTile(tile, dirs)
       return destination ? [destination] : []
@@ -369,6 +420,7 @@ export default class extends BaseManager {
    */
   private variants(
     tile: Tile,
+    type: Type,
     {
       roadId = this.level.road.dirsToId(this.level.road.dirs(tile)),
       excludeTile = false,
@@ -379,17 +431,21 @@ export default class extends BaseManager {
   ): Variant[] {
     return (
       // Get all variants for the given road ID.
-      this.roadIdToVariantKeys(roadId)
+      this.roadIdToVariantKeys(type, roadId)
         // For each variant, compute its crossover tiles.
         .map(variantKey => ({
           key: variantKey,
-          crossoverTiles: this.variantKeyToCrossoverTiles(tile, variantKey),
+          crossoverTiles: this.variantKeyToCrossoverTiles(
+            tile,
+            type,
+            variantKey,
+          ),
         }))
         // Filter out variants where the main tile or any crossover tile is
-        // already occupied by a colliding house.
-        // - A main tile of another house blocks only if it collides with the
+        // already occupied by a colliding endpoint.
+        // - A main tile of another endpoint blocks only if it collides with the
         //   new variant.
-        // - A crossover of another house blocks only if it collides with the
+        // - A crossover of another endpoint blocks only if it collides with the
         //   new variant.
         .filter(({ key, crossoverTiles }) =>
           [tile, ...crossoverTiles].every(t => {
@@ -397,29 +453,34 @@ export default class extends BaseManager {
             const crossovers = this._crossovers[t.row][t.col]
 
             if (
-              // If this is the main tile of a house...
+              // If this is the main tile of an endpoint...
               main !== null && //
-              // ...and we're not excluding the house at the variant's main
+              // ...and we're not excluding the endpoint at the variant's main
               // tile (or `t` is not the variant's main tile)...
               !(excludeTile && t.col === tile.col && t.row === tile.row) &&
               // ...and the new variant collides with the existing main tile...
-              this.variantCollisions(tile, t, key).includes(main.variant.key)
+              this.variantCollisions(tile, t, type, key).includes(
+                main.variant.key,
+              )
             )
               return false // ...then the variant is invalid.
 
-            // The variant is also invalid if any existing house with a
+            // The variant is also invalid if any existing endpoint with a
             // crossover at `t` collides with the new variant `key` at `tile`.
             return crossovers.every(
               c =>
-                // Ignore the house at `tile` if it's being excluded (i.e. the
-                // house currently being rotated).
+                // Ignore the endpoint at `tile` if it's being excluded (i.e.
+                // the endpoint currently being rotated).
                 (excludeTile &&
                   c.main.col === tile.col &&
                   c.main.row === tile.row) ||
                 // The new variant is valid if it doesn't collide with `c`.
-                !this.variantCollisions(c.main, tile, c.variant.key).includes(
-                  key,
-                ),
+                !this.variantCollisions(
+                  c.main,
+                  tile,
+                  c.endpoint.type,
+                  c.endpoint.variant.key,
+                ).includes(key),
             )
           }),
         )
@@ -427,18 +488,21 @@ export default class extends BaseManager {
   }
 
   /**
-   * Returns the colliding variants for a tile that a house occupies.
+   * Returns the colliding variants for a tile that an endpoint occupies.
    *
-   * Collisions are determined by the direction from the house's main tile to
-   * the crossover tile. For example, if a house's main tile is at (1, 1) and it
-   * has a crossover tile at (1, 2), then the direction is "right" and the
-   * colliding variants are determined accordingly.
+   * Collisions are determined by the direction from the endpoint's main tile to
+   * the crossover tile. For example, if an endpoint's main tile is at (1, 1)
+   * and it has a crossover tile at (1, 2), then the direction is "right" and
+   * the colliding variants are determined accordingly.
    */
   private variantCollisions(
     from: Tile,
     to: Tile,
+    type: Type,
     key: VariantKey,
   ): VariantKey[] {
+    if (type === "cfc") return [] // CFCs do not have variant collisions.
+
     const {
       left = [],
       right = [],
@@ -448,7 +512,7 @@ export default class extends BaseManager {
       topRight = [],
       bottomLeft = [],
       bottomRight = [],
-    } = this._variantCollisions[key]
+    } = this._houseVariantCollisions[key]
 
     const isDirections = (dirs: Direction[]) => {
       const newTile = this.level.moveFromTile(from, dirs)
@@ -470,21 +534,24 @@ export default class extends BaseManager {
 
   /** Handles the addition of a road on the map. */
   private onAddRoad({ id, ...tile }: AddRoadEventData) {
-    const house = this.houses(tile)
-    if (!house) return
+    const endpoint = this.endpoint(tile)
+    if (!endpoint) return
 
-    const variants = this.variants(tile, { roadId: id, excludeTile: true })
-    if (variants.length === 0) this.delete(tile, house)
-    else if (variants.every(({ key }) => key !== house.variant.key)) {
-      this.delete(tile, house)
-      this.add(tile, variants[0])
+    const variants = this.variants(tile, endpoint.type, {
+      roadId: id,
+      excludeTile: true,
+    })
+    if (variants.length === 0) this.delete(tile, endpoint)
+    else if (variants.every(({ key }) => key !== endpoint.variant.key)) {
+      this.delete(tile, endpoint)
+      this.add(tile, endpoint.type, variants[0])
     }
   }
 
   /** Handles the deletion of a road on the map. */
   private onDeleteRoad = (tile: DeleteRoadEventData) => {
-    const house = this.houses(tile)
-    if (house) this.delete(tile, house)
+    const endpoint = this.endpoint(tile)
+    if (endpoint) this.delete(tile, endpoint)
   }
 
   /**
@@ -498,44 +565,59 @@ export default class extends BaseManager {
   private onPointer(
     pointer: Phaser.Input.Pointer,
     handle: (
-      tool: "add-house" | "delete-house",
+      tool: "add-house" | "delete-house" | "add-cfc",
       tile: Tile,
-      house: House | null,
+      endpoint: Endpoint | null,
     ) => Style["type"] | undefined,
   ) {
     const tool = this.level.toolbox?.activeTool
-    if (tool !== "add-house" && tool !== "delete-house") return
+    if (tool !== "add-house" && tool !== "delete-house" && tool !== "add-cfc")
+      return
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
-    const house = this.houses(tile)
-    const style = handle(tool, tile, house)
+    const endpoint = this.endpoint(tile)
+    const style = handle(tool, tile, endpoint)
     this.style = style ? { ...tile, type: style } : null
   }
 
   private onPointerDown = (pointer: Phaser.Input.Pointer) =>
-    this.onPointer(pointer, (tool, tile, house) => {
-      if (tool === "add-house") {
-        if (!house) {
-          let variants = this.variants(tile)
-          if (variants.length === 0) return
-          house = this.add(tile, variants[0])
-          variants = this.variants(tile, { excludeTile: true })
-          if (this.canRotate(house, variants)) return "rotate"
-        } else {
-          const variants = this.variants(tile, { excludeTile: true })
-          if (!this.canRotate(house, variants)) return
-          this.rotate(tile, house, variants)
+    this.onPointer(pointer, (tool, tile, endpoint) => {
+      const add = (type: Type) => {
+        const variants = this.variants(tile, type)
+        if (variants.length === 0) return null
+        return this.add(tile, type, variants[0])
+      }
+
+      if (tool === "add-cfc") {
+        if (endpoint) return
+        const previousCfc = this._cfc
+        if (add("cfc") && previousCfc)
+          this.delete(previousCfc.main, previousCfc.endpoint)
+      } else if (tool === "add-house") {
+        if (!endpoint) {
+          if (!(endpoint = add("house"))) return
+          const variants = this.variants(tile, "house", { excludeTile: true })
+          if (this.canRotate(endpoint, variants)) return "rotate"
+        } else if (endpoint.type === "house") {
+          const variants = this.variants(tile, "house", { excludeTile: true })
+          if (!this.canRotate(endpoint, variants)) return
+          this.rotate(tile, endpoint, variants)
           return "rotate"
         }
-      } else if (house) this.delete(tile, house)
+      } else if (endpoint) this.delete(tile, endpoint)
     })
 
   private onPointerMove = (pointer: Phaser.Input.Pointer) =>
-    this.onPointer(pointer, (tool, tile, house) => {
-      if (tool === "add-house") {
-        if (!house) return this.variants(tile).length > 0 ? "add" : undefined
-        const variants = this.variants(tile, { excludeTile: true })
-        if (this.canRotate(house, variants)) return "rotate"
-      } else if (house) return "delete"
+    this.onPointer(pointer, (tool, tile, endpoint) => {
+      const add = (type: Type) =>
+        this.variants(tile, type).length > 0 ? "add" : undefined
+
+      if (tool === "add-cfc") {
+        if (!endpoint) return add("cfc")
+      } else if (tool === "add-house") {
+        if (!endpoint) return add("house")
+        const variants = this.variants(tile, "house", { excludeTile: true })
+        if (this.canRotate(endpoint, variants)) return "rotate"
+      } else if (endpoint) return "delete"
     })
 }

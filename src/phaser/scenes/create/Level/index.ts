@@ -2,7 +2,7 @@ import Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import DragManager from "./DragManager"
-import HouseManager from "./HouseManager"
+import EndpointManager from "./EndpointManager"
 import RoadManager from "./RoadManager"
 import Toolbox from "../Toolbox"
 
@@ -25,11 +25,11 @@ export default class extends BaseLevel<LevelData> {
   /** Drag manager responsible for handling drag operations. */
   drag!: DragManager
 
-  /** Road manager responsible for handling road tiles and their connections. */
+  /** Road manager responsible for handling road tiles. */
   road!: RoadManager
 
-  /** House manager responsible for handling house tiles and their occupancy. */
-  house!: HouseManager
+  /** Endpoint manager responsible for handling endpoint objects. */
+  endpoint!: EndpointManager
 
   /** Graphics used to render tile highlights for tools. */
   graphics!: Phaser.GameObjects.CustomGraphics
@@ -69,7 +69,7 @@ export default class extends BaseLevel<LevelData> {
       "delete-road": { drawDirs: false, highlight: { color: 0xff0000 } },
     })
     this.road = new RoadManager(this)
-    this.house = new HouseManager(this)
+    this.endpoint = new EndpointManager(this)
   }
 
   /** Get the toolbox scene instance. */
