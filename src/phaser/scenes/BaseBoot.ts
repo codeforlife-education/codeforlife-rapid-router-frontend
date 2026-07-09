@@ -1,4 +1,4 @@
-import * as backgrounds from "../backgrounds"
+import * as images from "../images"
 import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 import BaseScene from "./BaseScene"
 import logo from "../../images/logos/rr.svg?url"
@@ -16,8 +16,8 @@ export default class BaseBoot<
       height: 140 * logoScale,
     })
 
-    const background = backgrounds.Backgrounds.GRASS
-    this.load.svg(background, backgrounds.getSvgUrl(background), {
+    const background = images.Paths.Background.GRASS
+    this.load.svg(background, images.getUrl(background), {
       width: TILE_WIDTH,
       height: TILE_HEIGHT,
     })
