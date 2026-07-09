@@ -16,8 +16,8 @@ export default class BaseBoot<
       height: 140 * logoScale,
     })
 
-    const background = images.Paths.Background.GRASS
-    this.load.svg(background, images.getUrl(background), {
+    const background = images.URLs.Background.GRASS
+    this.load.svg(background, background, {
       width: TILE_WIDTH,
       height: TILE_HEIGHT,
     })

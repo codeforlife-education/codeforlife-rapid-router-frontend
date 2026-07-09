@@ -12,7 +12,7 @@ export default class BasePreloader<
 > extends BaseScene<Data> {
   static readonly KEY = "Preloader"
   levelData: BaseLevelData = {
-    background: images.Paths.Background.GRASS,
+    background: images.URLs.Background.GRASS,
     tilesets: {
       "Tile.ROAD": [],
       "Tile.ENVIRONMENT": [],
@@ -35,7 +35,7 @@ export default class BasePreloader<
         centerY,
         this.scale.width,
         this.scale.height,
-        images.Paths.Background.GRASS,
+        images.URLs.Background.GRASS,
       )
       .setDepth(-1) // Render behind everything
 
@@ -63,8 +63,8 @@ export default class BasePreloader<
     })
 
     // Load the background image specified in the tilemap properties.
-    const background = tilemap.properties[0].value
-    this.load.svg(background, images.getUrl(background), {
+    const background = images.URLs.Background[tilemap.properties[0].value]
+    this.load.svg(background, background, {
       width: tilemap.tilewidth ?? TILE_WIDTH,
       height: tilemap.tileheight ?? TILE_HEIGHT,
     })
