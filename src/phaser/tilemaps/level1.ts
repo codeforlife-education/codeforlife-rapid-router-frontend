@@ -1,9 +1,10 @@
+import * as images from "../images"
 import * as layers from "../layers"
 import * as tilemaps from "./tilemaps"
 import * as tilesets from "../tilesets"
 
 export default tilemaps.makeOrthogonal({
-  properties: { background: "grass" },
+  properties: { background: images.Paths.Background.GRASS },
   tilesets: [
     tilesets.road.asphalt.straight,
     tilesets.road.asphalt.deadEnd,

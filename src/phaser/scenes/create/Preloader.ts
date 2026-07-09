@@ -1,3 +1,4 @@
+import * as images from "../../images"
 import * as layers from "../../layers"
 import * as tilemaps from "../../tilemaps"
 import * as tilesets from "../../tilesets"
@@ -13,7 +14,7 @@ import Level from "./Level"
 export default class extends BasePreloader {
   preload() {
     const tilemap = tilemaps.makeOrthogonal({
-      properties: { background: "grass" },
+      properties: { background: images.Paths.Background.GRASS },
       tilesets: [
         // Road
         tilesets.road.asphalt.crossroads,
