@@ -173,26 +173,42 @@ export default class extends BaseManager {
     },
   }
 
-  /** A record of CFC-position-collisions for each house-variant-key. */
-  private readonly _houseToCfcPositionCollisions: Record<
+  /** A record of CFC-variant-key collisions for each house-variant-key. */
+  private readonly _houseToCfcVariantCollisions: Record<
     HouseVariantKey,
-    Position[]
+    Partial<Record<Position, CfcVariantKey[]>>
   > = {
     // Straight variants (straight, dead-end, t-junction).
-    left: ["right"],
-    top: ["bottom"],
-    right: ["left"],
-    bottom: ["top"],
+    left: { right: ["top", "right", "bottom"] },
+    top: { bottom: ["left", "right", "bottom"] },
+    right: { left: ["left", "top", "bottom"] },
+    bottom: { top: ["left", "top", "right"] },
     // Inside-corner variants (turn, t-junction, crossroads).
-    inTopLeft: ["bottom", "right", "bottomRight"],
-    inTopRight: ["bottom", "left", "bottomLeft"],
-    inBottomLeft: ["top", "right", "topRight"],
-    inBottomRight: ["top", "left", "topLeft"],
+    inTopLeft: {
+      bottom: ["bottom", "left"],
+      right: ["top", "right"],
+      bottomRight: ["bottom", "right"],
+    },
+    inTopRight: {
+      bottom: ["bottom", "right"],
+      left: ["top", "left"],
+      bottomLeft: ["bottom", "left"],
+    },
+    inBottomLeft: {
+      top: ["top", "left"],
+      right: ["bottom", "right"],
+      topRight: ["top", "right"],
+    },
+    inBottomRight: {
+      top: ["top", "right"],
+      left: ["bottom", "left"],
+      topLeft: ["top", "left"],
+    },
     // Outside-corner variants (turn only).
-    outTopLeft: ["bottom", "right"],
-    outTopRight: ["bottom", "left"],
-    outBottomLeft: ["top", "right"],
-    outBottomRight: ["top", "left"],
+    outTopLeft: { bottom: ["bottom"], right: ["right"] },
+    outTopRight: { bottom: ["bottom"], left: ["left"] },
+    outBottomLeft: { top: ["top"], right: ["right"] },
+    outBottomRight: { top: ["top"], left: ["left"] },
   }
 
   constructor(level: Level) {
@@ -551,12 +567,12 @@ export default class extends BaseManager {
       return newTile && newTile.col === to.col && newTile.row === to.row
     }
 
-    const collides = (pos: Position) => {
-      if (to.type === "cfc") {
-        const positions = this._houseToCfcPositionCollisions[from.variant.key]
-        return positions.includes(pos)
-      }
-      const keys = this._houseToHouseVariantCollisions[from.variant.key][pos]
+    const collides = (position: Position) => {
+      const keys = (
+        to.type === "house"
+          ? this._houseToHouseVariantCollisions
+          : this._houseToCfcVariantCollisions
+      )[from.variant.key][position]
       return keys ? keys.includes(to.variant.key) : false
     }
 
