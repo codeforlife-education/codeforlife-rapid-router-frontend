@@ -1,4 +1,3 @@
-import type { DeepStringsOf } from "codeforlife/utils/object"
 import type { TiledMapOrthogonal as _OrthogonalTilemap } from "tiled-types"
 
 import type * as images from "../images"
@@ -31,7 +30,7 @@ export type OrthogonalTilemap = Omit<
     {
       name: "background"
       type: "string"
-      value: DeepStringsOf<typeof images.Paths.Background>
+      value: keyof typeof images.URLs.Background
     },
   ]
 }
@@ -57,7 +56,7 @@ export type MakeOrthogonalKwArgs<
   Partial<Pick<OrthogonalTilemap, MakeOrthogonalPartials>> & {
     width?: COLS
     height?: ROWS
-    properties: { background: DeepStringsOf<typeof images.Paths.Background> }
+    properties: { background: keyof typeof images.URLs.Background }
     layers: {
       tile: {
         road: MakeTileLayerKwArgs<

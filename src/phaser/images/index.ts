@@ -1,17 +1,17 @@
 import { type DeepStringsOf, createIdRegistry } from "codeforlife/utils/object"
 
-const path = <const K extends string, const V>(k: K, v: V) =>
-  ({ [k]: v }) as Record<K, V>
+const url = <const K extends string, const V>(k: K, v: V) =>
+  ({ [import.meta.resolve(`./${k}`)]: v }) as Record<K, V>
 
 // Create top-level object factories for constructing image paths.
 const background = <const K extends string, const V>(k: K, v: V) =>
-  path(`background/${k}`, { Background: v })
+  url(`background/${k}`, { Background: v })
 const hud = <const K extends string, const V>(k: K, v: V) =>
-  path(`hud/${k}`, { HUD: v })
+  url(`hud/${k}`, { HUD: v })
 const particle = <const K extends string, const V>(k: K, v: V) =>
-  path(`particle/${k}`, { Particles: v })
+  url(`particle/${k}`, { Particles: v })
 
-export const Paths = createIdRegistry({
+export const URLs = createIdRegistry({
   ...background("grass.svg", "GRASS"),
   ...background("snow.svg", "SNOW"),
   ...background("pavement.svg", "PAVEMENT"),
@@ -25,8 +25,4 @@ export const Paths = createIdRegistry({
   ...particle("fire.svg", "FIRE"),
   ...particle("smoke.svg", "SMOKE"),
 } as const)
-export type Path = DeepStringsOf<typeof Paths>
-
-export function getUrl(path: Path) {
-  return new URL(`./${path}`, import.meta.url).href
-}
+export type URL = DeepStringsOf<typeof URLs>
