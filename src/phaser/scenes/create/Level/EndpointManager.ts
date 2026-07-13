@@ -1,5 +1,10 @@
+import {
+  Delete as DeleteIcon,
+  Home as HomeIcon,
+  RotateRight as RotateRightIcon,
+  Warehouse as WarehouseIcon,
+} from "@mui/icons-material"
 import Phaser from "phaser"
-import RotateRightIcon from "@mui/icons-material/RotateRight"
 
 import * as layers from "../../../layers"
 import type { AddRoadEventData, DeleteRoadEventData } from "./RoadManager"
@@ -31,7 +36,7 @@ type Variant = HouseVariant | CfcVariant
 type Type = HouseType | CfcType
 type Endpoint = House | Cfc
 type Pointer<E extends Endpoint = Endpoint> = { main: Tile; endpoint: E }
-type Style = Tile & { type: "add" | "rotate" | "delete" }
+type Style = Tile & { style: "add" | "rotate" | "delete"; type: Type }
 
 export default class extends BaseManager {
   /**
@@ -61,13 +66,16 @@ export default class extends BaseManager {
     () => Array.from({ length: this.level.tilemap.width }, () => []),
   )
 
-  /** CSS cursor string for the rotate-right icon, pre-computed once. */
+  // CSS cursor strings, pre-computed once.
   private readonly rotateCursor = this.level.muiIconToCursor(RotateRightIcon)
+  private readonly homeCursor = this.level.muiIconToCursor(HomeIcon)
+  private readonly deleteCursor = this.level.muiIconToCursor(DeleteIcon)
+  private readonly warehouseCursor = this.level.muiIconToCursor(WarehouseIcon)
 
   /** The current style applied to the level. */
   private _style: Style | null = null
 
-  /** A record of variant collisions for each variant key. */
+  /** A record of variant collisions for each house variant key. */
   private readonly _houseVariantCollisions: Record<
     HouseVariantKey,
     Partial<
@@ -240,7 +248,8 @@ export default class extends BaseManager {
         value !== null &&
         this._style.row === value.row &&
         this._style.col === value.col &&
-        this._style.type === value.type)
+        this._style.type === value.type &&
+        this._style.style === value.style)
     )
       return
     this._style = value
@@ -252,13 +261,18 @@ export default class extends BaseManager {
       return
     }
 
-    const { type, ...tile } = value
-    if (type === "rotate") {
+    const { style, type, ...tile } = value
+    if (style === "rotate") {
       this.level.highlightTile(tile, 0xffff00)
       this.level.input.setDefaultCursor(this.rotateCursor)
+    } else if (style === "delete") {
+      this.level.highlightTile(tile, 0xff0000)
+      this.level.input.setDefaultCursor(this.deleteCursor)
     } else {
-      this.level.highlightTile(tile, type === "add" ? 0x00ff00 : 0xff0000)
-      this.level.input.setDefaultCursor("pointer")
+      this.level.highlightTile(tile, 0x00ff00)
+      this.level.input.setDefaultCursor(
+        type === "house" ? this.homeCursor : this.warehouseCursor,
+      )
     }
   }
 
@@ -413,10 +427,10 @@ export default class extends BaseManager {
   }
 
   /**
-   * Returns the house variants that can be placed on a given tile.
+   * Returns the endpoint variants that can be placed on a given tile.
    *
    * A variant is valid if the main tile and all crossover tiles are unoccupied
-   * by a colliding house.
+   * by a colliding endpoint.
    */
   private variants(
     tile: Tile,
@@ -560,7 +574,7 @@ export default class extends BaseManager {
    * This ensures a valid tool is active and that the pointer is over a valid
    * tile before calling the provided handler function. The handler function is
    * responsible for determining the appropriate style to apply based on the
-   * tool, tile, and house state.
+   * tool, tile, and endpoint state.
    */
   private onPointer(
     pointer: Phaser.Input.Pointer,
@@ -568,7 +582,7 @@ export default class extends BaseManager {
       tool: "add-house" | "delete-house" | "add-cfc",
       tile: Tile,
       endpoint: Endpoint | null,
-    ) => Style["type"] | undefined,
+    ) => Style["style"] | undefined,
   ) {
     const tool = this.level.toolbox?.activeTool
     if (tool !== "add-house" && tool !== "delete-house" && tool !== "add-cfc")
@@ -577,7 +591,8 @@ export default class extends BaseManager {
     if (!tile) return
     const endpoint = this.endpoint(tile)
     const style = handle(tool, tile, endpoint)
-    this.style = style ? { ...tile, type: style } : null
+    const type = tool === "add-cfc" ? "cfc" : "house"
+    this.style = style ? { ...tile, style, type } : null
   }
 
   private onPointerDown = (pointer: Phaser.Input.Pointer) =>
@@ -590,9 +605,8 @@ export default class extends BaseManager {
 
       if (tool === "add-cfc") {
         if (endpoint) return
-        const previousCfc = this._cfc
-        if (add("cfc") && previousCfc)
-          this.delete(previousCfc.main, previousCfc.endpoint)
+        const prevCfc = this._cfc // previous CFC
+        if (add("cfc") && prevCfc) this.delete(prevCfc.main, prevCfc.endpoint)
       } else if (tool === "add-house") {
         if (!endpoint) {
           if (!(endpoint = add("house"))) return
@@ -604,7 +618,7 @@ export default class extends BaseManager {
           this.rotate(tile, endpoint, variants)
           return "rotate"
         }
-      } else if (endpoint) this.delete(tile, endpoint)
+      } else if (endpoint?.type === "house") this.delete(tile, endpoint)
     })
 
   private onPointerMove = (pointer: Phaser.Input.Pointer) =>
@@ -618,6 +632,6 @@ export default class extends BaseManager {
         if (!endpoint) return add("house")
         const variants = this.variants(tile, "house", { excludeTile: true })
         if (this.canRotate(endpoint, variants)) return "rotate"
-      } else if (endpoint) return "delete"
+      } else if (endpoint?.type === "house") return "delete"
     })
 }
