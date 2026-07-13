@@ -222,8 +222,13 @@ export default class extends BaseManager {
         if (idx !== -1) arr.splice(idx, 1)
       })
       this._main[row][col] = null
-      // Clear the tracked CFC endpoint if it is being removed.
-      if (currentMain.type === "cfc") this._cfc = null
+      // Clear the tracked CFC endpoint if it's the one being removed.
+      if (
+        currentMain.type === "cfc" &&
+        this._cfc?.main.col === col &&
+        this._cfc.main.row === row
+      )
+        this._cfc = null
     }
 
     if (endpoint !== null) {
