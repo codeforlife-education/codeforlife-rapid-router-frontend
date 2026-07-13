@@ -12,6 +12,16 @@ import type { Direction, default as Level, Tile } from "."
 import BaseManager from "./BaseManager"
 import { Events } from "../../../globals"
 
+type Position =
+  | "left"
+  | "right"
+  | "top"
+  | "bottom"
+  | "topLeft"
+  | "topRight"
+  | "bottomLeft"
+  | "bottomRight"
+
 type VariantBase<K extends string> = { key: K; crossoverTiles: Tile[] }
 type EndpointBase<T extends string, V extends VariantBase<string>> = {
   type: T
@@ -75,22 +85,10 @@ export default class extends BaseManager {
   /** The current style applied to the level. */
   private _style: Style | null = null
 
-  /** A record of variant collisions for each house variant key. */
-  private readonly _houseVariantCollisions: Record<
+  /** A record of house-variant-key collisions for each house-variant-key. */
+  private readonly _houseToHouseVariantCollisions: Record<
     HouseVariantKey,
-    Partial<
-      Record<
-        | "left"
-        | "right"
-        | "top"
-        | "bottom"
-        | "topLeft"
-        | "topRight"
-        | "bottomLeft"
-        | "bottomRight",
-        HouseVariantKey[]
-      >
-    >
+    Partial<Record<Position, HouseVariantKey[]>>
   > = {
     // Straight variants (straight, dead-end, t-junction).
     left: {
@@ -173,6 +171,28 @@ export default class extends BaseManager {
       left: ["left", "inBottomLeft"],
       topLeft: ["inTopLeft"],
     },
+  }
+
+  /** A record of CFC-position-collisions for each house-variant-key. */
+  private readonly _houseToCfcPositionCollisions: Record<
+    HouseVariantKey,
+    Position[]
+  > = {
+    // Straight variants (straight, dead-end, t-junction).
+    left: ["right"],
+    top: ["bottom"],
+    right: ["left"],
+    bottom: ["top"],
+    // Inside-corner variants (turn, t-junction, crossroads).
+    inTopLeft: ["bottom", "right", "bottomRight"],
+    inTopRight: ["bottom", "left", "bottomLeft"],
+    inBottomLeft: ["top", "right", "topRight"],
+    inBottomRight: ["top", "left", "topLeft"],
+    // Outside-corner variants (turn only).
+    outTopLeft: ["bottom", "right"],
+    outTopRight: ["bottom", "left"],
+    outBottomLeft: ["top", "right"],
+    outBottomRight: ["top", "left"],
   }
 
   constructor(level: Level) {
@@ -401,32 +421,39 @@ export default class extends BaseManager {
     type: Type,
     variantKey: VariantKey,
   ): Tile[] {
-    if (type === "cfc") return [] // CFC endpoints do not cross over into tiles.
-
     const step = (dirs: Direction[]) => {
       const destination = this.level.moveFromTile(tile, dirs)
       return destination ? [destination] : []
     }
 
     // Precompute the neighbouring tiles in each direction.
-    const left = step(["left"])
-    const right = step(["right"])
-    const top = step(["top"])
-    const bottom = step(["bottom"])
-    const topRight = step(["top", "right"])
-    const topLeft = step(["top", "left"])
-    const bottomRight = step(["bottom", "right"])
-    const bottomLeft = step(["bottom", "left"])
+    const l = step(["left"])
+    const r = step(["right"])
+    const t = step(["top"])
+    const b = step(["bottom"])
+    const tr = step(["top", "right"])
+    const tl = step(["top", "left"])
+    const br = step(["bottom", "right"])
+    const bl = step(["bottom", "left"])
 
-    // Return the crossover tiles based on the house variant.
-    if (variantKey === "top") return bottom
-    if (variantKey === "bottom") return top
-    if (variantKey === "left") return right
-    if (variantKey === "right") return left
-    if (variantKey === "inTopLeft") return [...bottom, ...right, ...bottomRight]
-    if (variantKey === "inTopRight") return [...bottom, ...left, ...bottomLeft]
-    if (variantKey === "inBottomLeft") return [...top, ...right, ...topRight]
-    if (variantKey === "inBottomRight") return [...top, ...left, ...topLeft]
+    if (type === "cfc") {
+      const key = variantKey as CfcVariantKey
+      if (key === "top") return b
+      if (key === "bottom") return t
+      if (key === "left") return r
+      if (key === "right") return l
+    } else {
+      // Return the crossover tiles based on the house variant.
+      const key = variantKey as HouseVariantKey
+      if (key === "top") return b
+      if (key === "bottom") return t
+      if (key === "left") return r
+      if (key === "right") return l
+      if (key === "inTopLeft") return [...b, ...r, ...br]
+      if (key === "inTopRight") return [...b, ...l, ...bl]
+      if (key === "inBottomLeft") return [...t, ...r, ...tr]
+      if (key === "inBottomRight") return [...t, ...l, ...tl]
+    }
 
     return [] // No crossover tiles for variant.
   }
@@ -466,8 +493,10 @@ export default class extends BaseManager {
         //   new variant.
         // - A crossover of another endpoint blocks only if it collides with the
         //   new variant.
-        .filter(({ key, crossoverTiles }) =>
-          [tile, ...crossoverTiles].every(t => {
+        .filter(({ key, crossoverTiles }) => {
+          const variant = { ...tile, type, variant: { key } }
+
+          return [tile, ...crossoverTiles].every(t => {
             const main = this._main[t.row][t.col]
             const crossovers = this._crossovers[t.row][t.col]
 
@@ -478,9 +507,7 @@ export default class extends BaseManager {
               // tile (or `t` is not the variant's main tile)...
               !(excludeTile && t.col === tile.col && t.row === tile.row) &&
               // ...and the new variant collides with the existing main tile...
-              this.variantCollisions(tile, t, type, key).includes(
-                main.variant.key,
-              )
+              this.variantCollides(variant, { ...t, ...main })
             )
               return false // ...then the variant is invalid.
 
@@ -494,15 +521,10 @@ export default class extends BaseManager {
                   c.main.col === tile.col &&
                   c.main.row === tile.row) ||
                 // The new variant is valid if it doesn't collide with `c`.
-                !this.variantCollisions(
-                  c.main,
-                  tile,
-                  c.endpoint.type,
-                  c.endpoint.variant.key,
-                ).includes(key),
+                !this.variantCollides({ ...c.main, ...c.endpoint }, variant),
             )
-          }),
-        )
+          })
+        })
     )
   }
 
@@ -514,41 +536,42 @@ export default class extends BaseManager {
    * and it has a crossover tile at (1, 2), then the direction is "right" and
    * the colliding variants are determined accordingly.
    */
-  private variantCollisions(
-    from: Tile,
-    to: Tile,
-    type: Type,
-    key: VariantKey,
-  ): VariantKey[] {
-    if (type === "cfc") return [] // CFCs do not have variant collisions.
+  private variantCollides(
+    from: Tile & { type: Type; variant: { key: VariantKey } },
+    to: Tile & { type: Type; variant: { key: VariantKey } },
+  ): boolean {
+    if (from.type === "cfc") {
+      // 2 CFCs cannot collide as there is only ever 1 CFC on the map.
+      if (to.type !== "house") return false
+      ;[from, to] = [to, from] // `from` is always the house and `to` is the CFC
+    }
 
-    const {
-      left = [],
-      right = [],
-      top = [],
-      bottom = [],
-      topLeft = [],
-      topRight = [],
-      bottomLeft = [],
-      bottomRight = [],
-    } = this._houseVariantCollisions[key]
-
-    const isDirections = (dirs: Direction[]) => {
+    const isAtDirs = (dirs: Direction[]) => {
       const newTile = this.level.moveFromTile(from, dirs)
       return newTile && newTile.col === to.col && newTile.row === to.row
     }
 
+    const collides = (pos: Position) => {
+      if (to.type === "cfc") {
+        const positions = this._houseToCfcPositionCollisions[from.variant.key]
+        return positions.includes(pos)
+      }
+      const keys = this._houseToHouseVariantCollisions[from.variant.key][pos]
+      return keys ? keys.includes(to.variant.key) : false
+    }
+
     // Determine the direction from the main tile to the crossover tile and
     // return the colliding variants.
-    if (isDirections(["left"])) return left
-    if (isDirections(["right"])) return right
-    if (isDirections(["top"])) return top
-    if (isDirections(["bottom"])) return bottom
-    if (isDirections(["top", "left"])) return topLeft
-    if (isDirections(["top", "right"])) return topRight
-    if (isDirections(["bottom", "left"])) return bottomLeft
-    if (isDirections(["bottom", "right"])) return bottomRight
-    return []
+    if (isAtDirs(["left"])) return collides("left")
+    if (isAtDirs(["right"])) return collides("right")
+    if (isAtDirs(["top"])) return collides("top")
+    if (isAtDirs(["bottom"])) return collides("bottom")
+    if (isAtDirs(["top", "left"])) return collides("topLeft")
+    if (isAtDirs(["top", "right"])) return collides("topRight")
+    if (isAtDirs(["bottom", "left"])) return collides("bottomLeft")
+    if (isAtDirs(["bottom", "right"])) return collides("bottomRight")
+
+    return false
   }
 
   /** Handles the addition of a road on the map. */
@@ -635,6 +658,7 @@ export default class extends BaseManager {
         if (!endpoint) return add("cfc")
       } else if (tool === "add-house") {
         if (!endpoint) return add("house")
+        if (endpoint.type !== "house") return
         const variants = this.variants(tile, "house", { excludeTile: true })
         if (this.canRotate(endpoint, variants)) return "rotate"
       } else if (endpoint?.type === "house") return "delete"
