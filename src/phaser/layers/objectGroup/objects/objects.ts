@@ -31,7 +31,11 @@ export type Object<N extends Name, GID extends ID> = Omit<
 > & { type: N; name: N; gid: GID }
 export type FactoryObject<N extends Name, GID extends ID> = Omit<
   Object<N, GID>,
-  "id"
+  | "id"
+  // `width` and `height` are omitted because they will be determined in their
+  // tileset's `imagewidth` and `imageheight` properties.
+  | "width"
+  | "height"
 >
 
 type TileOffset = { col: number; row: number }
@@ -81,8 +85,6 @@ export const factory = <
     y: baseY = 0,
     col: baseCol = 0,
     row: baseRow = 0,
-    width: baseWidth = TILE_WIDTH,
-    height: baseHeight = TILE_HEIGHT,
     properties: baseProperties = [],
     visible: baseVisible = true,
     rotation: baseRotation = 0,
@@ -98,8 +100,6 @@ export const factory = <
     y,
     col,
     row,
-    width,
-    height,
     properties,
     visible = baseVisible,
     rotation,
@@ -109,8 +109,6 @@ export const factory = <
     name,
     x: (x ? baseX + x : baseX) + (col ? col * TILE_WIDTH : 0),
     y: (y ? baseY + y : baseY) + (row ? row * TILE_HEIGHT : 0),
-    width: width ? baseWidth + width : baseWidth,
-    height: height ? baseHeight + height : baseHeight,
     properties: properties
       ? [...baseProperties, ...properties]
       : baseProperties,

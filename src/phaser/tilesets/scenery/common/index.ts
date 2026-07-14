@@ -2,6 +2,7 @@ import { flattenNumberValues } from "codeforlife/utils/object"
 
 import * as scenery from "../scenery"
 import * as tilesets from "../../tilesets"
+import { TILE_HEIGHT, TILE_WIDTH } from "../../../globals"
 
 const _IDs = tilesets.IDs.Scenery.Common
 export const IDs = flattenNumberValues(_IDs)
@@ -13,6 +14,8 @@ const make = <GID extends ID>(kwArgs: scenery.MakeKwArgs<GID>) =>
 export const bush = make({
   image: "./bush.svg",
   firstgid: _IDs.BUSH,
+  imagewidth: TILE_WIDTH / 2,
+  imageheight: TILE_HEIGHT / 2,
 })
 
 export const hay = make({

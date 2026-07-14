@@ -140,12 +140,14 @@ export default class BaseLevel<
 
   addObject(
     layerName: layers.objectGroup.Name,
-    obj: Omit<layers.objectGroup.objects.Object<any, any>, "id">,
+    obj: Omit<layers.objectGroup.objects.FactoryObject<any, any>, "id">,
   ): Phaser.GameObjects.Image {
     const tileset = this.initData.tilesets[layerName].find(
       ({ gid }) => gid === obj.gid,
     )
     if (!tileset) throw new Error(`No tileset found for GID ${obj.gid}`)
+
+    const frame = this.textures.get(tileset.name).get()
 
     const image = this.add
       .image(
@@ -156,8 +158,9 @@ export default class BaseLevel<
         tileset.name,
       )
       .setOrigin(0, 1)
-      .setDisplaySize(obj.width, obj.height)
+      .setDisplaySize(frame.realWidth, frame.realHeight)
       .setAngle(obj.rotation)
+      .setVisible(obj.visible)
 
     this.layers[layerName].push(image)
     return image

@@ -55,8 +55,8 @@ export default class extends BaseManager {
 
     // TODO: delete
     this.add({
-      x: this.level.tilemap.tileToWorldX(5)!,
-      y: this.level.tilemap.tileToWorldY(5)!,
+      x: this.level.tilemap.tileToWorldX(9)!,
+      y: this.level.tilemap.tileToWorldY(7)!,
     })
   }
 
@@ -71,15 +71,8 @@ export default class extends BaseManager {
     if (this.objectCount >= this.maxObjectCount) return null
     this.objectCount++
 
-    const objectSpec = this.factory(worldXY)
-
-    // Shift the origin to the centre so scale changes during drag are symmetric
-    // and the object lands exactly where the player releases it.
-    objectSpec.x += objectSpec.width / 2
-    objectSpec.y -= objectSpec.height / 2
-
     const obj = this.level
-      .addObject("ObjectGroup.SCENERY", objectSpec)
+      .addObject("ObjectGroup.SCENERY", this.factory(worldXY))
       .setInteractive({ cursor: "grab" })
       .setOrigin(0.5, 0.5)
       .on(Phaser.Input.Events.DRAG_START, () => this.onDragStart(obj))
@@ -89,6 +82,10 @@ export default class extends BaseManager {
           this.onDrag(dragX, dragY, obj),
       )
       .on(Phaser.Input.Events.DRAG_END, () => this.onDragEnd(obj))
+
+    // Shift the origin to the centre so scale changes during drag are symmetric
+    // and the object lands exactly where the player releases it.
+    obj.setPosition(obj.x + obj.displayWidth / 2, obj.y - obj.displayHeight / 2)
 
     this.level.input.setDraggable(obj)
 

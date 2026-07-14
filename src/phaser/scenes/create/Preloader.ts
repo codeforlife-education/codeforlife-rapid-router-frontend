@@ -1,6 +1,8 @@
+import * as images from "../../images"
 import * as layers from "../../layers"
 import * as tilemaps from "../../tilemaps"
 import * as tilesets from "../../tilesets"
+import { TILE_HEIGHT, TILE_WIDTH } from "../../globals"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
 
@@ -73,6 +75,31 @@ export default class extends BasePreloader {
     })
 
     this.loadTilemap(tilemap)
+
+    this.loadImages()
+  }
+
+  private loadImages() {
+    // Preload images.
+    const trashcanSvgConfig: Phaser.Types.Loader.FileTypes.SVGSizeConfig = {
+      width: TILE_WIDTH / 2,
+      height: TILE_HEIGHT / 2,
+    }
+    this.load.svg(
+      images.URLs.HUD.Trashcan.TRASHCAN,
+      images.URLs.HUD.Trashcan.TRASHCAN,
+      trashcanSvgConfig,
+    )
+    this.load.svg(
+      images.URLs.HUD.Trashcan.Lid.OPEN,
+      images.URLs.HUD.Trashcan.Lid.OPEN,
+      trashcanSvgConfig,
+    )
+    this.load.svg(
+      images.URLs.HUD.Trashcan.Lid.CLOSED,
+      images.URLs.HUD.Trashcan.Lid.CLOSED,
+      trashcanSvgConfig,
+    )
   }
 
   create() {
