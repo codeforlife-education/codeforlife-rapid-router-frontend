@@ -4,6 +4,7 @@ import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import DragManager from "./DragManager"
 import EndpointManager from "./EndpointManager"
 import RoadManager from "./RoadManager"
+import SceneryManager from "./SceneryManager"
 import Toolbox from "../Toolbox"
 
 export type Tile = { col: number; row: number }
@@ -30,6 +31,9 @@ export default class extends BaseLevel<LevelData> {
 
   /** Endpoint manager responsible for handling endpoint objects. */
   endpoint!: EndpointManager
+
+  /** Scenery manager responsible for handling scenery objects. */
+  scenery!: SceneryManager
 
   /** Graphics used to render tile highlights for tools. */
   graphics!: Phaser.GameObjects.CustomGraphics
@@ -70,6 +74,7 @@ export default class extends BaseLevel<LevelData> {
     })
     this.road = new RoadManager(this)
     this.endpoint = new EndpointManager(this)
+    this.scenery = new SceneryManager(this)
   }
 
   /** Get the toolbox scene instance. */
