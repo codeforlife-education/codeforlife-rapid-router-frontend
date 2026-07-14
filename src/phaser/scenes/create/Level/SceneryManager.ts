@@ -71,9 +71,17 @@ export default class extends BaseManager {
     if (this.objectCount >= this.maxObjectCount) return null
     this.objectCount++
 
+    const objectSpec = this.factory(worldXY)
+
+    // Shift the origin to the centre so scale changes during drag are symmetric
+    // and the object lands exactly where the player releases it.
+    objectSpec.x += objectSpec.width / 2
+    objectSpec.y -= objectSpec.height / 2
+
     const obj = this.level
-      .addObject("ObjectGroup.SCENERY", this.factory(worldXY))
+      .addObject("ObjectGroup.SCENERY", objectSpec)
       .setInteractive({ cursor: "grab" })
+      .setOrigin(0.5, 0.5)
       .on(Phaser.Input.Events.DRAG_START, () => this.onDragStart(obj))
       .on(
         Phaser.Input.Events.DRAG,
