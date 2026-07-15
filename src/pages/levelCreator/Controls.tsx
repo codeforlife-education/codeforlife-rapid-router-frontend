@@ -16,15 +16,25 @@ import { type FC, useState } from "react"
 import { Divider } from "@mui/material"
 
 import * as miniDrawers from "../../components/miniDrawers"
+import MapSpeedDial from "./MapSpeedDial"
+
+type SelectableButtonId =
+  | "map"
+  | "scenery"
+  | "character"
+  | "code"
+  | "random"
+  | "description"
+  | "hint"
 
 export interface ControlsProps {}
 
 const Controls: FC<ControlsProps> = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
-  const [selected, setSelected] = useState("")
+  const [selected, setSelected] = useState<SelectableButtonId>("map")
 
   const makeSelectableButtonItemProps = (
-    id: string,
+    id: SelectableButtonId,
   ): Pick<
     miniDrawers.ButtonItemProps,
     "id" | "isDrawerOpen" | "selected" | "onClick"
@@ -36,75 +46,78 @@ const Controls: FC<ControlsProps> = () => {
   })
 
   return (
-    <miniDrawers.MiniDrawer
-      open={isDrawerOpen}
-      onToggle={() => {
-        setIsDrawerOpen(!isDrawerOpen)
-      }}
-    >
-      <miniDrawers.ButtonItem
-        {...makeSelectableButtonItemProps("map")}
-        text="Map"
-        icon={<EditRoadIcon />}
-      />
-      <miniDrawers.ButtonItem
-        {...makeSelectableButtonItemProps("scenery")}
-        text="Scenery"
-        icon={<ParkIcon />}
-      />
-      <miniDrawers.ButtonItem
-        {...makeSelectableButtonItemProps("character")}
-        text="Character"
-        icon={<PersonIcon />}
-      />
-      <miniDrawers.ButtonItem
-        {...makeSelectableButtonItemProps("code")}
-        text="Code"
-        icon={<ExtensionIcon />}
-      />
-      <miniDrawers.ButtonItem
-        {...makeSelectableButtonItemProps("random")}
-        text="Random"
-        icon={<CasinoIcon />}
-      />
-      <miniDrawers.ButtonItem
-        {...makeSelectableButtonItemProps("description")}
-        text="Description"
-        icon={<DescriptionIcon />}
-      />
-      <miniDrawers.ButtonItem
-        {...makeSelectableButtonItemProps("hint")}
-        text="Hint"
-        icon={<LightbulbIcon />}
-      />
-      <Divider />
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text="Load"
-        icon={<DriveFolderUploadIcon />}
-      />
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text="Save"
-        icon={<SaveOutlinedIcon />}
-      />
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text="Share"
-        icon={<PeopleIcon />}
-      />
-      <Divider />
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text="Help"
-        icon={<QuestionMarkIcon />}
-      />
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text="Quit"
-        icon={<ExitToAppIcon />}
-      />
-    </miniDrawers.MiniDrawer>
+    <>
+      {selected === "map" && <MapSpeedDial />}
+      <miniDrawers.MiniDrawer
+        open={isDrawerOpen}
+        onToggle={() => {
+          setIsDrawerOpen(!isDrawerOpen)
+        }}
+      >
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("map")}
+          text="Map"
+          icon={<EditRoadIcon />}
+        />
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("scenery")}
+          text="Scenery"
+          icon={<ParkIcon />}
+        />
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("character")}
+          text="Character"
+          icon={<PersonIcon />}
+        />
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("code")}
+          text="Code"
+          icon={<ExtensionIcon />}
+        />
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("random")}
+          text="Random"
+          icon={<CasinoIcon />}
+        />
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("description")}
+          text="Description"
+          icon={<DescriptionIcon />}
+        />
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("hint")}
+          text="Hint"
+          icon={<LightbulbIcon />}
+        />
+        <Divider />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Load"
+          icon={<DriveFolderUploadIcon />}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Save"
+          icon={<SaveOutlinedIcon />}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Share"
+          icon={<PeopleIcon />}
+        />
+        <Divider />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Help"
+          icon={<QuestionMarkIcon />}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Quit"
+          icon={<ExitToAppIcon />}
+        />
+      </miniDrawers.MiniDrawer>
+    </>
   )
 }
 

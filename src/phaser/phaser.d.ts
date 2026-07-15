@@ -1,5 +1,3 @@
-import type { SvgIcon } from "@mui/material"
-
 declare module "phaser" {
   namespace GameObjects {
     namespace Graphics {
@@ -10,14 +8,6 @@ declare module "phaser" {
     type Button = {
       bg: Phaser.GameObjects.Rectangle
       label: Phaser.GameObjects.Text
-    }
-
-    type FloatingActionButton = {
-      isExpanded: boolean
-      activeIndex: number
-      setExpanded(state: boolean): void
-      setActiveIndex(index: number): void
-      destroy(): void
     }
 
     interface CustomGraphics extends Phaser.GameObjects.Graphics {
@@ -53,14 +43,6 @@ declare module "phaser" {
       ): Button
 
       customGraphics(): CustomGraphics
-
-      floatingActionButton(
-        x: number,
-        y: number,
-        radius: number,
-        buttons: Array<{ icon: typeof SvgIcon; onClick: () => void }>,
-        defaultButtonIndex?: number,
-      ): FloatingActionButton
     }
   }
 }
