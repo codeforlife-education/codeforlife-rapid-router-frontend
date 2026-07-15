@@ -2,7 +2,12 @@ import Phaser from "phaser"
 
 import BaseScene from "../BaseScene"
 
-export type Tool = "add-road" | "delete-road" | "add-house" | "delete-house"
+export type Tool =
+  | "add-road"
+  | "delete-road"
+  | "add-house"
+  | "delete-house"
+  | "add-cfc"
 
 /**
  * The Toolbox Scene for the Level Creator provides a toolbar on the left side
@@ -43,6 +48,7 @@ export default class Toolbox extends BaseScene {
       "delete-road": "Delete Road",
       "add-house": "Add House",
       "delete-house": "Delete House",
+      "add-cfc": "Mark Start",
     })
   }
 

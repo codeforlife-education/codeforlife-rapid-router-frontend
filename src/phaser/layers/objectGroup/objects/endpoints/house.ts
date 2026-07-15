@@ -34,12 +34,12 @@ const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
 ) => {
   // The inside of a turn is further from the tile's center; bigger offset.
   const inside = objects.makeDiagonalRotationVariants({
-    tileOffset: { col: 0.65, row: 1 },
+    tileOffset: { col: 0.625, row: 0.975 },
     ...diagonal,
   })
   // The outside of a turn is closer to the tile's center; smaller offset.
   const outside = objects.makeDiagonalRotationVariants({
-    tileOffset: { col: 0.35, row: 0.7 },
+    tileOffset: { col: 0.325, row: 0.675 },
     ...diagonal,
   })
   const diagonalRotationVariants: DiagonalRotationVariants = {
