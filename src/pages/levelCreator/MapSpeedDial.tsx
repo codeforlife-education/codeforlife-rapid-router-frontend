@@ -4,7 +4,7 @@ import {
   RemoveRoad as RemoveRoadIcon,
   Warehouse as WarehouseIcon,
 } from "@mui/icons-material"
-import { Box, SpeedDial, SpeedDialAction, SpeedDialIcon } from "@mui/material"
+import { Box, SpeedDial, SpeedDialAction } from "@mui/material"
 import { type FC, useState } from "react"
 
 const actions = {
@@ -42,13 +42,24 @@ const MapSpeedDial: FC<MapSpeedDialProps> = () => {
   const [action, setAction] = useState<Action>("add-road")
   const [open, setOpen] = useState(true)
 
-  const ActionIcon = actions[action].Icon
+  const { Icon, backgroundColor } = actions[action]
 
   return (
     <Box sx={{ position: "fixed", right: 16, bottom: 16, zIndex: 1 }}>
       <SpeedDial
         ariaLabel="Map SpeedDial"
-        icon={<SpeedDialIcon icon={<ActionIcon />} />}
+        FabProps={{
+          sx: {
+            backgroundColor,
+            animation: "fabPulse 1.5s ease-in-out infinite",
+            "@keyframes fabPulse": {
+              "0%": { boxShadow: "0 0 0 0 rgba(255, 235, 59, 1)" },
+              "70%": { boxShadow: "0 0 0 14px rgba(255, 235, 59, 0)" },
+              "100%": { boxShadow: "0 0 0 0 rgba(255, 235, 59, 0)" },
+            },
+          },
+        }}
+        icon={<Icon />}
         onClose={(_, reason) => {
           if (reason === "toggle") setOpen(false)
         }}
