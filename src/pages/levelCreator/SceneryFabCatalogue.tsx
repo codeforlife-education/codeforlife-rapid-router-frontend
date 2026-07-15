@@ -4,12 +4,11 @@ import {
   ImageList,
   ImageListItem,
   ImageListItemBar,
-  Popover,
   Portal,
   Tooltip,
   Typography,
 } from "@mui/material"
-import { type FC, useRef, useState } from "react"
+import { type FC, useState } from "react"
 import { Park as ParkIcon } from "@mui/icons-material"
 
 import * as tilesets from "../../phaser/tilesets"
@@ -38,6 +37,13 @@ const ITEMS: { key: SceneryItemKey; label: string; image: string }[] = [
 /** Event name dispatched on `window` when the user selects a scenery type. */
 export const SCENERY_TOOL_SELECTED = "scenery-tool-selected"
 
+// FAB dimensions + margin + gap between catalogue and FAB.
+// Positions the catalogue's bottom-right corner just above-left of the FAB.
+const FAB_SIZE = 56
+const FAB_MARGIN = 16
+const CATALOGUE_GAP = 8
+const CATALOGUE_OFFSET = FAB_SIZE + FAB_MARGIN + CATALOGUE_GAP // = 80
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export interface SceneryFabCatalogueProps {}
@@ -45,7 +51,6 @@ export interface SceneryFabCatalogueProps {}
 const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<SceneryItemKey | null>(null)
-  const fabRef = useRef<HTMLButtonElement>(null)
 
   const selectedItem = ITEMS.find(i => i.key === selected) ?? null
 
@@ -60,8 +65,86 @@ const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
   return (
     <Portal>
       <>
-        {/* ── Floating action button ── */}
-        <Box sx={{ position: "fixed", right: 16, bottom: 16, zIndex: 1 }}>
+        {open && (
+          <>
+            {/* ── Click-away backdrop ── */}
+            <Box
+              sx={{ position: "fixed", inset: 0, zIndex: 1 }}
+              onClick={() => setOpen(false)}
+            />
+
+            {/* ── Catalogue panel ──
+                Bottom-right corner aligns with the FAB's top-left corner.
+                Never larger than the viewport; scrolls internally if needed. */}
+            <Box
+              sx={{
+                position: "fixed",
+                right: CATALOGUE_OFFSET,
+                bottom: CATALOGUE_OFFSET,
+                zIndex: 1,
+                maxWidth: `calc(100vw - ${CATALOGUE_OFFSET}px)`,
+                maxHeight: `calc(100vh - ${CATALOGUE_OFFSET}px)`,
+                overflow: "auto",
+                borderRadius: 2,
+                boxShadow: 8,
+                background: "rgba(18, 18, 30, 0.88)",
+                backdropFilter: "blur(8px)",
+                color: "common.white",
+              }}
+            >
+              <Box sx={{ p: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Scenery Objects
+                </Typography>
+                <ImageList cols={3} gap={8} sx={{ width: 240, m: 0 }}>
+                  {ITEMS.map(({ key, label, image }) => (
+                    <ImageListItem
+                      key={key}
+                      onClick={() => handleSelect(key)}
+                      sx={{
+                        cursor: "pointer",
+                        borderRadius: 1,
+                        p: 0.5,
+                        outline: "2px solid",
+                        outlineColor:
+                          selected === key ? "success.main" : "transparent",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={image}
+                        alt={label}
+                        sx={{ width: "100%", height: 64, objectFit: "contain" }}
+                      />
+                      <ImageListItemBar
+                        title={label}
+                        position="below"
+                        sx={{
+                          "& .MuiImageListItemBar-title": {
+                            fontSize: "0.75rem",
+                            textAlign: "center",
+                            color: "common.white",
+                          },
+                        }}
+                      />
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              </Box>
+            </Box>
+          </>
+        )}
+
+        {/* ── FAB — rendered last so it sits above the backdrop in DOM order ── */}
+        <Box
+          sx={{
+            position: "fixed",
+            right: FAB_MARGIN,
+            bottom: FAB_MARGIN,
+            zIndex: 1,
+          }}
+        >
           <Tooltip
             title={
               selectedItem
@@ -71,11 +154,9 @@ const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
             placement="left"
           >
             <Fab
-              ref={fabRef}
               color="success"
               onClick={() => setOpen(prev => !prev)}
               sx={{
-                // Pulse yellow when nothing is selected to prompt the user.
                 animation: selected
                   ? "none"
                   : "sceneryFabPulse 1.5s ease-in-out infinite",
@@ -99,56 +180,6 @@ const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
             </Fab>
           </Tooltip>
         </Box>
-
-        {/* ── Catalogue popover ── */}
-        <Popover
-          open={open}
-          anchorEl={fabRef.current}
-          onClose={() => setOpen(false)}
-          anchorOrigin={{ vertical: "top", horizontal: "left" }}
-          transformOrigin={{ vertical: "bottom", horizontal: "left" }}
-          slotProps={{ paper: { sx: { borderRadius: 2 } } }}
-        >
-          <Box sx={{ p: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Scenery Objects
-            </Typography>
-            <ImageList cols={3} gap={8} sx={{ width: 240, m: 0 }}>
-              {ITEMS.map(({ key, label, image }) => (
-                <ImageListItem
-                  key={key}
-                  onClick={() => handleSelect(key)}
-                  sx={{
-                    cursor: "pointer",
-                    borderRadius: 1,
-                    p: 0.5,
-                    outline: "2px solid",
-                    outlineColor:
-                      selected === key ? "success.main" : "transparent",
-                    "&:hover": { bgcolor: "action.hover" },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={image}
-                    alt={label}
-                    sx={{ width: "100%", height: 64, objectFit: "contain" }}
-                  />
-                  <ImageListItemBar
-                    title={label}
-                    position="below"
-                    sx={{
-                      "& .MuiImageListItemBar-title": {
-                        fontSize: "0.75rem",
-                        textAlign: "center",
-                      },
-                    }}
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
-          </Box>
-        </Popover>
       </>
     </Portal>
   )
