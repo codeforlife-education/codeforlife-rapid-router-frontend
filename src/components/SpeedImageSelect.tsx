@@ -17,24 +17,20 @@ export type Key<Categories extends readonly Category[]> = {
   [C in Categories[number] as C["key"]]: `${C["key"]}-${C["images"][number]["key"]}`
 }[Categories[number]["key"]]
 
-export interface SpeedImageListProps<Categories extends readonly Category[]> {
+export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   open: boolean
   onOpen: () => void
   onClose: () => void
   selectedKey: Key<Categories>
-  onChangeKey: (key: Key<Categories>) => void
+  onChange: (key: Key<Categories>) => void
   ease?: string
   padding?: number
   cols: number
   gap?: number
   fab: { margin: number; size: number }
-  image: {
-    size: number
-    padding?: number
-    bar?: { lineHeight?: number; marginBottom?: number }
-  }
-  title?: { lineHeight?: number }
   categories: Categories
+  lineHeight?: number
+  image: { size: number; padding?: number }
 }
 
 const SelectFab = <Categories extends readonly Category[]>({
@@ -43,7 +39,7 @@ const SelectFab = <Categories extends readonly Category[]>({
   selectedKey,
   categories,
 }: Pick<
-  SpeedImageListProps<Categories>,
+  SpeedImageSelectProps<Categories>,
   "open" | "onOpen" | "selectedKey" | "categories"
 >): JSX.Element => {
   const selectedImage = categories
@@ -100,19 +96,19 @@ const SelectImageList = <Categories extends readonly Category[]>({
   cols,
   gap,
   selectedKey,
-  onChangeKey,
+  onChange,
   onClose,
   categories,
   open,
   padding,
   width,
   image,
-  title,
+  lineHeight,
 }: Pick<
-  SpeedImageListProps<Categories>,
+  SpeedImageSelectProps<Categories>,
   | "cols"
   | "gap"
-  | "onChangeKey"
+  | "onChange"
   | "selectedKey"
   | "onClose"
   | "categories"
@@ -120,12 +116,8 @@ const SelectImageList = <Categories extends readonly Category[]>({
 > & {
   padding: string
   width: string
-  image: {
-    size: string
-    padding: string
-    bar: { lineHeight: string; marginBottom: string }
-  }
-  title: { lineHeight: string }
+  image: { size: string; padding: string }
+  lineHeight: string
 }): JSX.Element => (
   <Box
     sx={{
@@ -150,7 +142,7 @@ const SelectImageList = <Categories extends readonly Category[]>({
                   backgroundColor: "transparent",
                   color: "common.white",
                   p: 0,
-                  lineHeight: title.lineHeight,
+                  lineHeight,
                 }}
               >
                 {subheader}
@@ -163,7 +155,7 @@ const SelectImageList = <Categories extends readonly Category[]>({
                 <ImageListItem
                   key={key}
                   onClick={() => {
-                    onChangeKey(key as Key<Categories>)
+                    onChange(key as Key<Categories>)
                     onClose()
                   }}
                   sx={{
@@ -192,8 +184,9 @@ const SelectImageList = <Categories extends readonly Category[]>({
                     position="below"
                     sx={{
                       [`& .${imageListItemBarClasses.title}`]: {
-                        lineHeight: image.bar.lineHeight,
-                        marginBottom: image.bar.marginBottom,
+                        lineHeight,
+                        p: 0,
+                        m: 0,
                         fontSize: "0.75rem",
                         textAlign: "center",
                         color: "common.white",
@@ -203,7 +196,8 @@ const SelectImageList = <Categories extends readonly Category[]>({
                         whiteSpace: "nowrap",
                       },
                       [`& .${imageListItemBarClasses.titleWrap}`]: {
-                        padding: 0,
+                        p: 0,
+                        m: 0,
                       },
                     }}
                   />
@@ -217,51 +211,53 @@ const SelectImageList = <Categories extends readonly Category[]>({
   </Box>
 )
 
-const SpeedImageList = <Categories extends readonly Category[]>({
+const SpeedImageSelect = <Categories extends readonly Category[]>({
   ease = "cubic-bezier(0.4, 0, 0.2, 1)",
+  lineHeight = 24,
   padding = 2,
   gap = 8,
   cols,
   fab,
-  title,
   image,
   categories,
   open,
   onClose,
   ...props
-}: SpeedImageListProps<Categories>): JSX.Element => {
+}: SpeedImageSelectProps<Categories>): JSX.Element => {
   // Calculate the number of rows and columns needed to display all items.
-  const maxItemsLength = categories.reduce(
+  const maxImagesLength = categories.reduce(
     (max, category) => Math.max(max, category.images.length),
     0,
   )
-  cols = cols <= maxItemsLength ? cols : maxItemsLength
-  const totalItemsLength = categories.reduce(
-    (sum, category) => sum + category.images.length,
+  cols = cols <= maxImagesLength ? cols : maxImagesLength
+  const rows = categories.reduce(
+    (sum, category) => sum + Math.ceil(category.images.length / cols),
     0,
   )
-  const rows = Math.ceil(totalItemsLength / cols)
 
   // Resolve defaults and convert MUI spacing units → px.
   const spacing = 8
   const pxPadding = padding * spacing
   const pxFabMargin = fab.margin * spacing
-  const titleLineHeight = title?.lineHeight ?? 24
   const pxImagePadding = (image.padding ?? 0.5) * spacing
-  const imageBarLineHeight = image.bar?.lineHeight ?? 24
-  const pxImageBarMb = (image.bar?.marginBottom ?? 0) * spacing
 
   // Calculate the width.
-  const imageWidth = image.size + pxImagePadding * 2 // left & right padding
-  const imageListWidth = imageWidth * cols + gap * (cols - 1)
+  const imageListWidth =
+    cols * // total width of image rows
+      (image.size + // image width
+        pxImagePadding * 2) + // left & right image padding
+    gap * (cols - 1) // total width of gaps between image columns
   const width = imageListWidth + pxPadding * 2 // left & right padding
 
   // Calculate the height.
-  const titleHeight = titleLineHeight
-  const imageHeight = image.size + pxImagePadding * 2 // top & bottom padding
-  const imageBarHeight = imageBarLineHeight + pxImageBarMb
   const imageListHeight =
-    titleHeight + (imageHeight + imageBarHeight) * rows + gap * rows
+    lineHeight * categories.length + // total height of subheaders
+    rows * // total height of image rows
+      (image.size + // image height
+        pxImagePadding * 2 + // top & bottom image padding
+        lineHeight) + // image bar height
+    gap * // total height of gaps
+      (rows + categories.length - 1) // gaps between image rows and subheaders
   const height = imageListHeight + pxPadding * 2 // top & bottom padding
 
   return (
@@ -352,19 +348,12 @@ const SpeedImageList = <Categories extends readonly Category[]>({
           cols={cols}
           padding={`${pxPadding}px`}
           width={`${imageListWidth}px`}
-          image={{
-            size: `${image.size}px`,
-            padding: `${pxImagePadding}px`,
-            bar: {
-              lineHeight: `${imageBarLineHeight}px`,
-              marginBottom: `${pxImageBarMb}px`,
-            },
-          }}
-          title={{ lineHeight: `${titleLineHeight}px` }}
+          image={{ size: `${image.size}px`, padding: `${pxImagePadding}px` }}
+          lineHeight={`${lineHeight}px`}
         />
       </Box>
     </>
   )
 }
 
-export default SpeedImageList
+export default SpeedImageSelect

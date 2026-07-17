@@ -2,7 +2,7 @@ import { type FC, useState } from "react"
 import { Portal } from "@mui/material"
 
 import * as tilesets from "../../phaser/tilesets"
-import SpeedImageList, { type Key } from "./SpeedImageList"
+import SpeedImageSelect, { type Key } from "../../components/SpeedImageSelect"
 import { useBreakpoint } from "../../app/hooks"
 
 // /** Fired on `window` whenever the active scenery type changes. */
@@ -82,7 +82,7 @@ const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
 
   return (
     <Portal>
-      <SpeedImageList
+      <SpeedImageSelect
         open={open}
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
@@ -97,7 +97,7 @@ const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
           }[breakpoint]
         }
         selectedKey={selectedKey}
-        onChangeKey={key => {
+        onChange={key => {
           setSelectedKey(key)
           // window.dispatchEvent(
           //   new CustomEvent(SCENERY_TOOL_SELECTED, { detail: key }),
