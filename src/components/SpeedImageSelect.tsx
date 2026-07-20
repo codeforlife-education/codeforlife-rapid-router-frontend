@@ -1,11 +1,9 @@
 import {
   Box,
-  Fab,
   ImageList,
   ImageListItem,
   ImageListItemBar,
   ListSubheader,
-  type SxProps,
   Tooltip,
   imageListItemBarClasses,
 } from "@mui/material"
@@ -17,6 +15,10 @@ type Category = { key: string; subheader: string; images: readonly Image[] }
 export type Key<Categories extends readonly Category[]> = {
   [C in Categories[number] as C["key"]]: `${C["key"]}-${C["images"][number]["key"]}`
 }[Categories[number]["key"]]
+
+function key<C extends string, I extends string>(category: C, image: I) {
+  return `${category}-${image}` as const
+}
 
 export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   open: boolean
@@ -34,184 +36,6 @@ export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   image: { size: number; padding?: number }
 }
 
-const SelectFab = <Categories extends readonly Category[]>({
-  open,
-  onOpen,
-  selectedKey,
-  categories,
-}: Pick<
-  SpeedImageSelectProps<Categories>,
-  "open" | "onOpen" | "selectedKey" | "categories"
->): JSX.Element => {
-  const selectedImage = categories
-    .flatMap(({ key: categoryKey, images }) =>
-      images.map(({ key: imageKey, ...image }) => ({
-        key: `${categoryKey}-${imageKey}` as Key<Categories>,
-        ...image,
-      })),
-    )
-    .find(({ key }) => key === selectedKey)!
-
-  return (
-    <Tooltip
-      title={
-        selectedImage
-          ? `Placing: ${selectedImage.title} — click the map`
-          : "Choose a scenery object"
-      }
-      placement="left"
-      disableHoverListener={open}
-      disableFocusListener={open}
-      disableTouchListener={open}
-    >
-      <Fab
-        color="success"
-        onClick={() => !open && onOpen()}
-        sx={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          minHeight: "unset",
-          borderRadius: "inherit",
-          boxShadow: "none",
-          bgcolor: "transparent",
-          "&:hover": { bgcolor: "transparent" },
-          opacity: open ? 0 : 1,
-          transition: "opacity 0.15s",
-          pointerEvents: open ? "none" : "auto",
-          zIndex: 2,
-        }}
-      >
-        <Box
-          component="img"
-          src={selectedImage.src}
-          alt={selectedImage.title}
-          sx={{ width: "65%", height: "65%", objectFit: "contain" }}
-        />
-      </Fab>
-    </Tooltip>
-  )
-}
-const SelectImageList = <Categories extends readonly Category[]>({
-  cols,
-  gap,
-  selectedKey,
-  onChange,
-  onClose,
-  categories,
-  open,
-  padding,
-  width,
-  image,
-  lineHeight,
-}: Pick<
-  SpeedImageSelectProps<Categories>,
-  | "cols"
-  | "gap"
-  | "onChange"
-  | "selectedKey"
-  | "onClose"
-  | "categories"
-  | "open"
-> & {
-  padding: string
-  width: string
-  image: { size: string; padding: string }
-  lineHeight: string
-}): JSX.Element => (
-  <Box
-    sx={{
-      position: "absolute",
-      inset: 0,
-      overflow: "auto",
-      color: "common.white",
-      opacity: open ? 1 : 0,
-      transition: `opacity 0.2s ${open ? "0.2s" : "0s"}`,
-      pointerEvents: open ? "auto" : "none",
-      zIndex: 3,
-    }}
-  >
-    <Box sx={{ padding }}>
-      <ImageList cols={cols} gap={gap} sx={{ width, m: 0 }}>
-        {categories.map(({ key: categoryKey, subheader, images }) => (
-          <Fragment key={categoryKey}>
-            <ImageListItem cols={cols} sx={{ p: 0, m: 0 }}>
-              <ListSubheader
-                component="div"
-                sx={{
-                  backgroundColor: "transparent",
-                  color: "common.white",
-                  p: 0,
-                  lineHeight,
-                }}
-              >
-                {subheader}
-              </ListSubheader>
-            </ImageListItem>
-            {images.map(({ key: imageKey, title, src }) => {
-              const key = `${categoryKey}-${imageKey}`
-
-              return (
-                <ImageListItem
-                  key={key}
-                  onClick={() => {
-                    onChange(key as Key<Categories>)
-                    onClose()
-                  }}
-                  sx={{
-                    cursor: "pointer",
-                    borderRadius: 1,
-                    padding: image.padding,
-                    outline: "2px solid",
-                    outlineOffset: "-2px",
-                    outlineColor:
-                      selectedKey === key ? "success.main" : "transparent",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={src}
-                    alt={title}
-                    sx={{
-                      width: "100%",
-                      height: image.size,
-                      objectFit: "contain",
-                    }}
-                  />
-                  <ImageListItemBar
-                    title={title}
-                    position="below"
-                    sx={{
-                      [`& .${imageListItemBarClasses.title}`]: {
-                        lineHeight,
-                        p: 0,
-                        m: 0,
-                        fontSize: "0.75rem",
-                        textAlign: "center",
-                        color: "common.white",
-                        maxWidth: "100%",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      },
-                      [`& .${imageListItemBarClasses.titleWrap}`]: {
-                        p: 0,
-                        m: 0,
-                      },
-                    }}
-                  />
-                </ImageListItem>
-              )
-            })}
-          </Fragment>
-        ))}
-      </ImageList>
-    </Box>
-  </Box>
-)
-
 const SpeedImageSelect = <Categories extends readonly Category[]>({
   ease = "cubic-bezier(0.4, 0, 0.2, 1)",
   lineHeight = 24,
@@ -223,7 +47,9 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   categories,
   open,
   onClose,
-  ...props
+  selectedKey,
+  onChange,
+  onOpen,
 }: SpeedImageSelectProps<Categories>): JSX.Element => {
   // Calculate the number of rows and columns needed to display all items.
   const maxImagesLength = categories.reduce(
@@ -261,13 +87,15 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
       (rows + categories.length - 1) // gaps between image rows and subheaders
   const height = imageListHeight + pxPadding * 2 // top & bottom padding
 
-  // Background layer style.
-  const bgLayer: SxProps = {
-    position: "absolute",
-    inset: 0,
-    transition: "opacity 0.2s",
-    pointerEvents: "none",
-  }
+  // Find the selected image object based on the selected key.
+  const selectedImage = categories
+    .flatMap(({ key: categoryKey, images }) =>
+      images.map(({ key: imageKey, ...image }) => ({
+        key: key(categoryKey, imageKey) as Key<Categories>,
+        ...image,
+      })),
+    )
+    .find(({ key }) => key === selectedKey)!
 
   return (
     <>
@@ -282,60 +110,135 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
       Morphing container pinned at right/bottom so it always grows upward and to
       the left.
       */}
-      <Box
-        sx={{
-          position: "fixed",
-          right: `${pxFabMargin}px`,
-          bottom: `${pxFabMargin}px`,
-          zIndex: 2,
-          // Shape morphs between FAB circle and catalogue rectangle.
-          width: open
-            ? `min(${width}px, calc(100vw - ${pxFabMargin * 2}px))`
-            : `${fab.size}px`,
-          height: open
-            ? `min(${height}px, calc(100vh - ${pxFabMargin * 2}px))`
-            : `${fab.size}px`,
-          borderRadius: open ? "16px" : "50%",
-          // clips background and content to the shape during the transition.
-          overflow: "hidden",
-          transition: [
-            `width 0.35s ${ease}`,
-            `height 0.35s ${ease}`,
-            `border-radius 0.35s ${ease}`,
-          ].join(", "),
-          // Pulse when the FAB is visible.
-          animation: open ? "none" : "fabPulse 1.5s ease-in-out infinite",
-        }}
+      <Tooltip
+        title={`Placing: ${selectedImage.title} — click the map`}
+        placement="left"
+        disableHoverListener={open}
+        disableFocusListener={open}
+        disableTouchListener={open}
       >
-        {/* Background layer 1: green FAB (fades out as catalogue opens) */}
-        <Box sx={{ bgcolor: "green", opacity: open ? 0 : 1, ...bgLayer }} />
-        {/* Background layer 2: dark catalogue (fades in as FAB closes) */}
         <Box
-          sx={{ background: "black", opacity: open ? 0.85 : 0, ...bgLayer }}
-        />
-        {/* ── FAB face: icon centred over the green circle ──────────────────
-              Uses Fab so we get the ripple on click. border-radius: inherit
-              follows the morphing container so the ripple stays clipped to the
-              current shape. Fades out / becomes non-interactive when catalogue
-              is open. */}
-        <SelectFab open={open} categories={categories} {...props} />
-
-        {/* ── Catalogue content: fades in after the shape has grown ────────
-              Delayed fade-in (0.2 s) so content appears once the container is
-              large enough to hold it comfortably. Scrollable for small screens. */}
-        <SelectImageList
-          {...props}
-          categories={categories}
-          open={open}
-          onClose={onClose}
-          gap={gap}
-          cols={cols}
-          padding={`${pxPadding}px`}
-          width={`${imageListWidth}px`}
-          image={{ size: `${image.size}px`, padding: `${pxImagePadding}px` }}
-          lineHeight={`${lineHeight}px`}
-        />
-      </Box>
+          sx={{
+            position: "fixed",
+            right: `${pxFabMargin}px`,
+            bottom: `${pxFabMargin}px`,
+            zIndex: 2,
+            // Shape morphs between FAB circle and catalogue rectangle.
+            width: open
+              ? `min(${width}px, calc(100vw - ${pxFabMargin * 2}px))`
+              : `${fab.size}px`,
+            height: open
+              ? `min(${height}px, calc(100vh - ${pxFabMargin * 2}px))`
+              : `${fab.size}px`,
+            borderRadius: open ? "16px" : "50%",
+            bgcolor: open ? "rgba(0, 0, 0, 0.85)" : "rgba(0, 128, 0, 1)",
+            padding: open ? `${pxPadding}px` : 0,
+            // clips background and content to the shape during the transition.
+            overflow: "hidden",
+            transition: [
+              `width 0.3s ${ease}`,
+              `height 0.3s ${ease}`,
+              `border-radius 0.3s ${ease}`,
+              `bgcolor 0.3s ${ease}`,
+              `padding 0.3s ${ease}`,
+            ].join(", "),
+            // Pulse when the FAB is visible.
+            animation: open ? "none" : "fabPulse 1.5s ease-in-out infinite",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => !open && onOpen()}
+        >
+          {open ? (
+            <ImageList
+              cols={cols}
+              gap={gap}
+              sx={{ width: `${imageListWidth}px`, m: 0, p: 0 }}
+            >
+              {categories.map(({ key: categoryKey, subheader, images }) => (
+                <Fragment key={categoryKey}>
+                  <ImageListItem cols={cols} sx={{ p: 0, m: 0 }}>
+                    <ListSubheader
+                      component="div"
+                      sx={{
+                        backgroundColor: "transparent",
+                        color: "common.white",
+                        p: 0,
+                        lineHeight: `${lineHeight}px`,
+                      }}
+                    >
+                      {subheader}
+                    </ListSubheader>
+                  </ImageListItem>
+                  {images.map(({ key: imageKey, title, src }) => (
+                    <ImageListItem
+                      key={key(categoryKey, imageKey)}
+                      onClick={() => {
+                        onChange(key(categoryKey, imageKey) as Key<Categories>)
+                        onClose()
+                      }}
+                      sx={{
+                        cursor: "pointer",
+                        borderRadius: 1,
+                        padding: `${pxImagePadding}px`,
+                        outline: "2px solid",
+                        outlineOffset: "-2px",
+                        outlineColor:
+                          selectedKey === key(categoryKey, imageKey)
+                            ? "green"
+                            : "transparent",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={src}
+                        alt={title}
+                        width="100%"
+                        height={`${image.size}px`}
+                        sx={{ objectFit: "contain" }}
+                      />
+                      <ImageListItemBar
+                        title={title}
+                        position="below"
+                        sx={{
+                          [`& .${imageListItemBarClasses.title}`]: {
+                            lineHeight: `${lineHeight}px`,
+                            p: 0,
+                            m: 0,
+                            fontSize: "0.75rem",
+                            textAlign: "center",
+                            color: "common.white",
+                            maxWidth: "100%",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          },
+                          [`& .${imageListItemBarClasses.titleWrap}`]: {
+                            p: 0,
+                            m: 0,
+                          },
+                        }}
+                      />
+                    </ImageListItem>
+                  ))}
+                </Fragment>
+              ))}
+            </ImageList>
+          ) : (
+            <Box
+              component="img"
+              src={selectedImage.src}
+              alt={selectedImage.title}
+              width={`${fab.size * 0.65}px`}
+              height={`${fab.size * 0.65}px`}
+              sx={{ objectFit: "contain" }}
+            />
+          )}
+        </Box>
+      </Tooltip>
     </>
   )
 }
