@@ -7,7 +7,7 @@ import {
   Tooltip,
   imageListItemBarClasses,
 } from "@mui/material"
-import { Fragment, type JSX, useState } from "react"
+import { type FC, Fragment, type JSX, useEffect, useState } from "react"
 
 type Image = { key: string; title: string; src: string }
 type Category = { key: string; subheader: string; images: readonly Image[] }
@@ -36,6 +36,19 @@ export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   image: { size: number; padding?: number }
 }
 
+const Img: FC<{ height: number; src: string; alt: string }> = ({
+  height,
+  ...props
+}) => (
+  <Box
+    component="img"
+    {...props}
+    width="100%"
+    height={`${height}px`}
+    sx={{ objectFit: "contain" }}
+  />
+)
+
 const SpeedImageSelect = <Categories extends readonly Category[]>({
   ease = "cubic-bezier(0.4, 0, 0.2, 1)",
   lineHeight = 24,
@@ -52,6 +65,12 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   onOpen,
 }: SpeedImageSelectProps<Categories>): JSX.Element => {
   const [tooltipOpen, setTooltipOpen] = useState(false)
+  const [scrollable, setScrollable] = useState(false)
+
+  // Reset whenever the catalogue closes so the next open starts fresh.
+  useEffect(() => {
+    if (!open) setScrollable(false)
+  }, [open])
 
   // Calculate the number of rows and columns needed to display all items.
   const maxImagesLength = categories.reduce(
@@ -99,13 +118,19 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
     )
     .find(({ key }) => key === selectedKey)!
 
+  function handleClose(key?: Key<Categories>) {
+    setScrollable(false)
+    if (key) onChange(key)
+    onClose()
+  }
+
   return (
     <>
       {/* Click-away backdrop */}
       {open && (
         <Box
           sx={{ position: "fixed", inset: 0, zIndex: 1 }}
-          onClick={onClose}
+          onClick={() => handleClose()}
         />
       )}
       {/*
@@ -139,7 +164,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             bgcolor: open ? "rgba(0, 0, 0, 0.85)" : "rgba(0, 128, 0, 1)",
             padding: open ? `${pxPadding}px` : 0,
             // clips background and content to the shape during the transition.
-            overflow: "hidden",
+            overflow: open && scrollable ? "auto" : "hidden",
             transition: [
               `width 0.3s ${ease}`,
               `height 0.3s ${ease}`,
@@ -158,6 +183,9 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             if (open) return
             onOpen()
             setTooltipOpen(false)
+          }}
+          onTransitionEnd={() => {
+            if (open) setScrollable(true)
           }}
         >
           {open ? (
@@ -184,12 +212,11 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                   {images.map(({ key: imageKey, title, src }) => (
                     <ImageListItem
                       key={makeKey(categoryKey, imageKey)}
-                      onClick={() => {
-                        onChange(
+                      onClick={() =>
+                        handleClose(
                           makeKey(categoryKey, imageKey) as Key<Categories>,
                         )
-                        onClose()
-                      }}
+                      }
                       sx={{
                         cursor: "pointer",
                         borderRadius: 1,
@@ -203,14 +230,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                         "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
                       }}
                     >
-                      <Box
-                        component="img"
-                        src={src}
-                        alt={title}
-                        width="100%"
-                        height={`${image.size}px`}
-                        sx={{ objectFit: "contain" }}
-                      />
+                      <Img src={src} alt={title} height={image.size} />
                       <ImageListItemBar
                         title={title}
                         position="below"
@@ -239,13 +259,10 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               ))}
             </ImageList>
           ) : (
-            <Box
-              component="img"
+            <Img
               src={selectedImage.src}
               alt={selectedImage.title}
-              width={`${fab.size * 0.65}px`}
-              height={`${fab.size * 0.65}px`}
-              sx={{ objectFit: "contain" }}
+              height={fab.size * 0.65}
             />
           )}
         </Box>
