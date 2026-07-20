@@ -5,6 +5,7 @@ import {
   ImageListItem,
   ImageListItemBar,
   ListSubheader,
+  type SxProps,
   Tooltip,
   imageListItemBarClasses,
 } from "@mui/material"
@@ -260,6 +261,14 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
       (rows + categories.length - 1) // gaps between image rows and subheaders
   const height = imageListHeight + pxPadding * 2 // top & bottom padding
 
+  // Background layer style.
+  const bgLayer: SxProps = {
+    position: "absolute",
+    inset: 0,
+    transition: "opacity 0.2s",
+    pointerEvents: "none",
+  }
+
   return (
     <>
       {/* Click-away backdrop */}
@@ -294,34 +303,16 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             `height 0.35s ${ease}`,
             `border-radius 0.35s ${ease}`,
           ].join(", "),
-          // Pulse when the FAB is visible and no item is selected yet.
-          animation: "fabPulse 1.5s ease-in-out infinite",
+          // Pulse when the FAB is visible.
+          animation: open ? "none" : "fabPulse 1.5s ease-in-out infinite",
         }}
       >
-        {/* ── Background layer 1: green FAB (fades out as catalogue opens) ── */}
+        {/* Background layer 1: green FAB (fades out as catalogue opens) */}
+        <Box sx={{ bgcolor: "green", opacity: open ? 0 : 1, ...bgLayer }} />
+        {/* Background layer 2: dark catalogue (fades in as FAB closes) */}
         <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            bgcolor: "success.main",
-            opacity: open ? 0 : 1,
-            transition: "opacity 0.2s",
-            pointerEvents: "none",
-          }}
+          sx={{ background: "black", opacity: open ? 0.85 : 0, ...bgLayer }}
         />
-
-        {/* ── Background layer 2: dark catalogue (fades in as FAB closes) ── */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            background: "rgba(18, 18, 30, 0.95)",
-            opacity: open ? 1 : 0,
-            transition: "opacity 0.2s",
-            pointerEvents: "none",
-          }}
-        />
-
         {/* ── FAB face: icon centred over the green circle ──────────────────
               Uses Fab so we get the ripple on click. border-radius: inherit
               follows the morphing container so the ripple stays clipped to the
