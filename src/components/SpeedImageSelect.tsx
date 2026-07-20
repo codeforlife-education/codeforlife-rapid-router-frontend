@@ -16,7 +16,7 @@ export type Key<Categories extends readonly Category[]> = {
   [C in Categories[number] as C["key"]]: `${C["key"]}-${C["images"][number]["key"]}`
 }[Categories[number]["key"]]
 
-function key<C extends string, I extends string>(category: C, image: I) {
+function makeKey<C extends string, I extends string>(category: C, image: I) {
   return `${category}-${image}` as const
 }
 
@@ -91,7 +91,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   const selectedImage = categories
     .flatMap(({ key: categoryKey, images }) =>
       images.map(({ key: imageKey, ...image }) => ({
-        key: key(categoryKey, imageKey) as Key<Categories>,
+        key: makeKey(categoryKey, imageKey) as Key<Categories>,
         ...image,
       })),
     )
@@ -139,7 +139,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               `width 0.3s ${ease}`,
               `height 0.3s ${ease}`,
               `border-radius 0.3s ${ease}`,
-              `bgcolor 0.3s ${ease}`,
+              `background-color 0.3s ${ease}`,
               `padding 0.3s ${ease}`,
             ].join(", "),
             // Pulse when the FAB is visible.
@@ -174,9 +174,11 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                   </ImageListItem>
                   {images.map(({ key: imageKey, title, src }) => (
                     <ImageListItem
-                      key={key(categoryKey, imageKey)}
+                      key={makeKey(categoryKey, imageKey)}
                       onClick={() => {
-                        onChange(key(categoryKey, imageKey) as Key<Categories>)
+                        onChange(
+                          makeKey(categoryKey, imageKey) as Key<Categories>,
+                        )
                         onClose()
                       }}
                       sx={{
@@ -186,7 +188,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                         outline: "2px solid",
                         outlineOffset: "-2px",
                         outlineColor:
-                          selectedKey === key(categoryKey, imageKey)
+                          selectedKey === makeKey(categoryKey, imageKey)
                             ? "green"
                             : "transparent",
                         "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
