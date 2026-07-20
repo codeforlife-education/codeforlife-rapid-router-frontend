@@ -91,11 +91,11 @@ function initializeWorkspace(
 
 let DEFINED_CUSTOM_BLOCKS = false
 
-export function initializeBlockly(
-  div: HTMLDivElement,
-  startBlockType: StartBlockType,
-  toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
-) {
+/**
+ * Set up locale and custom block definitions, and disable block selection
+ * visuals. Safe to call multiple times.
+ */
+function ensureBlocklyInitialized() {
   // @ts-expect-error Locale type isn't inferred correctly after export
   Blockly.setLocale({ ...en_default, ...en_custom })
 
@@ -110,12 +110,72 @@ export function initializeBlockly(
   // Override block selection visuals to disable them.
   Blockly.BlockSvg.prototype.addSelect = () => {}
   Blockly.BlockSvg.prototype.removeSelect = () => {}
+}
+
+export function initializeBlockly(
+  div: HTMLDivElement,
+  startBlockType: StartBlockType,
+  toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
+) {
+  ensureBlocklyInitialized()
 
   const workspace = initializeWorkspace(div, toolboxContents)
 
   const startBlock = initializeStartBlock(workspace, startBlockType)
 
   return { workspace, startBlock }
+}
+
+/**
+ * Render a single, static (non-draggable) block for use as a preview, e.g.
+ * in a list of selectable blocks. The div is resized to exactly fit the
+ * rendered block (plus a little padding), so nothing is cropped or
+ * surrounded by excess empty space.
+ * @param div The div to render the block's workspace into.
+ * @param blockType The type of block to render.
+ * @returns The read-only workspace containing the rendered block, plus the
+ * block's rendered size (including padding), so callers can lay out
+ * differently sized previews consistently, e.g. to align other elements
+ * that follow them in a list.
+ */
+export function initializeBlockPreview(div: HTMLDivElement, blockType: string) {
+  ensureBlocklyInitialized()
+
+  const workspace = Blockly.inject(div, {
+    readOnly: true,
+    trashcan: false,
+    sounds: false,
+    scrollbars: false,
+    zoom: { controls: false, wheel: false },
+  })
+
+  // Remove the default grey workspace background/border so only the block
+  // shows. The class's CSS sets both `fill` and `stroke`, so both must be
+  // overridden via inline style to take precedence.
+  const background = div.querySelector<SVGRectElement>(".blocklyMainBackground")
+  if (background) {
+    background.style.fill = "transparent"
+    background.style.stroke = "transparent"
+  }
+
+  const block = workspace.newBlock(blockType)
+  block.initSvg()
+  block.render()
+
+  // Resize the div to exactly fit the rendered block (plus padding), instead
+  // of relying on a fixed size that may crop taller blocks (e.g. ones with
+  // dropdown fields) or leave excess space around shorter ones.
+  const padding = 4
+  const { height, width } = block.getHeightWidth()
+  const size = { width: width + padding * 2, height: height + padding * 2 }
+  div.style.width = `${size.width}px`
+  div.style.height = `${size.height}px`
+
+  block.moveBy(padding, padding)
+
+  Blockly.svgResize(workspace)
+
+  return { workspace, size }
 }
 
 const LOCAL_STORAGE_KEY = "blockly-workspace-state"

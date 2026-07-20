@@ -9,13 +9,6 @@ export { type CommandBlockType, COMMAND_BLOCK_TYPES } from "./commands"
 export { type StartBlockType, START_BLOCK_TYPES } from "./starts"
 
 export const CUSTOM_BLOCKS: BlockDefinition<any>[] = [
-  // booleans
-  booleans.ROAD_EXISTS_BLOCK,
-  booleans.TRAFFIC_LIGHT_BLOCK,
-  booleans.DEAD_END_BLOCK,
-  booleans.AT_DESTINATION_BLOCK,
-  booleans.COW_CROSSING_BLOCK,
-  booleans.PIGEON_CROSSING_BLOCK,
   // commands
   commands.MOVE_FORWARDS_BLOCK,
   commands.TURN_LEFT_BLOCK,
@@ -24,6 +17,13 @@ export const CUSTOM_BLOCKS: BlockDefinition<any>[] = [
   commands.WAIT_BLOCK,
   commands.DELIVER_BLOCK,
   commands.SOUND_HORN_BLOCK,
+  // booleans
+  booleans.ROAD_EXISTS_BLOCK,
+  booleans.TRAFFIC_LIGHT_BLOCK,
+  booleans.DEAD_END_BLOCK,
+  booleans.AT_DESTINATION_BLOCK,
+  booleans.COW_CROSSING_BLOCK,
+  booleans.PIGEON_CROSSING_BLOCK,
   // starts
   starts.VAN_BLOCK,
 ]
