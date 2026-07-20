@@ -7,7 +7,7 @@ import {
   Tooltip,
   imageListItemBarClasses,
 } from "@mui/material"
-import { Fragment, type JSX } from "react"
+import { Fragment, type JSX, useState } from "react"
 
 type Image = { key: string; title: string; src: string }
 type Category = { key: string; subheader: string; images: readonly Image[] }
@@ -51,6 +51,8 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   onChange,
   onOpen,
 }: SpeedImageSelectProps<Categories>): JSX.Element => {
+  const [tooltipOpen, setTooltipOpen] = useState(false)
+
   // Calculate the number of rows and columns needed to display all items.
   const maxImagesLength = categories.reduce(
     (max, category) => Math.max(max, category.images.length),
@@ -116,6 +118,9 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
         disableHoverListener={open}
         disableFocusListener={open}
         disableTouchListener={open}
+        open={tooltipOpen}
+        onOpen={() => setTooltipOpen(true)}
+        onClose={() => setTooltipOpen(false)}
       >
         <Box
           sx={{
@@ -149,7 +154,11 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             alignItems: "center",
             justifyContent: "center",
           }}
-          onClick={() => !open && onOpen()}
+          onClick={() => {
+            if (open) return
+            onOpen()
+            setTooltipOpen(false)
+          }}
         >
           {open ? (
             <ImageList
