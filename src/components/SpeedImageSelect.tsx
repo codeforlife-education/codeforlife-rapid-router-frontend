@@ -271,8 +271,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
       )}
       {/*
       Morphing container pinned at right/bottom so it always grows upward and to
-      the left. overflow:hidden clips both background layers and catalogue
-      content to the current shape during the transition.
+      the left.
       */}
       <Box
         sx={{
@@ -288,6 +287,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             ? `min(${height}px, calc(100vh - ${pxFabMargin * 2}px))`
             : `${fab.size}px`,
           borderRadius: open ? "16px" : "50%",
+          // clips background and content to the shape during the transition.
           overflow: "hidden",
           transition: [
             `width 0.35s ${ease}`,
@@ -295,14 +295,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             `border-radius 0.35s ${ease}`,
           ].join(", "),
           // Pulse when the FAB is visible and no item is selected yet.
-          animation: !open
-            ? "sceneryFabPulse 1.5s ease-in-out infinite"
-            : "none",
-          "@keyframes sceneryFabPulse": {
-            "0%": { boxShadow: "0 0 0 0 rgba(255, 235, 59, 1)" },
-            "70%": { boxShadow: "0 0 0 14px rgba(255, 235, 59, 0)" },
-            "100%": { boxShadow: "0 0 0 0 rgba(255, 235, 59, 0)" },
-          },
+          animation: "fabPulse 1.5s ease-in-out infinite",
         }}
       >
         {/* ── Background layer 1: green FAB (fades out as catalogue opens) ── */}

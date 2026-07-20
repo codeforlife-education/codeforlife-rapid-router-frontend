@@ -52,11 +52,6 @@ const MapSpeedDial: FC<MapSpeedDialProps> = () => {
           sx: {
             backgroundColor,
             animation: "fabPulse 1.5s ease-in-out infinite",
-            "@keyframes fabPulse": {
-              "0%": { boxShadow: "0 0 0 0 rgba(255, 235, 59, 1)" },
-              "70%": { boxShadow: "0 0 0 14px rgba(255, 235, 59, 0)" },
-              "100%": { boxShadow: "0 0 0 0 rgba(255, 235, 59, 0)" },
-            },
           },
         }}
         icon={<Icon />}
