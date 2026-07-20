@@ -1,11 +1,11 @@
 import Phaser from "phaser"
 
+import type * as images from "../images"
 import * as layers from "../layers"
-import type { Background } from "../backgrounds"
 import BaseScene from "./BaseScene"
 
 export interface BaseLevelData {
-  background: Background
+  background: (typeof images.URLs.Background)[keyof typeof images.URLs.Background]
   tilesets: Record<layers.tile.Name, Array<{ name: string }>> &
     Record<layers.objectGroup.Name, Array<{ name: string; gid: number }>>
 }
@@ -18,19 +18,20 @@ export default class BaseLevel<
   tilemap!: Phaser.Tilemaps.Tilemap
   backgroundTileSprite!: Phaser.GameObjects.TileSprite
   tilesets: Record<layers.Name, Phaser.Tilemaps.Tileset[]> = {
-    road: [],
-    environment: [],
-    scenery: [],
+    "Tile.ROAD": [],
+    "Tile.ENVIRONMENT": [],
+    "ObjectGroup.SCENERY": [],
+    "ObjectGroup.ENDPOINTS": [],
   }
   layers: Record<
     layers.tile.Name,
     Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer
-  > = {
-    road: null as unknown as Phaser.Tilemaps.TilemapLayer,
-    environment: null as unknown as Phaser.Tilemaps.TilemapLayer,
-  }
-  objects: Record<layers.objectGroup.Name, Phaser.GameObjects.GameObject[]> = {
-    scenery: null as unknown as Phaser.GameObjects.GameObject[],
+  > &
+    Record<layers.objectGroup.Name, Phaser.GameObjects.GameObject[]> = {
+    "Tile.ROAD": null as unknown as Phaser.Tilemaps.TilemapLayer,
+    "Tile.ENVIRONMENT": null as unknown as Phaser.Tilemaps.TilemapLayer,
+    "ObjectGroup.SCENERY": null as unknown as Phaser.GameObjects.GameObject[],
+    "ObjectGroup.ENDPOINTS": null as unknown as Phaser.GameObjects.GameObject[],
   }
 
   create() {
@@ -76,34 +77,48 @@ export default class BaseLevel<
       .setDepth(-1) // Render behind everything
 
     // 3. The road layer is created, on top of the background layer.
-    this.tilesets.road = this.initData.tilesets.road.map(
+    this.tilesets["Tile.ROAD"] = this.initData.tilesets["Tile.ROAD"].map(
       ({ name }) => this.tilemap.addTilesetImage(name)!,
     )
-    this.layers.road = this.tilemap.createLayer(
+    this.layers["Tile.ROAD"] = this.tilemap.createLayer(
       layers.Names.Tile.ROAD,
-      this.tilesets.road,
+      this.tilesets["Tile.ROAD"],
     )
 
     // 4. The environment layer is created, on top of the road layer.
-    this.tilesets.environment = this.initData.tilesets.environment.map(
-      ({ name }) => this.tilemap.addTilesetImage(name)!,
-    )
-    this.layers.environment = this.tilemap.createLayer(
+    this.tilesets["Tile.ENVIRONMENT"] = this.initData.tilesets[
+      "Tile.ENVIRONMENT"
+    ].map(({ name }) => this.tilemap.addTilesetImage(name)!)
+    this.layers["Tile.ENVIRONMENT"] = this.tilemap.createLayer(
       layers.Names.Tile.ENVIRONMENT,
-      this.tilesets.environment,
+      this.tilesets["Tile.ENVIRONMENT"],
     )
 
-    // 5. The scenery objects are created, on top of all layers.
-    this.objects.scenery = this.tilemap.createFromObjects(
+    // 5. The endpoint objects are created, on top of the environment layer.
+    this.layers["ObjectGroup.ENDPOINTS"] = this.tilemap.createFromObjects(
+      layers.Names.ObjectGroup.ENDPOINTS,
+      this.initData.tilesets["ObjectGroup.ENDPOINTS"].map(
+        ({ name: key, gid }) => ({
+          key,
+          gid,
+          classType: Phaser.GameObjects.Image,
+        }),
+      ),
+    )
+
+    // 6. The scenery objects are created, on top of all layers.
+    this.layers["ObjectGroup.SCENERY"] = this.tilemap.createFromObjects(
       layers.Names.ObjectGroup.SCENERY,
-      this.initData.tilesets.scenery.map(({ name: key, gid }) => ({
-        key,
-        gid,
-        classType: Phaser.GameObjects.Image,
-      })),
+      this.initData.tilesets["ObjectGroup.SCENERY"].map(
+        ({ name: key, gid }) => ({
+          key,
+          gid,
+          classType: Phaser.GameObjects.Image,
+        }),
+      ),
     )
 
-    // 6. Center the camera on the tilemap.
+    // 7. Center the camera on the tilemap.
     this.cameras.main.centerOn(centerX, centerY)
   }
 
@@ -121,5 +136,41 @@ export default class BaseLevel<
     tile.rotation = rotation
 
     return tile
+  }
+
+  addObject(
+    layerName: layers.objectGroup.Name,
+    obj: Omit<layers.objectGroup.objects.Object<any, any>, "id">,
+  ): Phaser.GameObjects.Image {
+    const tileset = this.initData.tilesets[layerName].find(
+      ({ gid }) => gid === obj.gid,
+    )
+    if (!tileset) throw new Error(`No tileset found for GID ${obj.gid}`)
+
+    const image = this.add
+      .image(
+        // Tiled tile object x,y is the bottom-left corner; origin (0,1)
+        // matches createFromObjects so rotation pivots around the same point.
+        obj.x,
+        obj.y,
+        tileset.name,
+      )
+      .setOrigin(0, 1)
+      .setDisplaySize(obj.width, obj.height)
+      .setAngle(obj.rotation)
+
+    this.layers[layerName].push(image)
+    return image
+  }
+
+  destroyObject(
+    layerName: layers.objectGroup.Name,
+    obj: Phaser.GameObjects.Image,
+  ) {
+    const layer = this.layers[layerName]
+    const index = layer.indexOf(obj)
+    if (index === -1) throw new Error("Object not found in layer")
+    layer.splice(index, 1)
+    obj.destroy()
   }
 }

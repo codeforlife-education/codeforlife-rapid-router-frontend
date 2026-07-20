@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import * as backgrounds from "../backgrounds"
+import * as images from "../images"
 import * as tilesets from "../tilesets"
 import type { default as BaseLevel, BaseLevelData } from "./BaseLevel"
 import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
@@ -12,8 +12,13 @@ export default class BasePreloader<
 > extends BaseScene<Data> {
   static readonly KEY = "Preloader"
   levelData: BaseLevelData = {
-    background: "grass",
-    tilesets: { road: [], environment: [], scenery: [] },
+    background: images.URLs.Background.GRASS,
+    tilesets: {
+      "Tile.ROAD": [],
+      "Tile.ENVIRONMENT": [],
+      "ObjectGroup.ENDPOINTS": [],
+      "ObjectGroup.SCENERY": [],
+    },
   }
 
   init() {
@@ -30,7 +35,7 @@ export default class BasePreloader<
         centerY,
         this.scale.width,
         this.scale.height,
-        backgrounds.Backgrounds.GRASS,
+        images.URLs.Background.GRASS,
       )
       .setDepth(-1) // Render behind everything
 
@@ -58,8 +63,8 @@ export default class BasePreloader<
     })
 
     // Load the background image specified in the tilemap properties.
-    const background = tilemap.properties[0].value
-    this.load.svg(background, backgrounds.getSvgUrl(background), {
+    const background = images.URLs.Background[tilemap.properties[0].value]
+    this.load.svg(background, background, {
       width: tilemap.tilewidth ?? TILE_WIDTH,
       height: tilemap.tileheight ?? TILE_HEIGHT,
     })
@@ -79,13 +84,15 @@ export default class BasePreloader<
     } of tilemap.tilesets) {
       // Track each layer's tilesets.
       if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
-        this.levelData.tilesets.road.push({ name })
+        this.levelData.tilesets["Tile.ROAD"].push({ name })
       } else if (
         tilesets.environment.IDs.includes(id as tilesets.environment.ID)
       ) {
-        this.levelData.tilesets.environment.push({ name })
+        this.levelData.tilesets["Tile.ENVIRONMENT"].push({ name })
+      } else if (tilesets.endpoints.IDs.includes(id as tilesets.endpoints.ID)) {
+        this.levelData.tilesets["ObjectGroup.ENDPOINTS"].push({ name, gid: id })
       } else if (tilesets.scenery.IDs.includes(id as tilesets.scenery.ID)) {
-        this.levelData.tilesets.scenery.push({ name, gid: id })
+        this.levelData.tilesets["ObjectGroup.SCENERY"].push({ name, gid: id })
       } else {
         throw new Error(`Unknown tileset GID: ${id} (tileset name: ${name})`)
       }
