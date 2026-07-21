@@ -7,3 +7,4 @@ export {
   default as BlocklyWorkspace,
   type BlocklyWorkspaceProps,
 } from "./BlocklyWorkspace"
+export { default as BlockPreview, type BlockPreviewProps } from "./BlockPreview"

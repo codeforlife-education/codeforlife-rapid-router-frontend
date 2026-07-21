@@ -5,7 +5,6 @@ import {
   EditRoad as EditRoadIcon,
   ExitToApp as ExitToAppIcon,
   Extension as ExtensionIcon,
-  Lightbulb as LightbulbIcon,
   Park as ParkIcon,
   People as PeopleIcon,
   Person as PersonIcon,
@@ -17,9 +16,15 @@ import { Divider } from "@mui/material"
 
 import * as miniDrawers from "../../components/miniDrawers"
 
-export interface ControlsProps {}
+export interface ControlsProps {
+  onSelectCodeClick: () => void
+  onSelectDescriptionClick: () => void
+}
 
-const Controls: FC<ControlsProps> = () => {
+const Controls: FC<ControlsProps> = ({
+  onSelectCodeClick,
+  onSelectDescriptionClick,
+}) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const [selected, setSelected] = useState("")
 
@@ -61,6 +66,7 @@ const Controls: FC<ControlsProps> = () => {
         {...makeSelectableButtonItemProps("code")}
         text="Code"
         icon={<ExtensionIcon />}
+        onClick={onSelectCodeClick}
       />
       <miniDrawers.ButtonItem
         {...makeSelectableButtonItemProps("random")}
@@ -71,11 +77,7 @@ const Controls: FC<ControlsProps> = () => {
         {...makeSelectableButtonItemProps("description")}
         text="Description"
         icon={<DescriptionIcon />}
-      />
-      <miniDrawers.ButtonItem
-        {...makeSelectableButtonItemProps("hint")}
-        text="Hint"
-        icon={<LightbulbIcon />}
+        onClick={onSelectDescriptionClick}
       />
       <Divider />
       <miniDrawers.ButtonItem
