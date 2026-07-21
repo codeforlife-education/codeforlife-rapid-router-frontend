@@ -1,17 +1,16 @@
 import Phaser from "phaser"
 
 import * as images from "../../../images"
-import * as scenery from "../../../layers/objectGroup/objects/scenery"
+import * as sceneryObjects from "../../../layers/objectGroup/objects/scenery"
+import type * as sceneryTilesets from "../../../tilesets/scenery"
 import type { AddRoadEventData } from "./RoadManager"
 import BaseManager from "./BaseManager"
 import { Events } from "../../../globals"
 import type { default as Level } from "."
 
-type WorldXY = { x: number; y: number }
-
 export default class extends BaseManager {
   /** The maximum number of scenery objects that can be added to the level. */
-  private readonly maxObjectCount = 100
+  private readonly maxObjectCount = 50
 
   /** The current number of scenery objects added to the level. */
   private objectCount = 0
@@ -49,30 +48,33 @@ export default class extends BaseManager {
     const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
     level.game.events.on(Events.ADD_ROAD, onAddRoad)
 
+    const onPointerDown = (pointer: Phaser.Input.Pointer) =>
+      this.onPointerDown(pointer)
+    level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.game.events.off(Events.ADD_ROAD, onAddRoad)
-    })
-
-    // TODO: delete
-    this.add({
-      x: this.level.tilemap.tileToWorldX(9)!,
-      y: this.level.tilemap.tileToWorldY(7)!,
+      level.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
     })
   }
 
-  private get factory() {
-    const theme: keyof typeof scenery = "common"
-    const factory: keyof typeof scenery.common | keyof typeof scenery.snow =
-      "bush"
-    return scenery[theme][factory]
-  }
+  // private factoryFor(name: SceneryFactoryName): SceneryFactory {
+  //   return scenery.common[name]
+  // }
 
-  private add(worldXY: WorldXY) {
+  private add(
+    worldX: number,
+    worldY: number,
+    id: sceneryTilesets.ID,
+  ): Phaser.GameObjects.Image | null {
     if (this.objectCount >= this.maxObjectCount) return null
     this.objectCount++
 
+    const factory = sceneryObjects.FACTORIES[id]
+    if (!factory) return null
+
     const obj = this.level
-      .addObject("ObjectGroup.SCENERY", this.factory(worldXY))
+      .addObject("ObjectGroup.SCENERY", factory({ x: worldX, y: worldY }))
       .setInteractive({ cursor: "grab" })
       .setOrigin(0.5, 0.5)
       .on(Phaser.Input.Events.DRAG_START, () => this.onDragStart(obj))
@@ -83,9 +85,8 @@ export default class extends BaseManager {
       )
       .on(Phaser.Input.Events.DRAG_END, () => this.onDragEnd(obj))
 
-    // Shift the origin to the centre so scale changes during drag are symmetric
-    // and the object lands exactly where the player releases it.
-    obj.setPosition(obj.x + obj.displayWidth / 2, obj.y - obj.displayHeight / 2)
+    // Position the image so its visual centre lands exactly at centerXY.
+    obj.setPosition(worldX, worldY)
 
     this.level.input.setDraggable(obj)
 
@@ -99,6 +100,30 @@ export default class extends BaseManager {
 
   private onAddRoad({ id, ...tile }: AddRoadEventData) {
     // TODO: delete overlapping scenery objects.
+  }
+
+  // private onAddScenery({ factory: name, x, y }: AddSceneryEventData) {
+  //   // Convert canvas coordinates to world coordinates using the Level camera.
+  //   const worldCenter = this.level.cameras.main.getWorldPoint(x, y)
+
+  //   // Only place scenery within the tilemap bounds.
+  //   const mapWidth = this.level.tilemap.widthInPixels
+  //   const mapHeight = this.level.tilemap.heightInPixels
+  //   if (
+  //     worldCenter.x < 0 ||
+  //     worldCenter.x > mapWidth ||
+  //     worldCenter.y < 0 ||
+  //     worldCenter.y > mapHeight
+  //   )
+  //     return
+
+  //   this.add(worldCenter, this.factoryFor(name))
+  // }
+
+  private onPointerDown(pointer: Phaser.Input.Pointer) {
+    const toolbox = this.level.toolbox
+    if (toolbox?.box !== "scenery") return
+    this.add(pointer.worldX, pointer.worldY, toolbox.tool)
   }
 
   private onDragStart(obj: Phaser.GameObjects.Image) {

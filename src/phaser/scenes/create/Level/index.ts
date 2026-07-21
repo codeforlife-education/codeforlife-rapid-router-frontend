@@ -1,11 +1,20 @@
 import Phaser from "phaser"
 
+import type * as scenery from "../../../tilesets/scenery"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
+import { Events, Variables } from "../../../globals"
 import DragManager from "./DragManager"
 import EndpointManager from "./EndpointManager"
 import RoadManager from "./RoadManager"
 import SceneryManager from "./SceneryManager"
-import Toolbox from "../Toolbox"
+
+type _Toolbox<B extends string, T> = { box: B; tool: T }
+export type MapToolbox = _Toolbox<
+  "map",
+  "add-road" | "delete-road" | "add-house" | "delete-house" | "mark-start"
+>
+export type SceneryToolbox = _Toolbox<"scenery", scenery.ID>
+export type Toolbox = MapToolbox | SceneryToolbox
 
 export type Tile = { col: number; row: number }
 export type Direction = "top" | "bottom" | "left" | "right"
@@ -23,6 +32,9 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
+  /** The currently active tool selected by the player. */
+  toolbox?: Toolbox
+
   /** Drag manager responsible for handling drag operations. */
   drag!: DragManager
 
@@ -64,22 +76,30 @@ export default class extends BaseLevel<LevelData> {
     // Set the depth to 1 so it renders above the grid and tilemap layers.
     this.graphics = this.add.customGraphics().setDepth(1)
 
-    // Launch the Toolbox scene, providing the active tool.
-    this.scene.launch(Toolbox.KEY)
-
     // Initialize the managers.
     this.drag = new DragManager(this, {
-      "add-road": { drawDirs: true, highlight: { color: 0x00ff00 } },
-      "delete-road": { drawDirs: false, highlight: { color: 0xff0000 } },
+      map: {
+        "add-road": { drawDirs: true, highlight: { color: 0x00ff00 } },
+        "delete-road": { drawDirs: false, highlight: { color: 0xff0000 } },
+      },
     })
     this.road = new RoadManager(this)
     this.endpoint = new EndpointManager(this)
     this.scenery = new SceneryManager(this)
+
+    // Get the current tool from the game registry and listen for changes to it.
+    this.getToolbox()
+    const getToolbox = () => this.getToolbox()
+    this.game.events.on(Events.SET_TOOLBOX, getToolbox)
+    this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off(Events.SET_TOOLBOX, getToolbox)
+    })
   }
 
-  /** Get the toolbox scene instance. */
-  get toolbox() {
-    return this.scene.get<Toolbox>(Toolbox.KEY)
+  private getToolbox() {
+    this.toolbox = this.game.registry.get(Variables.TOOLBOX) as
+      | Toolbox
+      | undefined
   }
 
   /**

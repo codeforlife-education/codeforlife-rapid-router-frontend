@@ -623,19 +623,24 @@ export default class extends BaseManager {
   private onPointer(
     pointer: Phaser.Input.Pointer,
     handle: (
-      tool: "add-house" | "delete-house" | "add-cfc",
+      tool: "add-house" | "delete-house" | "mark-start",
       tile: Tile,
       endpoint: Endpoint | null,
     ) => Style["style"] | undefined,
   ) {
-    const tool = this.level.toolbox?.activeTool
-    if (tool !== "add-house" && tool !== "delete-house" && tool !== "add-cfc")
+    const toolbox = this.level.toolbox
+    if (
+      toolbox?.box !== "map" ||
+      (toolbox.tool !== "add-house" &&
+        toolbox.tool !== "delete-house" &&
+        toolbox.tool !== "mark-start")
+    )
       return
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
     const endpoint = this.endpoint(tile)
-    const style = handle(tool, tile, endpoint)
-    const type = tool === "add-cfc" ? "cfc" : "house"
+    const style = handle(toolbox.tool, tile, endpoint)
+    const type = toolbox.tool === "mark-start" ? "cfc" : "house"
     this.style = style ? { ...tile, style, type } : null
   }
 
@@ -647,7 +652,7 @@ export default class extends BaseManager {
         return this.add(tile, type, variants[0])
       }
 
-      if (tool === "add-cfc") {
+      if (tool === "mark-start") {
         if (endpoint) return
         const prevCfc = this._cfc // previous CFC
         if (add("cfc") && prevCfc) this.delete(prevCfc.main, prevCfc.endpoint)
@@ -670,7 +675,7 @@ export default class extends BaseManager {
       const add = (type: Type) =>
         this.variants(tile, type).length > 0 ? "add" : undefined
 
-      if (tool === "add-cfc") {
+      if (tool === "mark-start") {
         if (!endpoint) return add("cfc")
       } else if (tool === "add-house") {
         if (!endpoint) return add("house")

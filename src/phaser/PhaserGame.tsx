@@ -1,4 +1,10 @@
-import { type FC, useEffect, useRef, useState } from "react"
+import {
+  type FC,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react"
 import { CircularProgress } from "@mui/material"
 // NOTE: `import type` is a TypeScript feature that only imports type
 //  information for compile-time type checking. When our TypeScript code is
@@ -8,18 +14,41 @@ import { CircularProgress } from "@mui/material"
 import type { Game, Scene } from "phaser"
 
 import { Events, Variables } from "./globals"
+import { useGameCommands, usePhaserGameContext } from "../app/hooks"
 import type { Level } from "../api/level"
-import { useGameCommands } from "../app/hooks"
+import type { PhaserGameRef } from "./PhaserGameContext"
 
-export type PhaserGameProps =
+export type PhaserGameProps = (
   | { mode: "play"; levelId: Level["id"] }
   | { mode: "create"; levelId?: never }
+) & { onInitialized?: () => void }
 
-const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
+const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId, onInitialized }) => {
+  const phaserGameContext = usePhaserGameContext()
   const gameCommands = useGameCommands()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Game>(null)
+
+  if (!phaserGameContext)
+    throw ReferenceError("Phaser game context not provided.")
+  const { ref } = phaserGameContext
+
+  // Expose Phaser game methods to parent components.
+  useImperativeHandle(
+    ref,
+    () =>
+      (gameIsInitialized
+        ? {
+            setCreateToolbox: toolbox => {
+              if (mode !== "create") return
+              gameRef.current!.registry.set(Variables.TOOLBOX, toolbox)
+              gameRef.current!.events.emit(Events.SET_TOOLBOX)
+            },
+          }
+        : null) as PhaserGameRef,
+    [gameIsInitialized, mode],
+  )
 
   // Initialize Phaser when on mount and destroy it when it's unmounted.
   useEffect(() => {
@@ -79,6 +108,11 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       }
     }
   }, [mode, levelId])
+
+  // Call the onInitialized callback when the Phaser game is initialized.
+  useEffect(() => {
+    if (gameIsInitialized) onInitialized?.()
+  }, [gameIsInitialized, onInitialized])
 
   // Pass the current game commands to Phaser.
   useEffect(() => {

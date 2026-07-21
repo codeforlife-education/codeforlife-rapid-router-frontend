@@ -1,15 +1,9 @@
-import { type FC, useState } from "react"
+import { type FC, useEffect, useState } from "react"
 import { Portal } from "@mui/material"
 
 import * as tilesets from "../../phaser/tilesets"
-import SpeedImageSelect, { type Key } from "../../components/SpeedImageSelect"
-import { useBreakpoint } from "../../app/hooks"
-
-// /** Fired on `window` whenever the active scenery type changes. */
-// export type SceneryToolSelectedEvent = CustomEvent<SceneryItemKey>
-
-// /** Event name dispatched on `window` when the user selects a scenery type. */
-// export const SCENERY_TOOL_SELECTED = "scenery-tool-selected"
+import { useBreakpoint, usePhaserGameContext } from "../../app/hooks"
+import SpeedImageSelect from "../../components/SpeedImageSelect"
 
 const categories = [
   {
@@ -17,27 +11,27 @@ const categories = [
     subheader: "Common",
     images: [
       {
-        key: "bush",
+        key: tilesets.IDs.Scenery.Common.BUSH,
         title: "Bush",
         src: tilesets.scenery.common.bush.image,
       },
       {
-        key: "hay",
+        key: tilesets.IDs.Scenery.Common.HAY,
         title: "Hay",
         src: tilesets.scenery.common.hay.image,
       },
       {
-        key: "pond",
+        key: tilesets.IDs.Scenery.Common.POND,
         title: "Pond",
         src: tilesets.scenery.common.pond.image,
       },
       {
-        key: "tree1",
+        key: tilesets.IDs.Scenery.Common.TREE1,
         title: "Tree",
         src: tilesets.scenery.common.tree1.image,
       },
       {
-        key: "tree2",
+        key: tilesets.IDs.Scenery.Common.TREE2,
         title: "Pine Tree",
         src: tilesets.scenery.common.tree2.image,
       },
@@ -49,36 +43,48 @@ const categories = [
     images: [
       // snow
       {
-        key: "bush",
+        key: tilesets.IDs.Scenery.Snow.BUSH,
         title: "Bush",
         src: tilesets.scenery.snow.bush.image,
       },
       {
-        key: "pond",
+        key: tilesets.IDs.Scenery.Snow.POND,
         title: "Pond",
         src: tilesets.scenery.snow.pond.image,
       },
       {
-        key: "tree1",
+        key: tilesets.IDs.Scenery.Snow.TREE1,
         title: "Tree",
         src: tilesets.scenery.snow.tree1.image,
       },
       {
-        key: "tree2",
+        key: tilesets.IDs.Scenery.Snow.TREE2,
         title: "Pine Tree",
         src: tilesets.scenery.snow.tree2.image,
       },
     ],
   },
-] as const
+] as const satisfies {
+  key: string
+  subheader: string
+  images: { key: tilesets.scenery.ID; title: string; src: string }[]
+}[]
 
 export interface SceneryFabCatalogueProps {}
 
 const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
   const [open, setOpen] = useState(false)
-  const [selectedKey, setSelectedKey] =
-    useState<Key<typeof categories>>("common-bush")
+  const [tool, setTool] = useState<tilesets.scenery.ID>(
+    tilesets.IDs.Scenery.Common.BUSH,
+  )
   const breakpoint = useBreakpoint()
+  const phaserGameContext = usePhaserGameContext()
+
+  // Update the Phaser game tool whenever the selected tool changes.
+  useEffect(() => {
+    if (!phaserGameContext?.isInitialized) return
+    phaserGameContext.ref.current?.setCreateToolbox({ box: "scenery", tool })
+  }, [phaserGameContext?.isInitialized, phaserGameContext?.ref, tool])
 
   return (
     <Portal>
@@ -96,13 +102,8 @@ const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
             xl: 7,
           }[breakpoint]
         }
-        selectedKey={selectedKey}
-        onChange={key => {
-          setSelectedKey(key)
-          // window.dispatchEvent(
-          //   new CustomEvent(SCENERY_TOOL_SELECTED, { detail: key }),
-          // )
-        }}
+        selected={tool}
+        onChange={setTool}
         fab={{ size: 56, margin: 2 }}
         image={{ size: 64 }}
       />

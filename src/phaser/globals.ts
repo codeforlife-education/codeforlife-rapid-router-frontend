@@ -17,11 +17,13 @@ export const Events = createIdRegistry({
   "add-road": "ADD_ROAD",
   "delete-road": "DELETE_ROAD",
   "drag-end": "DRAG_END",
+  "set-toolbox": "SET_TOOLBOX",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 
 export const Variables = createIdRegistry({
   commands: "COMMANDS",
   levelId: "LEVEL_ID",
+  toolbox: "TOOLBOX",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]

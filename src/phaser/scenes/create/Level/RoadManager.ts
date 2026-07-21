@@ -166,20 +166,25 @@ export default class extends BaseManager {
     }
   }
 
-  private onDragEnd({ tool, ...drag }: DragEndEventData) {
+  private onDragEnd({ toolbox: { box, tool }, ...drag }: DragEndEventData) {
+    if (box !== "map") return
     if (tool === "add-road") this.finalizeAddDrag(drag)
     else if (tool === "delete-road") this.finalizeDeleteDrag(drag)
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
-    const tool = this.level.toolbox?.activeTool
-    if (tool !== "add-road" && tool !== "delete-road") return
+    const toolbox = this.level.toolbox
+    if (
+      toolbox?.box !== "map" ||
+      (toolbox.tool !== "add-road" && toolbox.tool !== "delete-road")
+    )
+      return
 
     let cursor = "pointer"
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (tile) {
       const dirs = this.dirs(tile)
-      if (tool === "add-road") {
+      if (toolbox.tool === "add-road") {
         if (dirs.size < 4) cursor = this.addRoadCursor
       } else if (dirs.size > 0) cursor = this.deleteRoadCursor
     }

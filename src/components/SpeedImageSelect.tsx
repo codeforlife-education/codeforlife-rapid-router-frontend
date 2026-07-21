@@ -9,23 +9,18 @@ import {
 } from "@mui/material"
 import { type FC, Fragment, type JSX, useEffect, useState } from "react"
 
-type Image = { key: string; title: string; src: string }
+type Image = { key: string | number; title: string; src: string }
 type Category = { key: string; subheader: string; images: readonly Image[] }
-
-export type Key<Categories extends readonly Category[]> = {
-  [C in Categories[number] as C["key"]]: `${C["key"]}-${C["images"][number]["key"]}`
+type ImageKey<Categories extends readonly Category[]> = {
+  [C in Categories[number] as C["key"]]: C["images"][number]["key"]
 }[Categories[number]["key"]]
-
-function makeKey<C extends string, I extends string>(category: C, image: I) {
-  return `${category}-${image}` as const
-}
 
 export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   open: boolean
   onOpen: () => void
   onClose: () => void
-  selectedKey: Key<Categories>
-  onChange: (key: Key<Categories>) => void
+  selected: ImageKey<Categories>
+  onChange: (key: ImageKey<Categories>) => void
   ease?: string
   padding?: number
   cols: number
@@ -60,7 +55,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   categories,
   open,
   onClose,
-  selectedKey,
+  selected,
   onChange,
   onOpen,
 }: SpeedImageSelectProps<Categories>): JSX.Element => {
@@ -110,15 +105,10 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
 
   // Find the selected image object based on the selected key.
   const selectedImage = categories
-    .flatMap(({ key: categoryKey, images }) =>
-      images.map(({ key: imageKey, ...image }) => ({
-        key: makeKey(categoryKey, imageKey) as Key<Categories>,
-        ...image,
-      })),
-    )
-    .find(({ key }) => key === selectedKey)!
+    .flatMap(({ images }) => images)
+    .find(({ key }) => key === selected)!
 
-  function handleClose(key?: Key<Categories>) {
+  function handleClose(key?: ImageKey<Categories>) {
     setScrollable(false)
     if (key) onChange(key)
     onClose()
@@ -163,7 +153,6 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             borderRadius: open ? "16px" : "50%",
             bgcolor: open ? "rgba(0, 0, 0, 0.85)" : "rgba(0, 128, 0, 1)",
             padding: open ? `${pxPadding}px` : 0,
-            // clips background and content to the shape during the transition.
             overflow: open && scrollable ? "auto" : "hidden",
             transition: [
               `width 0.3s ${ease}`,
@@ -172,7 +161,6 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               `background-color 0.3s ${ease}`,
               `padding 0.3s ${ease}`,
             ].join(", "),
-            // Pulse when the FAB is visible.
             animation: open ? "none" : "fabPulse 1.5s ease-in-out infinite",
             cursor: "pointer",
             display: "flex",
@@ -211,11 +199,9 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                   </ImageListItem>
                   {images.map(({ key: imageKey, title, src }) => (
                     <ImageListItem
-                      key={makeKey(categoryKey, imageKey)}
+                      key={`${categoryKey}-${imageKey}`}
                       onClick={() =>
-                        handleClose(
-                          makeKey(categoryKey, imageKey) as Key<Categories>,
-                        )
+                        handleClose(imageKey as ImageKey<Categories>)
                       }
                       sx={{
                         cursor: "pointer",
@@ -224,9 +210,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                         outline: "2px solid",
                         outlineOffset: "-2px",
                         outlineColor:
-                          selectedKey === makeKey(categoryKey, imageKey)
-                            ? "green"
-                            : "transparent",
+                          selected === imageKey ? "green" : "transparent",
                         "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
                       }}
                     >
