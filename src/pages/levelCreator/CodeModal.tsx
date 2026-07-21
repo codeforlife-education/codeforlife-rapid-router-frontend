@@ -15,8 +15,8 @@ import BlockListItem, { type BlockCount } from "./BlockListItem"
 import { CUSTOM_BLOCKS, START_BLOCK_TYPES } from "../../blockly/blocks"
 import { type BlockDefinition } from "../../blockly/utils"
 
-// The start block (e.g. the van) isn't an optional, player-selectable block
-// like the others - it's always present, so it's excluded from this list.
+// The start block isn't an optional, player-selectable block like the others -
+// it's always present, so it's excluded from this list.
 const BLOCKS = (CUSTOM_BLOCKS as BlockDefinition<string>[]).filter(
   block => !(START_BLOCK_TYPES as readonly string[]).includes(block.type),
 )
@@ -79,11 +79,9 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 380,
-          maxHeight: "90vh",
+          maxHeight: "90%",
           overflowY: "auto",
           bgcolor: "background.paper",
-          borderRadius: 1,
           boxShadow: 24,
           p: 2,
         }}
@@ -103,7 +101,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
         <Typography>
           Here you can select the code you can use while playing your new level!
         </Typography>
-        <FormControl fullWidth sx={{ mt: 2 }}>
+        <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel id="language-label">Language</InputLabel>
           <Select
             labelId="language-label"
@@ -122,9 +120,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
         </FormControl>
         {language !== "python" && (
           <>
-            <Typography variant="h6" sx={{ mt: 3 }}>
-              Blocks
-            </Typography>
+            <Typography variant="h6">Blocks</Typography>
             <FormControlLabel
               label="Select all"
               control={
@@ -135,9 +131,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
                 />
               }
             />
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1.5, mt: 1 }}
-            >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               {BLOCKS.map(block => (
                 <BlockListItem
                   key={block.type}

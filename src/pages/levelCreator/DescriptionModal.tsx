@@ -20,11 +20,9 @@ const DescriptionModal: FC<DescriptionModalProps> = ({ open, onClose }) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 380,
-          maxHeight: "90vh",
+          maxHeight: "90%",
           overflowY: "auto",
           bgcolor: "background.paper",
-          borderRadius: 1,
           boxShadow: 24,
           p: 2,
         }}

@@ -129,14 +129,12 @@ export function initializeBlockly(
 /**
  * Render a single, static (non-draggable) block for use as a preview, e.g.
  * in a list of selectable blocks. The div is resized to exactly fit the
- * rendered block (plus a little padding), so nothing is cropped or
- * surrounded by excess empty space.
+ * rendered block, so nothing is cropped or surrounded by excess empty space.
  * @param div The div to render the block's workspace into.
  * @param blockType The type of block to render.
  * @returns The read-only workspace containing the rendered block, plus the
- * block's rendered size (including padding), so callers can lay out
- * differently sized previews consistently, e.g. to align other elements
- * that follow them in a list.
+ * block's rendered size, so callers can lay out differently sized previews
+ * consistently, e.g. to align other elements that follow them in a list.
  */
 export function initializeBlockPreview(div: HTMLDivElement, blockType: string) {
   ensureBlocklyInitialized()
@@ -162,16 +160,13 @@ export function initializeBlockPreview(div: HTMLDivElement, blockType: string) {
   block.initSvg()
   block.render()
 
-  // Resize the div to exactly fit the rendered block (plus padding), instead
-  // of relying on a fixed size that may crop taller blocks (e.g. ones with
-  // dropdown fields) or leave excess space around shorter ones.
-  const padding = 4
+  // Resize the div to exactly fit the rendered block, instead of relying on a
+  // fixed size that may crop taller blocks (e.g. ones with dropdown fields) or
+  // leave excess space around shorter ones.
   const { height, width } = block.getHeightWidth()
-  const size = { width: width + padding * 2, height: height + padding * 2 }
+  const size = { width: width, height: height }
   div.style.width = `${size.width}px`
   div.style.height = `${size.height}px`
-
-  block.moveBy(padding, padding)
 
   Blockly.svgResize(workspace)
 
