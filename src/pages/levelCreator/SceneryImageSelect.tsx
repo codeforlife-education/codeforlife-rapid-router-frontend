@@ -70,9 +70,9 @@ const categories = [
   images: { key: tilesets.scenery.ID; title: string; src: string }[]
 }[]
 
-export interface SceneryFabCatalogueProps {}
+export interface SceneryImageSelectProps {}
 
-const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
+const SceneryImageSelect: FC<SceneryImageSelectProps> = () => {
   const [open, setOpen] = useState(false)
   const [tool, setTool] = useState<tilesets.scenery.ID>(
     tilesets.IDs.Scenery.Common.BUSH,
@@ -111,4 +111,4 @@ const SceneryFabCatalogue: FC<SceneryFabCatalogueProps> = () => {
   )
 }
 
-export default SceneryFabCatalogue
+export default SceneryImageSelect

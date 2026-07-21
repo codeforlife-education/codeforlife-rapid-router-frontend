@@ -1,4 +1,5 @@
-import * as images from "../../images"
+import { Delete as DeleteIcon } from "@mui/icons-material"
+
 import * as layers from "../../layers"
 import * as tilemaps from "../../tilemaps"
 import * as tilesets from "../../tilesets"
@@ -76,30 +77,10 @@ export default class extends BasePreloader {
 
     this.loadTilemap(tilemap)
 
-    this.loadImages()
-  }
-
-  private loadImages() {
-    // Preload images.
-    const trashcanSvgConfig: Phaser.Types.Loader.FileTypes.SVGSizeConfig = {
-      width: TILE_WIDTH / 2,
-      height: TILE_HEIGHT / 2,
-    }
-    this.load.svg(
-      images.URLs.HUD.Trashcan.TRASHCAN,
-      images.URLs.HUD.Trashcan.TRASHCAN,
-      trashcanSvgConfig,
-    )
-    this.load.svg(
-      images.URLs.HUD.Trashcan.Lid.OPEN,
-      images.URLs.HUD.Trashcan.Lid.OPEN,
-      trashcanSvgConfig,
-    )
-    this.load.svg(
-      images.URLs.HUD.Trashcan.Lid.CLOSED,
-      images.URLs.HUD.Trashcan.Lid.CLOSED,
-      trashcanSvgConfig,
-    )
+    this.loadMuiIcon("delete-icon", DeleteIcon, {
+      width: TILE_WIDTH / 3,
+      height: TILE_HEIGHT / 3,
+    })
   }
 
   create() {

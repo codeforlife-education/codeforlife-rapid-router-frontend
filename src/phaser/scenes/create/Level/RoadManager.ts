@@ -31,10 +31,10 @@ export default class extends BaseManager {
   private type: keyof typeof layers.tile.data.IDs.Road = "Asphalt"
 
   /** CSS cursor string for the add-road icon, pre-computed once. */
-  private readonly addRoadCursor = this.level.muiIconToCursor(AddRoadIcon)
+  private readonly addRoadIconUrl = this.level.muiIconToUrl(AddRoadIcon)
 
   /** CSS cursor string for the delete-road icon, pre-computed once. */
-  private readonly deleteRoadCursor = this.level.muiIconToCursor(RemoveRoadIcon)
+  private readonly removeRoadIconUrl = this.level.muiIconToUrl(RemoveRoadIcon)
 
   constructor(level: Level) {
     super(level)
@@ -185,8 +185,8 @@ export default class extends BaseManager {
     if (tile) {
       const dirs = this.dirs(tile)
       if (toolbox.tool === "add-road") {
-        if (dirs.size < 4) cursor = this.addRoadCursor
-      } else if (dirs.size > 0) cursor = this.deleteRoadCursor
+        if (dirs.size < 4) cursor = this.addRoadIconUrl
+      } else if (dirs.size > 0) cursor = this.removeRoadIconUrl
     }
     this.level.input.setDefaultCursor(cursor)
   }

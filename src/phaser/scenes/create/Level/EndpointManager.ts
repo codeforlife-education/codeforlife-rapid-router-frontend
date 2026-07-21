@@ -77,10 +77,10 @@ export default class extends BaseManager {
   )
 
   // CSS cursor strings, pre-computed once.
-  private readonly rotateCursor = this.level.muiIconToCursor(RotateRightIcon)
-  private readonly homeCursor = this.level.muiIconToCursor(HomeIcon)
-  private readonly deleteCursor = this.level.muiIconToCursor(DeleteIcon)
-  private readonly warehouseCursor = this.level.muiIconToCursor(WarehouseIcon)
+  private readonly rotateIconUrl = this.level.muiIconToUrl(RotateRightIcon)
+  private readonly homeIconUrl = this.level.muiIconToUrl(HomeIcon)
+  private readonly deleteIconUrl = this.level.muiIconToUrl(DeleteIcon)
+  private readonly warehouseIconUrl = this.level.muiIconToUrl(WarehouseIcon)
 
   /** The current style applied to the level. */
   private _style: Style | null = null
@@ -305,14 +305,14 @@ export default class extends BaseManager {
     const { style, type, ...tile } = value
     if (style === "rotate") {
       this.level.highlightTile(tile, 0xffff00)
-      this.level.input.setDefaultCursor(this.rotateCursor)
+      this.level.input.setDefaultCursor(this.rotateIconUrl)
     } else if (style === "delete") {
       this.level.highlightTile(tile, 0xff0000)
-      this.level.input.setDefaultCursor(this.deleteCursor)
+      this.level.input.setDefaultCursor(this.deleteIconUrl)
     } else {
       this.level.highlightTile(tile, 0x00ff00)
       this.level.input.setDefaultCursor(
-        type === "house" ? this.homeCursor : this.warehouseCursor,
+        type === "house" ? this.homeIconUrl : this.warehouseIconUrl,
       )
     }
   }

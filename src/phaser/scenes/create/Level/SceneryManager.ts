@@ -1,6 +1,5 @@
 import Phaser from "phaser"
 
-import * as images from "../../../images"
 import * as sceneryObjects from "../../../layers/objectGroup/objects/scenery"
 import type * as sceneryTilesets from "../../../tilesets/scenery"
 import type { AddRoadEventData } from "./RoadManager"
@@ -15,52 +14,67 @@ export default class extends BaseManager {
   /** The current number of scenery objects added to the level. */
   private objectCount = 0
 
-  private readonly trashcan: {
-    base: Phaser.GameObjects.Image
-    lid: { open: Phaser.GameObjects.Image; closed: Phaser.GameObjects.Image }
-  }
+  /** The currently selected scenery object. */
+  private selectedObject: Phaser.GameObjects.Image | null = null
 
-  /** The array of scenery objects currently added to the level. */
-  // private readonly objects: Phaser.GameObjects.Image[] = []
+  /** The delete button shown next to the active object. */
+  private deleteButton: Phaser.GameObjects.Container
 
   constructor(level: Level) {
     super(level)
 
-    const addTrashcanImage = (url: string, tileOffsetRow: number) =>
-      this.level.add.image(
-        this.level.tilemap.tileWidth * (this.level.tilemap.width - 0.5),
-        this.level.tilemap.tileHeight *
-          (this.level.tilemap.height + tileOffsetRow),
-        url,
+    const deleteIcon = this.level.add.image(0, 0, "delete-icon")
+    const deleteRadius = deleteIcon.displayHeight / 2 + 4
+    const deleteColor = 0xff0000
+    const deleteBg = this.level.add.circle(0, 0, deleteRadius, deleteColor)
+    this.deleteButton = this.level.add
+      .container(0, 0, [deleteBg, deleteIcon])
+      .setDepth(1)
+      .setInteractive(
+        new Phaser.Geom.Circle(0, 0, deleteRadius),
+        (shape: Phaser.Geom.Circle, px: number, py: number) =>
+          Phaser.Geom.Circle.Contains(shape, px, py),
       )
-
-    this.trashcan = {
-      base: addTrashcanImage(images.URLs.HUD.Trashcan.TRASHCAN, 0.8),
-      lid: {
-        open: addTrashcanImage(
-          images.URLs.HUD.Trashcan.Lid.OPEN,
-          0.4,
-        ).setVisible(false),
-        closed: addTrashcanImage(images.URLs.HUD.Trashcan.Lid.CLOSED, 0.475),
-      },
-    }
+      .on(Phaser.Input.Events.POINTER_OVER, () =>
+        deleteBg.setFillStyle(0xc0392b),
+      )
+      .on(Phaser.Input.Events.POINTER_OUT, () =>
+        deleteBg.setFillStyle(deleteColor),
+      )
+      .on(Phaser.Input.Events.POINTER_UP, () => {
+        if (this.selectedObject) {
+          this.delete(this.selectedObject)
+          this.deselectObject()
+        }
+      })
+      .setVisible(false)
 
     const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
     level.game.events.on(Events.ADD_ROAD, onAddRoad)
 
-    const onPointerDown = (pointer: Phaser.Input.Pointer) =>
-      this.onPointerDown(pointer)
+    // Phaser fires the scene-level POINTER_DOWN with currentlyOver BEFORE the
+    // individual game-object POINTER_DOWN events, so we can inspect what is
+    // under the cursor here without needing a separate flag.
+    const onPointerDown = (
+      pointer: Phaser.Input.Pointer,
+      currentlyOver: Phaser.GameObjects.GameObject[],
+    ) => this.onPointerDown(pointer, currentlyOver)
     level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.game.events.off(Events.ADD_ROAD, onAddRoad)
       level.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+      this.deselectObject()
     })
   }
 
-  // private factoryFor(name: SceneryFactoryName): SceneryFactory {
-  //   return scenery.common[name]
-  // }
+  private get deleteButtonBackground(): Phaser.GameObjects.Arc {
+    return this.deleteButton.getAt(0)
+  }
+
+  private get deleteButtonRadius(): number {
+    return this.deleteButtonBackground.displayWidth / 2
+  }
 
   private add(
     worldX: number,
@@ -74,22 +88,31 @@ export default class extends BaseManager {
     if (!factory) return null
 
     const obj = this.level
-      .addObject("ObjectGroup.SCENERY", factory({ x: worldX, y: worldY }))
+      .addObject("ObjectGroup.SCENERY", factory({ x: 0, y: 0 }))
       .setInteractive({ cursor: "grab" })
       .setOrigin(0.5, 0.5)
-      .on(Phaser.Input.Events.DRAG_START, () => this.onDragStart(obj))
+      .setPosition(worldX, worldY)
+      .on(Phaser.Input.Events.DRAG_START, () => {
+        this.level.input.setDefaultCursor("grabbing")
+        obj.setScale(1.05)
+        this.deselectObject()
+      })
       .on(
         Phaser.Input.Events.DRAG,
-        (_: Phaser.Input.Pointer, dragX: number, dragY: number) =>
-          this.onDrag(dragX, dragY, obj),
+        (_: Phaser.Input.Pointer, dragX: number, dragY: number) => {
+          obj.x = dragX
+          obj.y = dragY
+        },
       )
-      .on(Phaser.Input.Events.DRAG_END, () => this.onDragEnd(obj))
-
-    // Position the image so its visual centre lands exactly at centerXY.
-    obj.setPosition(worldX, worldY)
+      .on(Phaser.Input.Events.DRAG_END, () => {
+        this.level.input.setDefaultCursor("default")
+        obj.setScale(1)
+      })
+      .on(Phaser.Input.Events.POINTER_UP, () => {
+        this.selectObject(obj)
+      })
 
     this.level.input.setDraggable(obj)
-
     return obj
   }
 
@@ -98,47 +121,45 @@ export default class extends BaseManager {
     this.level.destroyObject("ObjectGroup.SCENERY", obj)
   }
 
-  private onAddRoad({ id, ...tile }: AddRoadEventData) {
-    // TODO: delete overlapping scenery objects.
+  private selectObject(obj: Phaser.GameObjects.Image) {
+    if (this.selectedObject === obj) return
+    this.deselectObject()
+    this.selectedObject = obj
+    obj.setTint(0xaaddff)
+
+    this.deleteButton
+      .setPosition(
+        obj.x + obj.displayWidth / 2 + this.deleteButtonRadius,
+        obj.y - obj.displayHeight / 2 - this.deleteButtonRadius,
+      )
+      .setVisible(true)
   }
 
-  // private onAddScenery({ factory: name, x, y }: AddSceneryEventData) {
-  //   // Convert canvas coordinates to world coordinates using the Level camera.
-  //   const worldCenter = this.level.cameras.main.getWorldPoint(x, y)
+  private deselectObject() {
+    if (!this.selectedObject) return
+    this.selectedObject.clearTint()
+    this.selectedObject = null
 
-  //   // Only place scenery within the tilemap bounds.
-  //   const mapWidth = this.level.tilemap.widthInPixels
-  //   const mapHeight = this.level.tilemap.heightInPixels
-  //   if (
-  //     worldCenter.x < 0 ||
-  //     worldCenter.x > mapWidth ||
-  //     worldCenter.y < 0 ||
-  //     worldCenter.y > mapHeight
-  //   )
-  //     return
+    this.deleteButton.setVisible(false)
+  }
 
-  //   this.add(worldCenter, this.factoryFor(name))
-  // }
-
-  private onPointerDown(pointer: Phaser.Input.Pointer) {
+  private onPointerDown(
+    pointer: Phaser.Input.Pointer,
+    currentlyOver: Phaser.GameObjects.GameObject[],
+  ) {
     const toolbox = this.level.toolbox
     if (toolbox?.box !== "scenery") return
+
+    // Clicking on any existing interactive object (scenery, delete button, …):
+    // let the individual object's events handle it.
+    if (currentlyOver.length > 0) return
+
+    // Clicking on empty space: deselect and place a new object.
+    this.deselectObject()
     this.add(pointer.worldX, pointer.worldY, toolbox.tool)
   }
 
-  private onDragStart(obj: Phaser.GameObjects.Image) {
-    this.level.input.setDefaultCursor("grabbing")
-    obj.setScale(1.05) // Slightly enlarge to show it is being dragged.
-  }
-
-  private onDrag(dragX: number, dragY: number, obj: Phaser.GameObjects.Image) {
-    obj.x = dragX
-    obj.y = dragY
-  }
-
-  private onDragEnd(obj: Phaser.GameObjects.Image) {
-    // Reset global cursor (automatically set to 'grab' over the object).
-    this.level.input.setDefaultCursor("default")
-    obj.setScale(1) // Reset the scale when dragging ends.
+  private onAddRoad({ id, ...tile }: AddRoadEventData) {
+    // TODO: delete overlapping scenery objects.
   }
 }

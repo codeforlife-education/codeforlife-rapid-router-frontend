@@ -17,7 +17,7 @@ import { Divider } from "@mui/material"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import MapSpeedDial from "./MapSpeedDial"
-import SceneryFabCatalogue from "./SceneryFabCatalogue"
+import SceneryImageSelect from "./SceneryImageSelect"
 
 type SelectableButtonId =
   | "map"
@@ -49,7 +49,7 @@ const Controls: FC<ControlsProps> = () => {
   return (
     <>
       {selected === "map" && <MapSpeedDial />}
-      {selected === "scenery" && <SceneryFabCatalogue />}
+      {selected === "scenery" && <SceneryImageSelect />}
       <miniDrawers.MiniDrawer
         open={isDrawerOpen}
         onToggle={() => {
