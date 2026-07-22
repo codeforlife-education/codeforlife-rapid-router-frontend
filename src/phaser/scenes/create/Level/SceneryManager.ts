@@ -1,3 +1,4 @@
+import { Block as BlockIcon } from "@mui/icons-material"
 import Phaser from "phaser"
 
 import * as sceneryObjects from "../../../layers/objectGroup/objects/scenery"
@@ -16,6 +17,9 @@ export default class extends BaseManager {
 
   /** The delete button shown next to the active object. */
   private deleteButton: Phaser.GameObjects.Container
+
+  /** The URL of the block icon used for the cursor. */
+  private readonly blockIconUrl = this.level.muiIconToUrl(BlockIcon)
 
   constructor(level: Level) {
     super(level)
@@ -84,6 +88,12 @@ export default class extends BaseManager {
     return this.deleteButtonBackground.displayWidth / 2
   }
 
+  private get tool() {
+    return this.level.toolbox?.box === "scenery"
+      ? this.level.toolbox.tool
+      : null
+  }
+
   private add(
     worldX: number,
     worldY: number,
@@ -128,8 +138,7 @@ export default class extends BaseManager {
   }
 
   private select(obj: Phaser.GameObjects.Image) {
-    if (this.level.toolbox?.box !== "scenery" || this.selectedObject === obj)
-      return
+    if (this.selectedObject === obj) return
     this.deselect()
     this.selectedObject = obj
     obj.setTint(0xaaddff)
@@ -154,8 +163,8 @@ export default class extends BaseManager {
     pointer: Phaser.Input.Pointer,
     currentlyOver: Phaser.GameObjects.GameObject[],
   ) {
-    const toolbox = this.level.toolbox
-    if (toolbox?.box !== "scenery") return
+    const tool = this.tool
+    if (!tool) return
 
     // Clicking on any existing interactive object (scenery, delete button, …):
     // let the individual object's events handle it.
@@ -163,10 +172,14 @@ export default class extends BaseManager {
 
     // Clicking on empty space: deselect and place a new object.
     this.deselect()
-    this.add(pointer.worldX, pointer.worldY, toolbox.tool)
+    this.add(pointer.worldX, pointer.worldY, tool)
   }
 
-  private onPointerMove(pointer: Phaser.Input.Pointer) {}
+  private onPointerMove(pointer: Phaser.Input.Pointer) {
+    if (!this.tool) return
+
+    this.level.input.setDefaultCursor(this.blockIconUrl)
+  }
 
   /** When a road is added, delete any overlapping scenery objects. */
   private onAddRoad({ col, row }: AddRoadEventData) {
@@ -179,6 +192,6 @@ export default class extends BaseManager {
   }
 
   private onSetToolbox() {
-    if (this.level.toolbox?.box !== "scenery") this.deselect()
+    if (!this.tool) this.deselect()
   }
 }
