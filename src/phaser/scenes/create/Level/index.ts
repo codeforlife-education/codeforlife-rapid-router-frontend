@@ -2,11 +2,11 @@ import Phaser from "phaser"
 
 import type * as scenery from "../../../tilesets/scenery"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
-import { Events, Variables } from "../../../globals"
 import DragManager from "./DragManager"
 import EndpointManager from "./EndpointManager"
 import RoadManager from "./RoadManager"
 import SceneryManager from "./SceneryManager"
+import { Variables } from "../../../globals"
 
 type _Toolbox<B extends string, T> = { box: B; tool: T }
 export type MapToolbox = _Toolbox<
@@ -32,9 +32,6 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
-  /** The currently active tool selected by the player. */
-  toolbox?: Toolbox
-
   /** Drag manager responsible for handling drag operations. */
   drag!: DragManager
 
@@ -86,20 +83,11 @@ export default class extends BaseLevel<LevelData> {
     this.road = new RoadManager(this)
     this.endpoint = new EndpointManager(this)
     this.scenery = new SceneryManager(this)
-
-    // Get the current tool from the game registry and listen for changes to it.
-    this.getToolbox()
-    const getToolbox = () => this.getToolbox()
-    this.game.events.on(Events.SET_TOOLBOX, getToolbox)
-    this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.game.events.off(Events.SET_TOOLBOX, getToolbox)
-    })
   }
 
-  private getToolbox() {
-    this.toolbox = this.game.registry.get(Variables.TOOLBOX) as
-      | Toolbox
-      | undefined
+  /** The currently active tool selected by the player. */
+  get toolbox() {
+    return this.game.registry.get(Variables.TOOLBOX) as Toolbox | undefined
   }
 
   /**

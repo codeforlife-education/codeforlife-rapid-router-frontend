@@ -46,6 +46,9 @@ export default class extends BaseManager {
     const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
     level.game.events.on(Events.ADD_ROAD, onAddRoad)
 
+    const onSetToolbox = () => this.onSetToolbox()
+    level.game.events.on(Events.SET_TOOLBOX, onSetToolbox)
+
     // Phaser fires the scene-level POINTER_DOWN with currentlyOver BEFORE the
     // individual game-object POINTER_DOWN events, so we can inspect what is
     // under the cursor here without needing a separate flag.
@@ -55,9 +58,15 @@ export default class extends BaseManager {
     ) => this.onPointerDown(pointer, currentlyOver)
     level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
+    const onPointerMove = (pointer: Phaser.Input.Pointer) =>
+      this.onPointerMove(pointer)
+    level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.game.events.off(Events.ADD_ROAD, onAddRoad)
+      level.game.events.off(Events.SET_TOOLBOX, onSetToolbox)
       level.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+      level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
     })
   }
 
@@ -92,7 +101,7 @@ export default class extends BaseManager {
       .setPosition(worldX, worldY)
       .on(Phaser.Input.Events.DRAG_START, () => {
         this.level.input.setDefaultCursor("grabbing")
-        obj.setScale(1.05)
+        obj.setScale(1.1)
         this.deselect()
       })
       .on(
@@ -157,6 +166,8 @@ export default class extends BaseManager {
     this.add(pointer.worldX, pointer.worldY, toolbox.tool)
   }
 
+  private onPointerMove(pointer: Phaser.Input.Pointer) {}
+
   /** When a road is added, delete any overlapping scenery objects. */
   private onAddRoad({ col, row }: AddRoadEventData) {
     const tile = this.level.tileToBounds({ col, row })
@@ -165,5 +176,9 @@ export default class extends BaseManager {
     for (const obj of [...this.objects]) {
       if (this.level.objectOverlapsTile(obj, tile)) this.delete(obj)
     }
+  }
+
+  private onSetToolbox() {
+    if (this.level.toolbox?.box !== "scenery") this.deselect()
   }
 }
