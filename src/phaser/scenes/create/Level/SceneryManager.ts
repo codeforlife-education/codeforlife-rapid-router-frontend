@@ -1,4 +1,3 @@
-import { Block as BlockIcon } from "@mui/icons-material"
 import Phaser from "phaser"
 
 import * as sceneryObjects from "../../../layers/objectGroup/objects/scenery"
@@ -15,11 +14,14 @@ export default class extends BaseManager {
   /** The currently selected scenery object. */
   private selectedObject: Phaser.GameObjects.Image | null = null
 
+  /** The semi-transparent preview image. */
+  private ghost: {
+    object: Phaser.GameObjects.Image
+    id: sceneryTilesets.ID
+  } | null = null
+
   /** The delete button shown next to the active object. */
   private deleteButton: Phaser.GameObjects.Container
-
-  /** The URL of the block icon used for the cursor. */
-  private readonly blockIconUrl = this.level.muiIconToUrl(BlockIcon)
 
   constructor(level: Level) {
     super(level)
@@ -62,8 +64,10 @@ export default class extends BaseManager {
     ) => this.onPointerDown(pointer, currentlyOver)
     level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
-    const onPointerMove = (pointer: Phaser.Input.Pointer) =>
-      this.onPointerMove(pointer)
+    const onPointerMove = (
+      pointer: Phaser.Input.Pointer,
+      currentlyOver: Phaser.GameObjects.GameObject[],
+    ) => this.onPointerMove(pointer, currentlyOver)
     level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
 
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -159,6 +163,38 @@ export default class extends BaseManager {
     this.deleteButton.setVisible(false)
   }
 
+  private createGhost(id: sceneryTilesets.ID) {
+    if (this.ghost?.id === id) return
+    this.destroyGhost()
+
+    const factory = sceneryObjects.FACTORIES[id]
+    if (!factory) return
+
+    const obj = factory({ x: 0, y: 0 })
+    const tileset = this.level.initData.tilesets["ObjectGroup.SCENERY"].find(
+      ({ gid }) => gid === obj.gid,
+    )
+    if (!tileset) return
+
+    const frame = this.level.textures.get(tileset.name).get()
+
+    this.ghost = {
+      id,
+      object: this.level.add
+        .image(0, 0, tileset.name)
+        .setOrigin(0.5, 0.5)
+        .setDisplaySize(frame.realWidth, frame.realHeight)
+        .setAlpha(0.5)
+        .setDepth(2)
+        .setVisible(false),
+    }
+  }
+
+  private destroyGhost() {
+    this.ghost?.object.destroy()
+    this.ghost = null
+  }
+
   private onPointerDown(
     pointer: Phaser.Input.Pointer,
     currentlyOver: Phaser.GameObjects.GameObject[],
@@ -170,15 +206,41 @@ export default class extends BaseManager {
     // let the individual object's events handle it.
     if (currentlyOver.length > 0) return
 
-    // Clicking on empty space: deselect and place a new object.
+    // Only place if the ghost is visible, meaning the position is valid.
+    if (!this.ghost?.object.visible) return
+
     this.deselect()
     this.add(pointer.worldX, pointer.worldY, tool)
   }
 
-  private onPointerMove(pointer: Phaser.Input.Pointer) {
+  private onPointerMove(
+    pointer: Phaser.Input.Pointer,
+    currentlyOver: Phaser.GameObjects.GameObject[],
+  ) {
     if (!this.tool) return
 
-    this.level.input.setDefaultCursor(this.blockIconUrl)
+    const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
+    const hasRoad = tile
+      ? this.level.road.dirsToId(this.level.road.dirs(tile)) !== 0
+      : false
+
+    // Block placement if: outside the map, or over a road.
+    if (hasRoad) {
+      this.ghost?.object.setVisible(false)
+      this.level.input.setDefaultCursor("not-allowed")
+      return
+    }
+
+    // Over an existing object: hide ghost and let the object's cursor take over.
+    if (currentlyOver.length > 0) {
+      this.ghost?.object.setVisible(false)
+      return
+    }
+
+    this.ghost?.object
+      .setPosition(pointer.worldX, pointer.worldY)
+      .setVisible(true)
+    this.level.input.setDefaultCursor("grabbing")
   }
 
   /** When a road is added, delete any overlapping scenery objects. */
@@ -192,6 +254,12 @@ export default class extends BaseManager {
   }
 
   private onSetToolbox() {
-    if (!this.tool) this.deselect()
+    const tool = this.tool
+    if (!tool) {
+      this.deselect()
+      this.destroyGhost()
+      return
+    }
+    this.createGhost(tool)
   }
 }
