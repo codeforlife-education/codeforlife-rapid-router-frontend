@@ -11,9 +11,6 @@ export default class extends BaseManager {
   /** The maximum number of scenery objects that can be added to the level. */
   private readonly maxObjectCount = 50
 
-  /** The current number of scenery objects added to the level. */
-  private objectCount = 0
-
   /** The currently selected scenery object. */
   private selectedObject: Phaser.GameObjects.Image | null = null
 
@@ -42,10 +39,7 @@ export default class extends BaseManager {
         deleteBg.setFillStyle(deleteColor),
       )
       .on(Phaser.Input.Events.POINTER_UP, () => {
-        if (this.selectedObject) {
-          this.delete(this.selectedObject)
-          this.deselectObject()
-        }
+        if (this.selectedObject) this.delete(this.selectedObject)
       })
       .setVisible(false)
 
@@ -64,8 +58,13 @@ export default class extends BaseManager {
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.game.events.off(Events.ADD_ROAD, onAddRoad)
       level.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
-      this.deselectObject()
     })
+  }
+
+  private get objects() {
+    return this.level.layers[
+      "ObjectGroup.SCENERY"
+    ] as Phaser.GameObjects.Image[]
   }
 
   private get deleteButtonBackground(): Phaser.GameObjects.Arc {
@@ -81,8 +80,7 @@ export default class extends BaseManager {
     worldY: number,
     id: sceneryTilesets.ID,
   ): Phaser.GameObjects.Image | null {
-    if (this.objectCount >= this.maxObjectCount) return null
-    this.objectCount++
+    if (this.objects.length >= this.maxObjectCount) return null
 
     const factory = sceneryObjects.FACTORIES[id]
     if (!factory) return null
@@ -95,7 +93,7 @@ export default class extends BaseManager {
       .on(Phaser.Input.Events.DRAG_START, () => {
         this.level.input.setDefaultCursor("grabbing")
         obj.setScale(1.05)
-        this.deselectObject()
+        this.deselect()
       })
       .on(
         Phaser.Input.Events.DRAG,
@@ -108,22 +106,22 @@ export default class extends BaseManager {
         this.level.input.setDefaultCursor("default")
         obj.setScale(1)
       })
-      .on(Phaser.Input.Events.POINTER_UP, () => {
-        this.selectObject(obj)
-      })
+      .on(Phaser.Input.Events.POINTER_UP, () => this.select(obj))
 
     this.level.input.setDraggable(obj)
+
     return obj
   }
 
   private delete(obj: Phaser.GameObjects.Image) {
-    if (this.objectCount > 0) this.objectCount--
+    if (this.selectedObject === obj) this.deselect()
     this.level.destroyObject("ObjectGroup.SCENERY", obj)
   }
 
-  private selectObject(obj: Phaser.GameObjects.Image) {
-    if (this.selectedObject === obj) return
-    this.deselectObject()
+  private select(obj: Phaser.GameObjects.Image) {
+    if (this.level.toolbox?.box !== "scenery" || this.selectedObject === obj)
+      return
+    this.deselect()
     this.selectedObject = obj
     obj.setTint(0xaaddff)
 
@@ -135,7 +133,7 @@ export default class extends BaseManager {
       .setVisible(true)
   }
 
-  private deselectObject() {
+  private deselect() {
     if (!this.selectedObject) return
     this.selectedObject.clearTint()
     this.selectedObject = null
@@ -155,11 +153,17 @@ export default class extends BaseManager {
     if (currentlyOver.length > 0) return
 
     // Clicking on empty space: deselect and place a new object.
-    this.deselectObject()
+    this.deselect()
     this.add(pointer.worldX, pointer.worldY, toolbox.tool)
   }
 
-  private onAddRoad({ id, ...tile }: AddRoadEventData) {
-    // TODO: delete overlapping scenery objects.
+  /** When a road is added, delete any overlapping scenery objects. */
+  private onAddRoad({ col, row }: AddRoadEventData) {
+    const tile = this.level.tileToBounds({ col, row })
+    if (!tile) return
+
+    for (const obj of [...this.objects]) {
+      if (this.level.objectOverlapsTile(obj, tile)) this.delete(obj)
+    }
   }
 }

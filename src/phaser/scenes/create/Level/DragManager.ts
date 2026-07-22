@@ -207,11 +207,13 @@ export default class extends BaseManager {
   private onPointerUp() {
     if (!this._toolbox) return
 
-    this.level.game.events.emit(Events.DRAG_END, {
-      toolbox: this._toolbox,
-      sequence: this._sequence,
-      set: new Set(this._set),
-    } as DragEndEventData)
+    if (this._sequence.length > 1) {
+      this.level.game.events.emit(Events.DRAG_END, {
+        toolbox: this._toolbox,
+        sequence: this._sequence,
+        set: new Set(this._set),
+      } as DragEndEventData)
+    }
 
     this._toolbox = undefined
     this._sequence = []

@@ -242,4 +242,38 @@ export default class extends BaseLevel<LevelData> {
         this.tilemap.tileHeight,
       )
   }
+
+  /** Converts a tile position to a bounding box in world coordinates. */
+  tileToBounds(tile: Tile): Phaser.Geom.Rectangle | null {
+    const world = this.tileToWorld(tile)
+    if (!world) return null
+
+    return new Phaser.Geom.Rectangle(
+      world.x,
+      world.y,
+      this.tilemap.tileWidth,
+      this.tilemap.tileHeight,
+    )
+  }
+
+  /** Checks if a given box overlaps with a tile. */
+  objectOverlapsTile(
+    obj: Phaser.GameObjects.Components.GetBounds | Phaser.Geom.Rectangle,
+    tile: Tile | Phaser.Geom.Rectangle,
+  ) {
+    obj = "getBounds" in obj ? obj.getBounds() : obj
+
+    if ("col" in tile) {
+      const bounds = this.tileToBounds(tile)
+      if (!bounds) return false
+      tile = bounds
+    }
+
+    return (
+      obj.left < tile.right &&
+      obj.right > tile.left &&
+      obj.top < tile.bottom &&
+      obj.bottom > tile.top
+    )
+  }
 }
