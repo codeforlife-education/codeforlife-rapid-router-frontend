@@ -2,7 +2,6 @@ import { flattenNumberValues } from "codeforlife/utils/object"
 
 import * as scenery from "../scenery"
 import * as tilesets from "../../tilesets"
-import { TILE_HEIGHT, TILE_WIDTH } from "../../../globals"
 
 const _IDs = tilesets.IDs.Scenery.Common
 export const IDs = flattenNumberValues(_IDs)
@@ -26,14 +25,17 @@ export const hay = make({
 export const pond = make({
   image: "./pond.svg",
   firstgid: _IDs.POND,
+  imagescale: 0.3,
 })
 
 export const tree1 = make({
   image: "./tree1.svg",
   firstgid: _IDs.TREE1,
+  imagescale: 0.5,
 })
 
 export const tree2 = make({
   image: "./tree2.svg",
   firstgid: _IDs.TREE2,
+  imagescale: 0.65,
 })
