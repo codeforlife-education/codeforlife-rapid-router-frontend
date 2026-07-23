@@ -45,4 +45,58 @@ declare module "phaser" {
       customGraphics(): CustomGraphics
     }
   }
+
+  namespace Input {
+    namespace Events {
+      namespace Listeners {
+        // https://docs.phaser.io/api-documentation/event/input-events#pointer_down
+        type PointerDown<
+          Obj extends
+            Phaser.GameObjects.GameObject = Phaser.GameObjects.GameObject,
+        > = (pointer: Phaser.Input.Pointer, currentlyOver: Obj[]) => void
+
+        // https://docs.phaser.io/api-documentation/event/input-events#pointer_move
+        type PointerMove<
+          Obj extends
+            Phaser.GameObjects.GameObject = Phaser.GameObjects.GameObject,
+        > = (pointer: Phaser.Input.Pointer, currentlyOver: Obj[]) => void
+
+        // https://docs.phaser.io/api-documentation/event/input-events#pointer_up
+        type PointerUp<
+          Obj extends
+            Phaser.GameObjects.GameObject = Phaser.GameObjects.GameObject,
+        > = (pointer: Phaser.Input.Pointer, currentlyOver: Obj[]) => void
+
+        // https://docs.phaser.io/api-documentation/event/input-events#gameobject_drag_start
+        type GameObjectDragStart = (
+          pointer: Phaser.Input.Pointer,
+          dragX: number,
+          dragY: number,
+        ) => void
+
+        // https://docs.phaser.io/api-documentation/event/input-events#gameobject_drag
+        type GameObjectDrag = (
+          pointer: Phaser.Input.Pointer,
+          dragX: number,
+          dragY: number,
+        ) => void
+
+        // https://docs.phaser.io/api-documentation/event/input-events#gameobject_drag_end
+        type GameObjectDragEnd = (
+          pointer: Phaser.Input.Pointer,
+          dragX: number,
+          dragY: number,
+          dropped: boolean,
+        ) => void
+
+        // https://docs.phaser.io/api-documentation/event/input-events#gameobject_pointer_up
+        type GameObjectPointerUp = (
+          pointer: Phaser.Input.Pointer,
+          localX: number,
+          localY: number,
+          event: Phaser.Types.Input.EventData,
+        ) => void
+      }
+    }
+  }
 }

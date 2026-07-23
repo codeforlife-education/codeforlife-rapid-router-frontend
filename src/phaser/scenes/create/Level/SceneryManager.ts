@@ -61,16 +61,14 @@ export default class extends BaseManager {
     // Phaser fires the scene-level POINTER_DOWN with currentlyOver BEFORE the
     // individual game-object POINTER_DOWN events, so we can inspect what is
     // under the cursor here without needing a separate flag.
-    const onPointerDown = (
-      pointer: Phaser.Input.Pointer,
-      currentlyOver: Phaser.GameObjects.GameObject[],
-    ) => this.onPointerDown(pointer, currentlyOver)
+    const onPointerDown: Phaser.Input.Events.Listeners.PointerDown<
+      Phaser.GameObjects.Image
+    > = (pointer, currentlyOver) => this.onPointerDown(pointer, currentlyOver)
     level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
-    const onPointerMove = (
-      pointer: Phaser.Input.Pointer,
-      currentlyOver: Phaser.GameObjects.GameObject[],
-    ) => this.onPointerMove(pointer, currentlyOver)
+    const onPointerMove: Phaser.Input.Events.Listeners.PointerMove<
+      Phaser.GameObjects.Image
+    > = (pointer, currentlyOver) => this.onPointerMove(pointer, currentlyOver)
     level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
 
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -143,38 +141,51 @@ export default class extends BaseManager {
     const factory = sceneryObjects.FACTORIES[id]
     if (!factory) return null
 
-    const obj = this.level
+    let obj = this.level
       .addObject("ObjectGroup.SCENERY", factory({ x: 0, y: 0 }))
       .setInteractive({ cursor: "grab" })
       .setOrigin(0.5, 0.5)
       .setPosition(worldX, worldY)
-      .on(Phaser.Input.Events.DRAG_START, () => {
+
+    const onDragStart: Phaser.Input.Events.Listeners.GameObjectDragStart =
+      () => {
         this.dragStart = { x: obj.x, y: obj.y }
         this.level.input.setDefaultCursor("grabbing")
         obj.setScale(1.1)
         this.deselect()
-      })
-      .on(
-        Phaser.Input.Events.DRAG,
-        (_: Phaser.Input.Pointer, dragX: number, dragY: number) => {
-          const overObject = this.objectsAt(dragX, dragY).some(
-            other => other !== obj,
-          )
-          const overRoad = this.overRoad(dragX, dragY, obj)
-          const [x, y, cursor] =
-            overObject || overRoad
-              ? [this.dragStart!.x, this.dragStart!.y, "not-allowed"]
-              : [dragX, dragY, "grabbing"]
-          obj.setPosition(x, y)
-          this.level.input.setDefaultCursor(cursor)
-        },
+      }
+
+    const onDrag: Phaser.Input.Events.Listeners.GameObjectDrag = (
+      _,
+      dragX,
+      dragY,
+    ) => {
+      const overObject = this.objectsAt(dragX, dragY).some(
+        other => other !== obj,
       )
-      .on(Phaser.Input.Events.DRAG_END, () => {
-        this.dragStart = null
-        this.level.input.setDefaultCursor("default")
-        obj.setScale(1)
-      })
-      .on(Phaser.Input.Events.POINTER_UP, () => this.select(obj))
+      const overRoad = this.overRoad(dragX, dragY, obj)
+      const [x, y, cursor] =
+        overObject || overRoad
+          ? [this.dragStart!.x, this.dragStart!.y, "not-allowed"]
+          : [dragX, dragY, "grabbing"]
+      obj.setPosition(x, y)
+      this.level.input.setDefaultCursor(cursor)
+    }
+
+    const onDragEnd: Phaser.Input.Events.Listeners.GameObjectDragEnd = () => {
+      this.dragStart = null
+      this.level.input.setDefaultCursor("default")
+      obj.setScale(1)
+    }
+
+    const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp = () =>
+      this.select(obj)
+
+    obj = obj
+      .on(Phaser.Input.Events.DRAG_START, onDragStart)
+      .on(Phaser.Input.Events.DRAG, onDrag)
+      .on(Phaser.Input.Events.DRAG_END, onDragEnd)
+      .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
 
     this.level.input.setDraggable(obj)
 
@@ -240,47 +251,43 @@ export default class extends BaseManager {
     this.ghost = null
   }
 
-  private onPointerDown(
-    pointer: Phaser.Input.Pointer,
-    currentlyOver: Phaser.GameObjects.GameObject[],
-  ) {
-    const tool = this.tool
-    if (!tool) return
+  private onPointerDown: Phaser.Input.Events.Listeners.PointerDown<Phaser.GameObjects.Image> =
+    (pointer, currentlyOver) => {
+      const tool = this.tool
+      if (!tool) return
 
-    // Clicking on any existing interactive object (scenery, delete button, …):
-    // let the individual object's events handle it.
-    if (currentlyOver.length > 0) return
+      // Clicking on any existing interactive object (scenery, delete button, …):
+      // let the individual object's events handle it.
+      if (currentlyOver.length > 0) return
 
-    // Only place if the ghost is visible, meaning the position is valid.
-    if (!this.ghost?.object.visible) return
+      // Only place if the ghost is visible, meaning the position is valid.
+      if (!this.ghost?.object.visible) return
 
-    this.deselect()
-    this.add(pointer.worldX, pointer.worldY, tool)
-  }
-
-  private onPointerMove(
-    pointer: Phaser.Input.Pointer,
-    currentlyOver: Phaser.GameObjects.GameObject[],
-  ) {
-    if (!this.tool || !this.ghost) return
-
-    // Over an existing object or dragging an object.
-    if (currentlyOver.length > 0 || this.dragStart) {
-      this.ghost.object.setVisible(false)
-      return
+      this.deselect()
+      this.add(pointer.worldX, pointer.worldY, tool)
     }
 
-    if (this.overRoad(pointer.worldX, pointer.worldY, this.ghost.object)) {
-      this.ghost.object.setVisible(false)
-      this.level.input.setDefaultCursor("not-allowed")
-      return
-    }
+  private onPointerMove: Phaser.Input.Events.Listeners.PointerMove<Phaser.GameObjects.Image> =
+    (pointer, currentlyOver) => {
+      if (!this.tool || !this.ghost) return
 
-    this.ghost.object
-      .setPosition(pointer.worldX, pointer.worldY)
-      .setVisible(true)
-    this.level.input.setDefaultCursor("grabbing")
-  }
+      // Over an existing object or dragging an object.
+      if (currentlyOver.length > 0 || this.dragStart) {
+        this.ghost.object.setVisible(false)
+        return
+      }
+
+      if (this.overRoad(pointer.worldX, pointer.worldY, this.ghost.object)) {
+        this.ghost.object.setVisible(false)
+        this.level.input.setDefaultCursor("not-allowed")
+        return
+      }
+
+      this.ghost.object
+        .setPosition(pointer.worldX, pointer.worldY)
+        .setVisible(true)
+      this.level.input.setDefaultCursor("grabbing")
+    }
 
   /** When a road is added, delete any overlapping scenery objects. */
   private onAddRoad({ col, row }: AddRoadEventData) {
