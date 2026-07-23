@@ -300,12 +300,17 @@ export default class extends BaseManager {
   }
 
   private onSetToolbox() {
+    let draggable = true
+
     const tool = this.tool
-    if (!tool) {
+    if (tool) this.createGhost(tool)
+    else {
       this.deselect()
       this.destroyGhost()
-      return
+      draggable = false
     }
-    this.createGhost(tool)
+
+    // Enable or disable dragging for all scenery objects.
+    this.level.input.setDraggable(this.objects, draggable)
   }
 }
