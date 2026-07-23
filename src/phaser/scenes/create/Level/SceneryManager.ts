@@ -28,16 +28,16 @@ export default class extends BaseManager {
 
   constructor(level: Level) {
     super(level)
-    this.deleteButton = this.createDeleteButton()
+    this.deleteButton = this.createDeleteButton(level)
     this.registerEventListeners(level)
   }
 
-  private createDeleteButton() {
-    const deleteIcon = this.level.add.image(0, 0, "delete-icon")
+  private createDeleteButton({ add }: Level) {
+    const deleteIcon = add.image(0, 0, "delete-icon")
     const deleteRadius = deleteIcon.displayHeight / 2 + 4
     const deleteColor = 0xff0000
-    const deleteBg = this.level.add.circle(0, 0, deleteRadius, deleteColor)
-    return this.level.add
+    const deleteBg = add.circle(0, 0, deleteRadius, deleteColor)
+    return add
       .container(0, 0, [deleteBg, deleteIcon])
       .setDepth(1)
       .setInteractive(
