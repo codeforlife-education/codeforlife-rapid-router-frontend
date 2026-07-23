@@ -1,11 +1,15 @@
 import { flattenNumberValues } from "codeforlife/utils/object"
 
 import * as tilesets from "../tilesets"
+import { TILE_HEIGHT, TILE_WIDTH } from "../../globals"
 
 export const IDs = flattenNumberValues(tilesets.IDs.Road)
 export type ID = (typeof IDs)[number]
 
-type MakeKwArgs<GID extends ID> = Omit<tilesets.MakeKwArgs<GID>, "properties">
+type MakeKwArgs<GID extends ID> = Omit<
+  tilesets.MakeKwArgs<GID>,
+  "properties" | "imagewidth" | "imageheight"
+>
 
 const make = <
   GID extends ID,
@@ -33,6 +37,8 @@ const make = <
   },
 ) =>
   tilesets.make(importMetaUrl, {
+    imagewidth: TILE_WIDTH,
+    imageheight: TILE_HEIGHT,
     properties: [
       { name: "canDriveForwards", value: canDriveForwards, type: "bool" },
       { name: "canDriveBackwards", value: canDriveBackwards, type: "bool" },

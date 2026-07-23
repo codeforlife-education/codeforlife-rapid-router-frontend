@@ -79,8 +79,9 @@ export default class BasePreloader<
       image,
       name,
       firstgid: id,
-      imagewidth = TILE_WIDTH,
-      imageheight = TILE_HEIGHT,
+      imagewidth,
+      imageheight,
+      imagescale,
     } of tilemap.tilesets) {
       // Track each layer's tilesets.
       if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
@@ -99,7 +100,11 @@ export default class BasePreloader<
 
       // Load the image.
       if (image.endsWith(".svg")) {
-        this.load.svg(name, image, { width: imagewidth, height: imageheight })
+        this.load.svg(name, image, {
+          width: imagewidth,
+          height: imageheight,
+          scale: imagescale,
+        })
       } else throw new Error(`Unsupported tileset image format: ${image}`)
     }
   }

@@ -13,6 +13,7 @@ const make = <GID extends ID>(kwArgs: scenery.MakeKwArgs<GID>) =>
 export const bush = make({
   image: "./bush.svg",
   firstgid: _IDs.BUSH,
+  imagescale: 0.5,
 })
 
 export const pond = make({

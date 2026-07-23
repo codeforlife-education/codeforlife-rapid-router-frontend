@@ -77,6 +77,7 @@ export type Tileset<
   image: string
   firstgid: GID
   properties: Props
+  imagescale?: number
 }
 
 type MakePartials =
@@ -94,7 +95,7 @@ export type MakeKwArgs<
   GID extends ID,
   Props extends Property[] | undefined = undefined,
 > = Omit<Tileset<GID, Props>, MakePartials> &
-  Partial<Pick<Tileset<GID, Props>, MakePartials>> & { image: string }
+  Partial<Pick<Tileset<GID, Props>, MakePartials>>
 
 export const make = <
   GID extends ID,
@@ -108,8 +109,6 @@ export const make = <
     columns = 1,
     spacing = 0,
     margin = 0,
-    imageheight = TILE_HEIGHT,
-    imagewidth = TILE_WIDTH,
     tileheight = TILE_HEIGHT,
     tilewidth = TILE_WIDTH,
     properties,
@@ -125,8 +124,6 @@ export const make = <
     columns,
     spacing,
     margin,
-    imageheight,
-    imagewidth,
     tileheight,
     tilewidth,
     properties: properties as Props,
