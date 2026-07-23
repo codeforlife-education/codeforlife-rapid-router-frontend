@@ -52,11 +52,12 @@ export default class extends BaseManager {
     return add
       .container(0, 0, [deleteBg, deleteIcon])
       .setDepth(1)
-      .setInteractive(
-        new Phaser.Geom.Circle(0, 0, deleteRadius),
-        (shape: Phaser.Geom.Circle, px: number, py: number) =>
+      .setInteractive({
+        hitArea: new Phaser.Geom.Circle(0, 0, deleteRadius),
+        hitAreaCallback: (shape: Phaser.Geom.Circle, px: number, py: number) =>
           Phaser.Geom.Circle.Contains(shape, px, py),
-      )
+        cursor: "pointer",
+      })
       .on(Phaser.Input.Events.POINTER_OVER, onPointerOver)
       .on(Phaser.Input.Events.POINTER_OUT, onPointerOut)
       .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
