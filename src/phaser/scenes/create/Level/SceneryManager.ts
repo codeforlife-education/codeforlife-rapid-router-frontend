@@ -160,36 +160,17 @@ export default class extends BaseManager {
       .setOrigin(0.5, 0.5)
       .setPosition(worldX, worldY)
 
-    const onDragStart: Phaser.Input.Events.Listeners.GameObjectDragStart =
-      () => {
-        this.dragStart = { x: obj.x, y: obj.y }
-        this.level.input.setDefaultCursor("grabbing")
-        obj.setScale(1.1)
-        this.deselect()
-      }
+    const onDragStart: Phaser.Input.Events.Listeners.GameObjectDragStart = () =>
+      this.startDrag(obj)
 
     const onDrag: Phaser.Input.Events.Listeners.GameObjectDrag = (
       _,
       dragX,
       dragY,
-    ) => {
-      const overObject = this.objectsAt(dragX, dragY).some(
-        other => other !== obj,
-      )
-      const overRoad = this.overRoad(dragX, dragY, obj)
-      const [x, y, cursor] =
-        overObject || overRoad
-          ? [this.dragStart!.x, this.dragStart!.y, "not-allowed"]
-          : [dragX, dragY, "grabbing"]
-      obj.setPosition(x, y)
-      this.level.input.setDefaultCursor(cursor)
-    }
+    ) => this.dragTo(obj, dragX, dragY)
 
-    const onDragEnd: Phaser.Input.Events.Listeners.GameObjectDragEnd = () => {
-      this.dragStart = null
-      this.level.input.setDefaultCursor("default")
-      obj.setScale(1)
-    }
+    const onDragEnd: Phaser.Input.Events.Listeners.GameObjectDragEnd = () =>
+      this.endDrag(obj)
 
     const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp =
       () => {
@@ -211,6 +192,61 @@ export default class extends BaseManager {
   private delete(obj: Phaser.GameObjects.Image) {
     if (this.selectedObject === obj) this.deselect()
     this.level.destroyObject("ObjectGroup.SCENERY", obj)
+  }
+
+  /** Begin dragging the given scenery object from its current position. */
+  private startDrag(obj: Phaser.GameObjects.Image) {
+    this.dragStart = { x: obj.x, y: obj.y }
+    this.level.input.setDefaultCursor("grabbing")
+    obj.setScale(1.1)
+    this.deselect()
+  }
+
+  /**
+   * Move the dragged object to the given position, snapping back to where
+   * the drag started if the position is invalid.
+   */
+  private dragTo(obj: Phaser.GameObjects.Image, dragX: number, dragY: number) {
+    const overObject = this.objectsAt(dragX, dragY).some(other => other !== obj)
+    const overRoad = this.overRoad(dragX, dragY, obj)
+    const [x, y, cursor] =
+      overObject || overRoad
+        ? [this.dragStart!.x, this.dragStart!.y, "not-allowed"]
+        : [dragX, dragY, "grabbing"]
+    obj.setPosition(x, y)
+    this.level.input.setDefaultCursor(cursor)
+  }
+
+  /** Stop dragging the given scenery object. */
+  private endDrag(obj: Phaser.GameObjects.Image) {
+    this.dragStart = null
+    this.level.input.setDefaultCursor("default")
+    obj.setScale(1)
+  }
+
+  /**
+   * Phaser only starts its own drag tracking for objects that were already
+   * interactive when the pointer went down, so a just-placed object won't
+   * be picked up automatically. If the pointer is still held after placing
+   * an object, drive the same drag behaviour manually until it's released.
+   */
+  private dragNewObject(obj: Phaser.GameObjects.Image) {
+    this.startDrag(obj)
+
+    const onPointerMove: Phaser.Input.Events.Listeners.PointerMove<
+      Phaser.GameObjects.Image
+    > = pointer => this.dragTo(obj, pointer.worldX, pointer.worldY)
+
+    const onPointerUp: Phaser.Input.Events.Listeners.PointerUp<
+      Phaser.GameObjects.Image
+    > = () => {
+      this.endDrag(obj)
+      this.level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+      this.level.input.off(Phaser.Input.Events.POINTER_UP, onPointerUp)
+    }
+
+    this.level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+    this.level.input.on(Phaser.Input.Events.POINTER_UP, onPointerUp)
   }
 
   private select(obj: Phaser.GameObjects.Image) {
@@ -280,7 +316,10 @@ export default class extends BaseManager {
       if (!this.ghost?.object.visible) return
 
       this.deselect()
-      this.add(pointer.worldX, pointer.worldY, tool)
+      const obj = this.add(pointer.worldX, pointer.worldY, tool)
+
+      // Seamlessly continue into a drag if the pointer is still held down.
+      if (obj && pointer.isDown) this.dragNewObject(obj)
     }
 
   private onPointerMove: Phaser.Input.Events.Listeners.PointerMove<Phaser.GameObjects.Image> =
