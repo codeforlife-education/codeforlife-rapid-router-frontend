@@ -89,6 +89,20 @@ declare module "phaser" {
           dropped: boolean,
         ) => void
 
+        // https://docs.phaser.io/api-documentation/event/input-events#gameobject_pointer_over
+        type GameObjectPointerOver = (
+          pointer: Phaser.Input.Pointer,
+          localX: number,
+          localY: number,
+          event: Phaser.Types.Input.EventData,
+        ) => void
+
+        // https://docs.phaser.io/api-documentation/event/input-events#gameobject_pointer_out
+        type GameObjectPointerOut = (
+          pointer: Phaser.Input.Pointer,
+          event: Phaser.Types.Input.EventData,
+        ) => void
+
         // https://docs.phaser.io/api-documentation/event/input-events#gameobject_pointer_up
         type GameObjectPointerUp = (
           pointer: Phaser.Input.Pointer,

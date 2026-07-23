@@ -37,6 +37,18 @@ export default class extends BaseManager {
     const deleteRadius = deleteIcon.displayHeight / 2 + 4
     const deleteColor = 0xff0000
     const deleteBg = add.circle(0, 0, deleteRadius, deleteColor)
+
+    const onPointerOver: Phaser.Input.Events.Listeners.GameObjectPointerOver =
+      () => deleteBg.setFillStyle(0xc0392b)
+
+    const onPointerOut: Phaser.Input.Events.Listeners.GameObjectPointerOut =
+      () => deleteBg.setFillStyle(deleteColor)
+
+    const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp =
+      () => {
+        if (this.selectedObject) this.delete(this.selectedObject)
+      }
+
     return add
       .container(0, 0, [deleteBg, deleteIcon])
       .setDepth(1)
@@ -45,15 +57,9 @@ export default class extends BaseManager {
         (shape: Phaser.Geom.Circle, px: number, py: number) =>
           Phaser.Geom.Circle.Contains(shape, px, py),
       )
-      .on(Phaser.Input.Events.POINTER_OVER, () =>
-        deleteBg.setFillStyle(0xc0392b),
-      )
-      .on(Phaser.Input.Events.POINTER_OUT, () =>
-        deleteBg.setFillStyle(deleteColor),
-      )
-      .on(Phaser.Input.Events.POINTER_UP, () => {
-        if (this.selectedObject) this.delete(this.selectedObject)
-      })
+      .on(Phaser.Input.Events.POINTER_OVER, onPointerOver)
+      .on(Phaser.Input.Events.POINTER_OUT, onPointerOut)
+      .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
       .setVisible(false)
   }
 
