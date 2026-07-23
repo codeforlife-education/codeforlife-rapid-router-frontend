@@ -28,12 +28,16 @@ export default class extends BaseManager {
 
   constructor(level: Level) {
     super(level)
+    this.deleteButton = this.createDeleteButton()
+    this.registerEventListeners(level)
+  }
 
+  private createDeleteButton() {
     const deleteIcon = this.level.add.image(0, 0, "delete-icon")
     const deleteRadius = deleteIcon.displayHeight / 2 + 4
     const deleteColor = 0xff0000
     const deleteBg = this.level.add.circle(0, 0, deleteRadius, deleteColor)
-    this.deleteButton = this.level.add
+    return this.level.add
       .container(0, 0, [deleteBg, deleteIcon])
       .setDepth(1)
       .setInteractive(
@@ -51,12 +55,14 @@ export default class extends BaseManager {
         if (this.selectedObject) this.delete(this.selectedObject)
       })
       .setVisible(false)
+  }
 
+  private registerEventListeners({ game, input, events }: Level) {
     const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
-    level.game.events.on(Events.ADD_ROAD, onAddRoad)
+    game.events.on(Events.ADD_ROAD, onAddRoad)
 
     const onSetToolbox = () => this.onSetToolbox()
-    level.game.events.on(Events.SET_TOOLBOX, onSetToolbox)
+    game.events.on(Events.SET_TOOLBOX, onSetToolbox)
 
     // Phaser fires the scene-level POINTER_DOWN with currentlyOver BEFORE the
     // individual game-object POINTER_DOWN events, so we can inspect what is
@@ -64,18 +70,18 @@ export default class extends BaseManager {
     const onPointerDown: Phaser.Input.Events.Listeners.PointerDown<
       Phaser.GameObjects.Image
     > = (pointer, currentlyOver) => this.onPointerDown(pointer, currentlyOver)
-    level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+    input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
     const onPointerMove: Phaser.Input.Events.Listeners.PointerMove<
       Phaser.GameObjects.Image
     > = (pointer, currentlyOver) => this.onPointerMove(pointer, currentlyOver)
-    level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+    input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
 
-    level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
-      level.game.events.off(Events.ADD_ROAD, onAddRoad)
-      level.game.events.off(Events.SET_TOOLBOX, onSetToolbox)
-      level.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
-      level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+    events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      game.events.off(Events.ADD_ROAD, onAddRoad)
+      game.events.off(Events.SET_TOOLBOX, onSetToolbox)
+      input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+      input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
     })
   }
 
@@ -178,8 +184,11 @@ export default class extends BaseManager {
       obj.setScale(1)
     }
 
-    const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp = () =>
-      this.select(obj)
+    const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp =
+      () => {
+        if (!this.tool) return
+        this.select(obj)
+      }
 
     obj = obj
       .on(Phaser.Input.Events.DRAG_START, onDragStart)
