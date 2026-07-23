@@ -14,6 +14,9 @@ export default class extends BaseManager {
   /** The currently selected scenery object. */
   private selectedObject: Phaser.GameObjects.Image | null = null
 
+  /** The starting position of the currently dragged scenery object. */
+  private dragStart: { x: number; y: number } | null = null
+
   /** The semi-transparent preview image. */
   private ghost: {
     object: Phaser.GameObjects.Image
@@ -98,6 +101,38 @@ export default class extends BaseManager {
       : null
   }
 
+  /** Returns the scenery objects whose bounds contain the given point. */
+  private objectsAt(x: number, y: number) {
+    return this.objects.filter(other => other.getBounds().contains(x, y))
+  }
+
+  /** Check if the world coordinates and dimensions overlap a road tile. */
+  private overRoad(
+    worldX: number,
+    worldY: number,
+    obj: Phaser.GameObjects.Image,
+  ) {
+    const isOverRoad = (worldX: number, worldY: number): boolean => {
+      const tile = this.level.worldToTile(worldX, worldY)
+      if (!tile) return false
+      return this.level.road.dirsToId(this.level.road.dirs(tile)) !== 0
+    }
+
+    const { left, right, top, bottom } = new Phaser.Geom.Rectangle(
+      worldX - obj.displayWidth / 2,
+      worldY - obj.displayHeight / 2,
+      obj.displayWidth,
+      obj.displayHeight,
+    )
+
+    return (
+      isOverRoad(left, top) ||
+      isOverRoad(right, top) ||
+      isOverRoad(left, bottom) ||
+      isOverRoad(right, bottom)
+    )
+  }
+
   private add(
     worldX: number,
     worldY: number,
@@ -114,6 +149,7 @@ export default class extends BaseManager {
       .setOrigin(0.5, 0.5)
       .setPosition(worldX, worldY)
       .on(Phaser.Input.Events.DRAG_START, () => {
+        this.dragStart = { x: obj.x, y: obj.y }
         this.level.input.setDefaultCursor("grabbing")
         obj.setScale(1.1)
         this.deselect()
@@ -121,11 +157,20 @@ export default class extends BaseManager {
       .on(
         Phaser.Input.Events.DRAG,
         (_: Phaser.Input.Pointer, dragX: number, dragY: number) => {
-          obj.x = dragX
-          obj.y = dragY
+          const overObject = this.objectsAt(dragX, dragY).some(
+            other => other !== obj,
+          )
+          const overRoad = this.overRoad(dragX, dragY, obj)
+          const [x, y, cursor] =
+            overObject || overRoad
+              ? [this.dragStart!.x, this.dragStart!.y, "not-allowed"]
+              : [dragX, dragY, "grabbing"]
+          obj.setPosition(x, y)
+          this.level.input.setDefaultCursor(cursor)
         },
       )
       .on(Phaser.Input.Events.DRAG_END, () => {
+        this.dragStart = null
         this.level.input.setDefaultCursor("default")
         obj.setScale(1)
       })
@@ -217,27 +262,21 @@ export default class extends BaseManager {
     pointer: Phaser.Input.Pointer,
     currentlyOver: Phaser.GameObjects.GameObject[],
   ) {
-    if (!this.tool) return
+    if (!this.tool || !this.ghost) return
 
-    const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
-    const hasRoad = tile
-      ? this.level.road.dirsToId(this.level.road.dirs(tile)) !== 0
-      : false
+    // Over an existing object or dragging an object.
+    if (currentlyOver.length > 0 || this.dragStart) {
+      this.ghost.object.setVisible(false)
+      return
+    }
 
-    // Block placement if: outside the map, or over a road.
-    if (hasRoad) {
-      this.ghost?.object.setVisible(false)
+    if (this.overRoad(pointer.worldX, pointer.worldY, this.ghost.object)) {
+      this.ghost.object.setVisible(false)
       this.level.input.setDefaultCursor("not-allowed")
       return
     }
 
-    // Over an existing object: hide ghost and let the object's cursor take over.
-    if (currentlyOver.length > 0) {
-      this.ghost?.object.setVisible(false)
-      return
-    }
-
-    this.ghost?.object
+    this.ghost.object
       .setPosition(pointer.worldX, pointer.worldY)
       .setVisible(true)
     this.level.input.setDefaultCursor("grabbing")
