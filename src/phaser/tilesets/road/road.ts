@@ -8,7 +8,7 @@ export type ID = (typeof IDs)[number]
 
 type MakeKwArgs<GID extends ID> = Omit<
   tilesets.MakeKwArgs<GID>,
-  "properties" | "imagewidth" | "imageheight"
+  "properties" | "imagewidth" | "imageheight" | "imagescale"
 >
 
 const make = <
@@ -37,6 +37,8 @@ const make = <
   },
 ) =>
   tilesets.make(importMetaUrl, {
+    // roads are placed as grid-aligned objects whose rendered size must match a
+    // tile slot.
     imagewidth: TILE_WIDTH,
     imageheight: TILE_HEIGHT,
     properties: [

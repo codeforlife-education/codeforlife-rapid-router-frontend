@@ -2,7 +2,6 @@ import { flattenNumberValues } from "codeforlife/utils/object"
 
 import * as endpoints from "../endpoints"
 import * as tilesets from "../../tilesets"
-import { TILE_HEIGHT, TILE_WIDTH } from "../../../globals"
 
 const _IDs = tilesets.IDs.Endpoints.House
 export const IDs = flattenNumberValues(_IDs)
@@ -10,12 +9,7 @@ export type ID = (typeof IDs)[number]
 
 const make = <GID extends ID>(
   kwArgs: Omit<endpoints.MakeKwArgs<GID>, "imagewidth" | "imageheight">,
-) =>
-  endpoints.make(import.meta.url, {
-    imagewidth: TILE_WIDTH * 0.5,
-    imageheight: TILE_HEIGHT * 0.5,
-    ...kwArgs,
-  })
+) => endpoints.make(import.meta.url, { tilescale: 0.5, ...kwArgs })
 
 export const common = {
   blue: make({
