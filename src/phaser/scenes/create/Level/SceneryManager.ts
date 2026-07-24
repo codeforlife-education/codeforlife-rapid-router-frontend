@@ -24,7 +24,7 @@ export default class extends BaseManager {
   } | null = null
 
   /** The delete button shown next to the active object. */
-  private deleteButton: Phaser.GameObjects.Container
+  private deleteButton: Phaser.GameObjects.FloatingActionButton
 
   constructor(level: Level) {
     super(level)
@@ -33,17 +33,6 @@ export default class extends BaseManager {
   }
 
   private createDeleteButton({ add }: Level) {
-    const deleteIcon = add.image(0, 0, "delete-icon")
-    const deleteRadius = deleteIcon.displayHeight / 2 + 4
-    const deleteColor = 0xff0000
-    const deleteBg = add.circle(0, 0, deleteRadius, deleteColor)
-
-    const onPointerOver: Phaser.Input.Events.Listeners.GameObjectPointerOver =
-      () => deleteBg.setFillStyle(0xc0392b)
-
-    const onPointerOut: Phaser.Input.Events.Listeners.GameObjectPointerOut =
-      () => deleteBg.setFillStyle(deleteColor)
-
     const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp =
       pointer => {
         if (this.selectedObject) this.delete(this.selectedObject)
@@ -51,16 +40,7 @@ export default class extends BaseManager {
       }
 
     return add
-      .container(0, 0, [deleteBg, deleteIcon])
-      .setDepth(1)
-      .setInteractive({
-        hitArea: new Phaser.Geom.Circle(0, 0, deleteRadius),
-        hitAreaCallback: (shape: Phaser.Geom.Circle, px: number, py: number) =>
-          Phaser.Geom.Circle.Contains(shape, px, py),
-        cursor: "pointer",
-      })
-      .on(Phaser.Input.Events.POINTER_OVER, onPointerOver)
-      .on(Phaser.Input.Events.POINTER_OUT, onPointerOut)
+      .fab(0, 0, "delete-icon", 0xff0000, 0xc0392b)
       .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
       .setVisible(false)
   }
@@ -97,14 +77,6 @@ export default class extends BaseManager {
     return this.level.layers[
       "ObjectGroup.SCENERY"
     ] as Phaser.GameObjects.Image[]
-  }
-
-  private get deleteButtonBackground(): Phaser.GameObjects.Arc {
-    return this.deleteButton.getAt(0)
-  }
-
-  private get deleteButtonRadius(): number {
-    return this.deleteButtonBackground.displayWidth / 2
   }
 
   private get tool() {
@@ -265,8 +237,8 @@ export default class extends BaseManager {
 
     this.deleteButton
       .setPosition(
-        obj.x + obj.displayWidth / 2 + this.deleteButtonRadius,
-        obj.y - obj.displayHeight / 2 - this.deleteButtonRadius,
+        obj.x + obj.displayWidth / 2 + this.deleteButton.radius,
+        obj.y - obj.displayHeight / 2 - this.deleteButton.radius,
       )
       .setVisible(true)
   }

@@ -31,6 +31,22 @@ declare module "phaser" {
       ): this
     }
 
+    interface FloatingActionButton extends Phaser.GameObjects.Container {
+      radius: number
+      backgroundColorOut: number
+      backgroundColorOver: number
+
+      background: Phaser.GameObjects.Arc
+      icon: Phaser.GameObjects.Image
+
+      onPointerOver: Phaser.Input.Events.Listeners.GameObjectPointerOver
+      onPointerOut: Phaser.Input.Events.Listeners.GameObjectPointerOut
+
+      setInteractive(
+        config?: Phaser.Types.Input.InputConfigurationWithoutHitArea,
+      ): this
+    }
+
     interface GameObjectFactory {
       button(
         x: number,
@@ -43,6 +59,30 @@ declare module "phaser" {
       ): Button
 
       customGraphics(): CustomGraphics
+
+      fab(
+        x: number,
+        y: number,
+        iconTexture: string,
+        backgroundColorOut: number,
+        backgroundColorOver: number,
+        options?: Phaser.Types.GameObjects.FloatingActionButton.Options,
+      ): FloatingActionButton
+    }
+  }
+
+  namespace Types {
+    namespace GameObjects {
+      namespace FloatingActionButton {
+        type Options = { depth?: number; iconMargin?: number }
+      }
+    }
+
+    namespace Input {
+      type InputConfigurationWithoutHitArea = Omit<
+        Phaser.Types.Input.InputConfiguration,
+        "hitArea" | "hitAreaCallback"
+      >
     }
   }
 
