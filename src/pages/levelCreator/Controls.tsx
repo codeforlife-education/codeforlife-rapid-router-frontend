@@ -16,6 +16,7 @@ import { type FC, useState } from "react"
 import { Divider } from "@mui/material"
 
 import * as miniDrawers from "../../components/miniDrawers"
+import * as tilesets from "../../phaser/tilesets"
 import MapSpeedDial from "./MapSpeedDial"
 import SceneryImageSelect from "./SceneryImageSelect"
 
@@ -33,6 +34,9 @@ export interface ControlsProps {}
 const Controls: FC<ControlsProps> = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const [selected, setSelected] = useState<SelectableButtonId>("map")
+  const [scenerySelected, setScenerySelected] = useState<tilesets.scenery.ID>(
+    tilesets.IDs.Scenery.Common.BUSH,
+  )
 
   const makeSelectableButtonItemProps = (
     id: SelectableButtonId,
@@ -49,7 +53,12 @@ const Controls: FC<ControlsProps> = () => {
   return (
     <>
       {selected === "map" && <MapSpeedDial />}
-      {selected === "scenery" && <SceneryImageSelect />}
+      {selected === "scenery" && (
+        <SceneryImageSelect
+          selected={scenerySelected}
+          onChange={setScenerySelected}
+        />
+      )}
       <miniDrawers.MiniDrawer
         open={isDrawerOpen}
         onToggle={() => {

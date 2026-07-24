@@ -70,21 +70,27 @@ const categories = [
   images: { key: tilesets.scenery.ID; title: string; src: string }[]
 }[]
 
-export interface SceneryImageSelectProps {}
+export interface SceneryImageSelectProps {
+  selected: tilesets.scenery.ID
+  onChange: (newSelected: tilesets.scenery.ID) => void
+}
 
-const SceneryImageSelect: FC<SceneryImageSelectProps> = () => {
+const SceneryImageSelect: FC<SceneryImageSelectProps> = ({
+  selected,
+  onChange,
+}) => {
   const [open, setOpen] = useState(false)
-  const [tool, setTool] = useState<tilesets.scenery.ID>(
-    tilesets.IDs.Scenery.Common.BUSH,
-  )
   const breakpoint = useBreakpoint()
   const phaserGameContext = usePhaserGameContext()
 
   // Update the Phaser game tool whenever the selected tool changes.
   useEffect(() => {
     if (!phaserGameContext?.isInitialized) return
-    phaserGameContext.ref.current?.setCreateToolbox({ box: "scenery", tool })
-  }, [phaserGameContext?.isInitialized, phaserGameContext?.ref, tool])
+    phaserGameContext.ref.current?.setCreateToolbox({
+      box: "scenery",
+      tool: selected,
+    })
+  }, [phaserGameContext?.isInitialized, phaserGameContext?.ref, selected])
 
   return (
     <Portal>
@@ -102,8 +108,8 @@ const SceneryImageSelect: FC<SceneryImageSelectProps> = () => {
             xl: 7,
           }[breakpoint]
         }
-        selected={tool}
-        onChange={setTool}
+        selected={selected}
+        onChange={onChange}
         fab={{ size: 56, margin: 2 }}
         image={{ size: 64 }}
       />
