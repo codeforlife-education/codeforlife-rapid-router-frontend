@@ -9,6 +9,7 @@ export type PhaserGameRef = {
 export type PhaserGameContextValue = {
   ref: RefObject<PhaserGameRef | null>
   isInitialized: boolean
+  onInitialized: () => void
 }
 
 const PhaserGameContext = createContext<PhaserGameContextValue | null>(null)

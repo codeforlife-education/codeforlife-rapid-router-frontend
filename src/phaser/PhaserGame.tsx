@@ -18,12 +18,11 @@ import { useGameCommands, usePhaserGameContext } from "../app/hooks"
 import type { Level } from "../api/level"
 import type { PhaserGameRef } from "./PhaserGameContext"
 
-export type PhaserGameProps = (
+export type PhaserGameProps =
   | { mode: "play"; levelId: Level["id"] }
   | { mode: "create"; levelId?: never }
-) & { onInitialized?: () => void }
 
-const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId, onInitialized }) => {
+const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const phaserGameContext = usePhaserGameContext()
   const gameCommands = useGameCommands()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
@@ -32,7 +31,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId, onInitialized }) => {
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
-  const { ref } = phaserGameContext
+  const { ref, onInitialized } = phaserGameContext
 
   // Expose Phaser game methods to parent components.
   useImperativeHandle(
@@ -111,7 +110,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId, onInitialized }) => {
 
   // Call the onInitialized callback when the Phaser game is initialized.
   useEffect(() => {
-    if (gameIsInitialized) onInitialized?.()
+    if (gameIsInitialized) onInitialized()
   }, [gameIsInitialized, onInitialized])
 
   // Pass the current game commands to Phaser.

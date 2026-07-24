@@ -1,5 +1,5 @@
 import * as yup from "yup"
-import { type FC, type ReactNode, useRef } from "react"
+import { type FC, type ReactNode, useRef, useState } from "react"
 import { Box } from "@mui/material"
 import { handleResultState } from "codeforlife/utils/api"
 import { useParamsRequired } from "codeforlife/hooks"
@@ -12,6 +12,7 @@ import {
   type Level as LevelModel,
   useRetrieveLevelQuery,
 } from "../../api/level"
+import { PhaserGameContext, type PhaserGameRef } from "../../phaser"
 import Controls from "./Controls"
 import Panels from "./Panels"
 import { paths } from "../../routes"
@@ -83,26 +84,40 @@ export type LevelProps =
       ))
   | {}
 
-const Level: FC<LevelProps> = level =>
-  "id" in level ? (
-    level.mode === "blockly" ? (
-      <BlocklyContext {...level}>
-        <Base {...level} />
-      </BlocklyContext>
-    ) : level.mode === "python" ? (
-      <PythonContext {...level}>
-        <Base {...level} />
-      </PythonContext>
-    ) : (
-      // blocklyAndPython
-      <BlocklyContext {...level}>
-        <PythonContext {...level}>
-          <Base {...level} />
-        </PythonContext>
-      </BlocklyContext>
-    )
-  ) : (
-    <Custom />
+const Level: FC<LevelProps> = level => {
+  const phaserGameRef = useRef<PhaserGameRef>(null)
+  const [phaserIsInitialized, setPhaserIsInitialized] = useState(false)
+
+  return (
+    <PhaserGameContext.Provider
+      value={{
+        ref: phaserGameRef,
+        isInitialized: phaserIsInitialized,
+        onInitialized: () => setPhaserIsInitialized(true),
+      }}
+    >
+      {"id" in level ? (
+        level.mode === "blockly" ? (
+          <BlocklyContext {...level}>
+            <Base {...level} />
+          </BlocklyContext>
+        ) : level.mode === "python" ? (
+          <PythonContext {...level}>
+            <Base {...level} />
+          </PythonContext>
+        ) : (
+          // blocklyAndPython
+          <BlocklyContext {...level}>
+            <PythonContext {...level}>
+              <Base {...level} />
+            </PythonContext>
+          </BlocklyContext>
+        )
+      ) : (
+        <Custom />
+      )}
+    </PhaserGameContext.Provider>
   )
+}
 
 export default Level

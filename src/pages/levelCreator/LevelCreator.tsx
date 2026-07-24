@@ -13,14 +13,15 @@ const LevelCreator: FC<LevelCreatorProps> = () => {
   return (
     <Box sx={{ display: "flex" }}>
       <PhaserGameContext.Provider
-        value={{ ref: phaserGameRef, isInitialized: phaserIsInitialized }}
+        value={{
+          ref: phaserGameRef,
+          isInitialized: phaserIsInitialized,
+          onInitialized: () => setPhaserIsInitialized(true),
+        }}
       >
         <Controls />
         <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
-          <PhaserGame
-            mode="create"
-            onInitialized={() => setPhaserIsInitialized(true)}
-          />
+          <PhaserGame mode="create" />
         </Box>
       </PhaserGameContext.Provider>
     </Box>

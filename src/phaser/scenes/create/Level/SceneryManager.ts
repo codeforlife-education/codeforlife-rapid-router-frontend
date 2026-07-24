@@ -203,8 +203,8 @@ export default class extends BaseManager {
   }
 
   /**
-   * Move the dragged object to the given position, snapping back to where
-   * the drag started if the position is invalid.
+   * Move the dragged object to the given position, snapping back to where the
+   * drag started if the position is invalid.
    */
   private dragTo(obj: Phaser.GameObjects.Image, dragX: number, dragY: number) {
     const overObject = this.objectsAt(dragX, dragY).some(other => other !== obj)
@@ -226,9 +226,9 @@ export default class extends BaseManager {
 
   /**
    * Phaser only starts its own drag tracking for objects that were already
-   * interactive when the pointer went down, so a just-placed object won't
-   * be picked up automatically. If the pointer is still held after placing
-   * an object, drive the same drag behaviour manually until it's released.
+   * interactive when the pointer went down, so a just-placed object won't be
+   * picked up automatically. If the pointer is still held after placing an
+   * object, drive the same drag behaviour manually until it's released.
    */
   private dragNewObject(obj: Phaser.GameObjects.Image) {
     this.startDrag(obj)
