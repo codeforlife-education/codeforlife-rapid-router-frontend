@@ -18,6 +18,7 @@ import { Divider } from "@mui/material"
 import * as miniDrawers from "../../components/miniDrawers"
 import * as tilesets from "../../phaser/tilesets"
 import MapSpeedDial from "./MapSpeedDial"
+import type { MapToolbox } from "../../phaser/scenes/create/Level"
 import SceneryImageSelect from "./SceneryImageSelect"
 
 type SelectableButtonId =
@@ -34,6 +35,7 @@ export interface ControlsProps {}
 const Controls: FC<ControlsProps> = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true)
   const [selected, setSelected] = useState<SelectableButtonId>("map")
+  const [mapSelected, setMapSelected] = useState<MapToolbox["tool"]>("add-road")
   const [scenerySelected, setScenerySelected] = useState<tilesets.scenery.ID>(
     tilesets.IDs.Scenery.Common.BUSH,
   )
@@ -52,7 +54,9 @@ const Controls: FC<ControlsProps> = () => {
 
   return (
     <>
-      {selected === "map" && <MapSpeedDial />}
+      {selected === "map" && (
+        <MapSpeedDial selected={mapSelected} onChange={setMapSelected} />
+      )}
       {selected === "scenery" && (
         <SceneryImageSelect
           selected={scenerySelected}

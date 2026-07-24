@@ -4,6 +4,8 @@ import {
   Drawer,
   IconButton,
   List,
+  Tooltip,
+  type TooltipProps,
 } from "@mui/material"
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -18,6 +20,7 @@ export interface MiniDrawerProps {
   onOpened?: () => void
   onClosed?: () => void
   width?: number
+  tooltipProps?: Omit<TooltipProps, "title" | "placement">
 }
 
 const MiniDrawer: FC<MiniDrawerProps> = ({
@@ -27,6 +30,7 @@ const MiniDrawer: FC<MiniDrawerProps> = ({
   onClosed,
   children,
   width = 240,
+  tooltipProps = {},
 }) => (
   <Drawer
     variant="permanent"
@@ -68,23 +72,29 @@ const MiniDrawer: FC<MiniDrawerProps> = ({
         : { ...base, ...closed, "& .MuiDrawer-paper": closed }
     }}
   >
-    <IconButton
-      sx={theme => ({
-        my: 0,
-        ml: "auto",
-        mr: open ? 0 : 1,
-        [theme.breakpoints.up("sm")]: {
-          mr: open ? 0 : 1.5,
-        },
-        transition: theme.transitions.create("margin-right", {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.enteringScreen,
-        }),
-      })}
-      onClick={onToggle}
+    <Tooltip
+      placement="right"
+      title={open ? "Close" : "Open"}
+      {...tooltipProps}
     >
-      {open ? <ChevronLeftIcon /> : <MenuIcon />}
-    </IconButton>
+      <IconButton
+        sx={theme => ({
+          my: 0,
+          ml: "auto",
+          mr: open ? 0 : 1,
+          [theme.breakpoints.up("sm")]: {
+            mr: open ? 0 : 1.5,
+          },
+          transition: theme.transitions.create("margin-right", {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+        })}
+        onClick={onToggle}
+      >
+        {open ? <ChevronLeftIcon /> : <MenuIcon />}
+      </IconButton>
+    </Tooltip>
     <Divider />
     <List>{children}</List>
   </Drawer>

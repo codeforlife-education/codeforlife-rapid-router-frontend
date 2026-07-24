@@ -42,20 +42,25 @@ const actions = {
   { Icon: SvgIconComponent; title: string; backgroundColor: string }
 >
 
-export interface MapSpeedDialProps {}
+export interface MapSpeedDialProps {
+  selected: MapToolbox["tool"]
+  onChange: (newSelected: MapToolbox["tool"]) => void
+}
 
-const MapSpeedDial: FC<MapSpeedDialProps> = () => {
-  const [tool, setTool] = useState<MapToolbox["tool"]>("add-road")
+const MapSpeedDial: FC<MapSpeedDialProps> = ({ selected, onChange }) => {
   const [open, setOpen] = useState(true)
   const phaserGameContext = usePhaserGameContext()
 
   // Update the Phaser game tool whenever the selected tool changes.
   useEffect(() => {
     if (!phaserGameContext?.isInitialized) return
-    phaserGameContext.ref.current?.setCreateToolbox({ box: "map", tool })
-  }, [phaserGameContext?.isInitialized, phaserGameContext?.ref, tool])
+    phaserGameContext.ref.current?.setCreateToolbox({
+      box: "map",
+      tool: selected,
+    })
+  }, [phaserGameContext?.isInitialized, phaserGameContext?.ref, selected])
 
-  const { Icon, backgroundColor } = actions[tool]
+  const { Icon, backgroundColor } = actions[selected]
 
   return (
     <Box sx={{ position: "fixed", right: 16, bottom: 16, zIndex: 1 }}>
@@ -86,7 +91,7 @@ const MapSpeedDial: FC<MapSpeedDialProps> = () => {
                 tooltip: { open: true, title },
                 staticTooltipLabel: { sx: { whiteSpace: "nowrap" } },
               }}
-              onClick={() => setTool(tool as MapToolbox["tool"])}
+              onClick={() => onChange(tool as MapToolbox["tool"])}
             />
           ),
         )}
