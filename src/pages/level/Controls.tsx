@@ -40,7 +40,7 @@ const Base: FC<
     onClear: () => void
   }
 > = ({ panelCount, onClear, onOpened, onClosed }) => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()

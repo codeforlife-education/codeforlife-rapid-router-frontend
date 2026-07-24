@@ -33,10 +33,12 @@ type SelectableButtonId =
 export interface ControlsProps {}
 
 const Controls: FC<ControlsProps> = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [selected, setSelected] = useState<SelectableButtonId>("map")
-  const [mapSelected, setMapSelected] = useState<MapToolbox["tool"]>("add-road")
-  const [scenerySelected, setScenerySelected] = useState<tilesets.scenery.ID>(
+  const mapOpenState = useState(false)
+  const mapSelectedState = useState<MapToolbox["tool"]>("add-road")
+  const sceneryOpenState = useState(false)
+  const scenerySelectedState = useState<tilesets.scenery.ID>(
     tilesets.IDs.Scenery.Common.BUSH,
   )
 
@@ -55,12 +57,15 @@ const Controls: FC<ControlsProps> = () => {
   return (
     <>
       {selected === "map" && (
-        <MapSpeedDial selected={mapSelected} onChange={setMapSelected} />
+        <MapSpeedDial
+          openState={mapOpenState}
+          selectedState={mapSelectedState}
+        />
       )}
       {selected === "scenery" && (
         <SceneryImageSelect
-          selected={scenerySelected}
-          onChange={setScenerySelected}
+          openState={sceneryOpenState}
+          selectedState={scenerySelectedState}
         />
       )}
       <miniDrawers.MiniDrawer

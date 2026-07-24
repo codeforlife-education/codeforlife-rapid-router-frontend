@@ -128,7 +128,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
       the left.
       */}
       <Tooltip
-        title={`Placing: ${selectedImage.title} — click the map`}
+        title="Click to open"
         placement="left"
         disableHoverListener={open}
         disableFocusListener={open}

@@ -1,4 +1,4 @@
-import { type FC, useEffect, useState } from "react"
+import { type Dispatch, type FC, type SetStateAction, useEffect } from "react"
 import { Portal } from "@mui/material"
 
 import * as tilesets from "../../phaser/tilesets"
@@ -71,15 +71,17 @@ const categories = [
 }[]
 
 export interface SceneryImageSelectProps {
-  selected: tilesets.scenery.ID
-  onChange: (newSelected: tilesets.scenery.ID) => void
+  openState: [boolean, Dispatch<SetStateAction<boolean>>]
+  selectedState: [
+    tilesets.scenery.ID,
+    Dispatch<SetStateAction<tilesets.scenery.ID>>,
+  ]
 }
 
 const SceneryImageSelect: FC<SceneryImageSelectProps> = ({
-  selected,
-  onChange,
+  openState: [open, setOpen],
+  selectedState: [selected, setSelected],
 }) => {
-  const [open, setOpen] = useState(false)
   const breakpoint = useBreakpoint()
   const phaserGameContext = usePhaserGameContext()
 
@@ -109,7 +111,7 @@ const SceneryImageSelect: FC<SceneryImageSelectProps> = ({
           }[breakpoint]
         }
         selected={selected}
-        onChange={onChange}
+        onChange={setSelected}
         fab={{ size: 56, margin: 2 }}
         image={{ size: 64 }}
       />
