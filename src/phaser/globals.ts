@@ -18,6 +18,8 @@ export const Events = createIdRegistry({
   "delete-road": "DELETE_ROAD",
   "drag-end": "DRAG_END",
   "set-toolbox": "SET_TOOLBOX",
+  "zoom-in": "ZOOM_IN",
+  "zoom-out": "ZOOM_OUT",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 

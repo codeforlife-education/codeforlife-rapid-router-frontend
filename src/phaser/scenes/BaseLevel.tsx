@@ -3,6 +3,11 @@ import Phaser from "phaser"
 import type * as images from "../images"
 import * as layers from "../layers"
 import BaseScene from "./BaseScene"
+import { Events } from "../globals"
+
+const ZOOM_STEP = 0.25
+const MIN_ZOOM = 0.5
+const MAX_ZOOM = 2
 
 export interface BaseLevelData {
   background: (typeof images.URLs.Background)[keyof typeof images.URLs.Background]
@@ -36,6 +41,17 @@ export default class BaseLevel<
 
   create() {
     this.createTilemap()
+
+    const zoomIn = () => this.zoom(ZOOM_STEP)
+    this.game.events.on(Events.ZOOM_IN, zoomIn)
+
+    const zoomOut = () => this.zoom(-ZOOM_STEP)
+    this.game.events.on(Events.ZOOM_OUT, zoomOut)
+
+    this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off(Events.ZOOM_IN, zoomIn)
+      this.game.events.off(Events.ZOOM_OUT, zoomOut)
+    })
   }
 
   /**
@@ -175,5 +191,13 @@ export default class BaseLevel<
     if (index === -1) throw new Error("Object not found in layer")
     layer.splice(index, 1)
     obj.destroy()
+  }
+
+  zoom(step = ZOOM_STEP) {
+    this.cameras.main.zoom = Phaser.Math.Clamp(
+      this.cameras.main.zoom + step,
+      MIN_ZOOM,
+      MAX_ZOOM,
+    )
   }
 }
