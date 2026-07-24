@@ -45,8 +45,9 @@ export default class extends BaseManager {
       () => deleteBg.setFillStyle(deleteColor)
 
     const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp =
-      () => {
+      pointer => {
         if (this.selectedObject) this.delete(this.selectedObject)
+        this.handleGhost(pointer)
       }
 
     return add
@@ -115,6 +116,13 @@ export default class extends BaseManager {
   /** Returns the scenery objects whose bounds contain the given point. */
   private objectsAt(x: number, y: number) {
     return this.objects.filter(other => other.getBounds().contains(x, y))
+  }
+
+  /** Returns the game objects currently under the pointer. */
+  private currentlyOver(pointer: Phaser.Input.Pointer) {
+    return this.level.input.hitTestPointer(
+      pointer,
+    ) as Phaser.GameObjects.Image[]
   }
 
   /** Check if the world coordinates and dimensions overlap a road tile. */
@@ -298,6 +306,30 @@ export default class extends BaseManager {
     }
   }
 
+  private handleGhost(
+    pointer: Phaser.Input.Pointer,
+    currentlyOver: Phaser.GameObjects.Image[] = this.currentlyOver(pointer),
+  ) {
+    if (!this.ghost) return
+
+    // Over an existing object or dragging an object.
+    if (currentlyOver.length > 0 || this.dragStart) {
+      this.ghost.object.setVisible(false)
+      return
+    }
+
+    if (this.overRoad(pointer.worldX, pointer.worldY, this.ghost.object)) {
+      this.ghost.object.setVisible(false)
+      this.level.input.setDefaultCursor("not-allowed")
+      return
+    }
+
+    this.ghost.object
+      .setPosition(pointer.worldX, pointer.worldY)
+      .setVisible(true)
+    this.level.input.setDefaultCursor("grabbing")
+  }
+
   private destroyGhost() {
     this.ghost?.object.destroy()
     this.ghost = null
@@ -324,24 +356,8 @@ export default class extends BaseManager {
 
   private onPointerMove: Phaser.Input.Events.Listeners.PointerMove<Phaser.GameObjects.Image> =
     (pointer, currentlyOver) => {
-      if (!this.tool || !this.ghost) return
-
-      // Over an existing object or dragging an object.
-      if (currentlyOver.length > 0 || this.dragStart) {
-        this.ghost.object.setVisible(false)
-        return
-      }
-
-      if (this.overRoad(pointer.worldX, pointer.worldY, this.ghost.object)) {
-        this.ghost.object.setVisible(false)
-        this.level.input.setDefaultCursor("not-allowed")
-        return
-      }
-
-      this.ghost.object
-        .setPosition(pointer.worldX, pointer.worldY)
-        .setVisible(true)
-      this.level.input.setDefaultCursor("grabbing")
+      if (!this.tool) return
+      this.handleGhost(pointer, currentlyOver)
     }
 
   /** When a road is added, delete any overlapping scenery objects. */
