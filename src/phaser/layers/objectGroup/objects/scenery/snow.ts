@@ -21,14 +21,17 @@ export const bush = factory({
 export const pond = factory({
   gid: _IDs.POND,
   name: _Names.POND,
+  depth: objects.Depths.BELOW_GROUND,
 })
 
 export const tree1 = factory({
   gid: _IDs.TREE1,
   name: _Names.TREE1,
+  depth: objects.Depths.ABOVE_GROUND,
 })
 
 export const tree2 = factory({
   gid: _IDs.TREE2,
   name: _Names.TREE2,
+  depth: objects.Depths.ABOVE_GROUND,
 })

@@ -10,4 +10,8 @@ export {
   type Name,
   Names,
   type ID,
+  getFactory,
+  getDepth,
+  Depths,
+  type Depth,
 } from "./objects"

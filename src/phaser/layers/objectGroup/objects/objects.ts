@@ -1,4 +1,8 @@
-import { type DeepStringsOf, createPathStrings } from "codeforlife/utils/object"
+import {
+  type DeepStringsOf,
+  createIdRegistry,
+  createPathStrings,
+} from "codeforlife/utils/object"
 import type { TiledObject as _Object } from "tiled-types"
 
 import type * as tilesets from "../../../tilesets"
@@ -24,6 +28,20 @@ export const Names = createPathStrings({
   },
 } as const)
 export type Name = DeepStringsOf<typeof Names>
+
+// Enum of object depths.
+export const Depths = createIdRegistry({
+  0: "BELOW_GROUND", // below the ground layer (e.g., pond).
+  1: "GROUND", // on the ground layer (e.g., bush).
+  2: "ABOVE_GROUND", // above the ground layer (e.g., tree).
+} as const)
+export type Depth = (typeof Depths)[keyof typeof Depths]
+
+// Global registry of object depths.
+const DEPTHS: Partial<Record<ID, Depth>> = {}
+
+// Getter for an object depth by its GID.
+export const getDepth = (id: ID) => DEPTHS[id] ?? Depths.GROUND
 
 export type Object<N extends Name, GID extends ID> = Omit<
   _Object,
@@ -67,6 +85,7 @@ type FactoryVariants<
 export type FactoryKwArgs<N extends Name, GID extends ID> = {
   name: N
   gid: GID
+  depth?: Depth
 } & FactoryBaseKwArgs<N, GID>
 export type Factory<
   N extends Name,
@@ -74,13 +93,21 @@ export type Factory<
   V extends FactoryVariantSpecs<N, GID> = {},
 > = FactoryBase<N, GID> & FactoryVariants<N, GID, V>
 
+// Global registry of object factories.
+const FACTORIES: Partial<Record<ID, FactoryBase<Name, ID>>> = {}
+
+// Getter for an object factory by its GID.
+export const getFactory = (id: ID) => FACTORIES[id]
+
 export const factory = <
   N extends Name,
   GID extends ID,
   const V extends FactoryVariantSpecs<N, GID> = {},
 >(
   {
+    gid,
     name,
+    depth = Depths.GROUND,
     x: baseX = 0,
     y: baseY = 0,
     col: baseCol = 0,
@@ -92,6 +119,8 @@ export const factory = <
   }: FactoryKwArgs<N, GID>,
   variants: V = {} as V,
 ): Factory<N, GID, V> => {
+  DEPTHS[gid] = depth
+
   baseX += baseCol * TILE_WIDTH
   baseY += baseRow * TILE_HEIGHT
 
@@ -105,6 +134,7 @@ export const factory = <
     rotation,
     ...obj
   }) => ({
+    gid,
     type: name,
     name,
     x: (x ? baseX + x : baseX) + (col ? col * TILE_WIDTH : 0),
@@ -117,6 +147,8 @@ export const factory = <
     ...objBase,
     ...obj,
   })
+
+  FACTORIES[gid] = base
 
   return (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
     (f, [variantName, variantKwArgs]) => {

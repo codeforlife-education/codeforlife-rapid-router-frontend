@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import * as sceneryObjects from "../../../layers/objectGroup/objects/scenery"
+import * as objects from "../../../layers/objectGroup/objects"
 import type * as sceneryTilesets from "../../../tilesets/scenery"
 import type { AddRoadEventData } from "./RoadManager"
 import BaseManager from "./BaseManager"
@@ -131,7 +131,7 @@ export default class extends BaseManager {
   ): Phaser.GameObjects.Image | null {
     if (this.objects.length >= this.maxObjectCount) return null
 
-    const factory = sceneryObjects.FACTORIES[id]
+    const factory = objects.getFactory(id)
     if (!factory) return null
 
     let obj = this.level
@@ -255,7 +255,7 @@ export default class extends BaseManager {
     if (this.ghost?.id === id) return
     this.destroyGhost()
 
-    const factory = sceneryObjects.FACTORIES[id]
+    const factory = objects.getFactory(id)
     if (!factory) return
 
     const obj = factory({ x: 0, y: 0 })
@@ -273,7 +273,7 @@ export default class extends BaseManager {
         .setOrigin(0.5, 0.5)
         .setDisplaySize(frame.realWidth, frame.realHeight)
         .setAlpha(0.5)
-        .setDepth(2)
+        .setDepth(objects.getDepth(id))
         .setVisible(false),
     }
   }

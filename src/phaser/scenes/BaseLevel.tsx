@@ -152,9 +152,12 @@ export default class BaseLevel<
     return tile
   }
 
-  addObject(
+  addObject<
+    N extends layers.objectGroup.objects.Name,
+    GID extends layers.objectGroup.objects.ID,
+  >(
     layerName: layers.objectGroup.Name,
-    obj: Omit<layers.objectGroup.objects.FactoryObject<any, any>, "id">,
+    obj: Omit<layers.objectGroup.objects.FactoryObject<N, GID>, "id">,
   ): Phaser.GameObjects.Image {
     const tileset = this.initData.tilesets[layerName].find(
       ({ gid }) => gid === obj.gid,
@@ -175,6 +178,7 @@ export default class BaseLevel<
       .setDisplaySize(frame.realWidth, frame.realHeight)
       .setAngle(obj.rotation)
       .setVisible(obj.visible)
+      .setDepth(layers.objectGroup.objects.getDepth(obj.gid))
 
     this.layers[layerName].push(image)
     return image
