@@ -1,23 +1,24 @@
 import { type FC, useRef, useState } from "react"
 import { Box } from "@mui/material"
 
-import { PhaserGame, PhaserGameContext, type PhaserGameRef } from "../../phaser"
+import {
+  PhaserGame,
+  PhaserGameContext,
+  type PhaserGameRef,
+  type SceneKey,
+} from "../../phaser"
 import Controls from "./Controls"
 
 export interface LevelCreatorProps {}
 
 const LevelCreator: FC<LevelCreatorProps> = () => {
   const phaserGameRef = useRef<PhaserGameRef>(null)
-  const [phaserIsInitialized, setPhaserIsInitialized] = useState(false)
+  const [activeSceneKeys, setActiveSceneKeys] = useState<SceneKey[]>([])
 
   return (
     <Box sx={{ display: "flex" }}>
       <PhaserGameContext.Provider
-        value={{
-          ref: phaserGameRef,
-          isInitialized: phaserIsInitialized,
-          onInitialized: () => setPhaserIsInitialized(true),
-        }}
+        value={{ ref: phaserGameRef, activeSceneKeys, setActiveSceneKeys }}
       >
         <Controls />
         <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>

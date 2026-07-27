@@ -1,7 +1,7 @@
 import Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../BaseLevel"
-import { Events, Variables } from "../../globals"
+import { Events, SceneKeys, Variables } from "../../globals"
 import type { GameCommand } from "../../../app/slices"
 import HUD from "./HUD"
 
@@ -16,6 +16,8 @@ export interface LevelData extends BaseLevelData {}
  * gameplay experience.
  */
 export default class extends BaseLevel<LevelData> {
+  static readonly KEY = SceneKeys.Play.LEVEL
+
   private commands: GameCommand[] = []
 
   create() {

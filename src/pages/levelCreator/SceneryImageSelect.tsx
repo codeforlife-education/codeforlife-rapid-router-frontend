@@ -1,9 +1,9 @@
-import { type Dispatch, type FC, type SetStateAction, useEffect } from "react"
+import { type Dispatch, type FC, type SetStateAction } from "react"
 import { Portal } from "@mui/material"
 
 import * as tilesets from "../../phaser/tilesets"
-import { useBreakpoint, usePhaserGameContext } from "../../app/hooks"
 import SpeedImageSelect from "../../components/SpeedImageSelect"
+import { useBreakpoint } from "../../app/hooks"
 
 const categories = [
   {
@@ -83,16 +83,6 @@ const SceneryImageSelect: FC<SceneryImageSelectProps> = ({
   selectedState: [selected, setSelected],
 }) => {
   const breakpoint = useBreakpoint()
-  const phaserGameContext = usePhaserGameContext()
-
-  // Update the Phaser game tool whenever the selected tool changes.
-  useEffect(() => {
-    if (!phaserGameContext?.isInitialized) return
-    phaserGameContext.ref.current?.setCreateToolbox({
-      box: "scenery",
-      tool: selected,
-    })
-  }, [phaserGameContext?.isInitialized, phaserGameContext?.ref, selected])
 
   return (
     <Portal>

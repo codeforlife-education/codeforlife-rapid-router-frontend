@@ -2,11 +2,11 @@ import Phaser from "phaser"
 
 import type * as scenery from "../../../tilesets/scenery"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
+import { SceneKeys, Variables } from "../../../globals"
 import DragManager from "./DragManager"
 import EndpointManager from "./EndpointManager"
 import RoadManager from "./RoadManager"
 import SceneryManager from "./SceneryManager"
-import { Variables } from "../../../globals"
 
 type _Toolbox<B extends string, T> = { box: B; tool: T }
 export type MapToolbox = _Toolbox<
@@ -32,6 +32,8 @@ export interface LevelData extends BaseLevelData {}
  * engaging and diverse gameplay experiences.
  */
 export default class extends BaseLevel<LevelData> {
+  static readonly KEY = SceneKeys.Create.LEVEL
+
   /** Drag manager responsible for handling drag operations. */
   drag!: DragManager
 

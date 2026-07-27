@@ -1,4 +1,8 @@
-import { createIdRegistry } from "codeforlife/utils/object"
+import {
+  type DeepStringsOf,
+  createIdRegistry,
+  createPathStrings,
+} from "codeforlife/utils/object"
 
 // Define the dimensions of the tilemap. These constants ensure that all layers
 // and tilesets are created with consistent dimensions, which is crucial for
@@ -20,6 +24,7 @@ export const Events = createIdRegistry({
   "set-toolbox": "SET_TOOLBOX",
   "zoom-in": "ZOOM_IN",
   "zoom-out": "ZOOM_OUT",
+  "scene-activity-changed": "SCENE_ACTIVITY_CHANGED",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 
@@ -29,3 +34,9 @@ export const Variables = createIdRegistry({
   toolbox: "TOOLBOX",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
+
+export const SceneKeys = createPathStrings({
+  Create: ["BOOT", "PRELOADER", "LEVEL"],
+  Play: ["BOOT", "PRELOADER", "LEVEL", "HUD"],
+} as const)
+export type SceneKey = DeepStringsOf<typeof SceneKeys>

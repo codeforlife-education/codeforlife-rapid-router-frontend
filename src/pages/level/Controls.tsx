@@ -27,10 +27,12 @@ import {
   useGameHasStarted,
   useGameInPlay,
   useGameIsDefined,
+  usePhaserGameContext,
   usePlayInterval,
   useSettings,
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
+import { ZoomControls } from "../../phaser"
 
 export type ControlsProps = { level: Pick<Level, "mode"> }
 
@@ -47,6 +49,7 @@ const Base: FC<
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
   const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
+  const { activeSceneKeys } = usePhaserGameContext()
 
   // Helper to map panel layout options to menu items.
   function mapPanelLayoutsToMenuItems<
@@ -63,80 +66,85 @@ const Base: FC<
   }
 
   return (
-    <miniDrawers.MiniDrawer
-      open={isDrawerOpen}
-      onToggle={() => {
-        setIsDrawerOpen(!isDrawerOpen)
-      }}
-      onOpened={onOpened}
-      onClosed={onClosed}
-    >
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text="Clear"
-        icon={<DeleteIcon />}
-        onClick={() => {
-          clearPlayInterval()
-          onClear()
+    <>
+      {activeSceneKeys.includes("Play.LEVEL") && <ZoomControls />}
+      <miniDrawers.MiniDrawer
+        open={isDrawerOpen}
+        onToggle={() => {
+          setIsDrawerOpen(!isDrawerOpen)
         }}
-      />
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text={gameInPlay && playInterval ? "Pause" : "Play"}
-        icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
-        disabled={!gameIsDefined}
-        onClick={() => {
-          if (!clearPlayInterval()) setPlayInterval()
-        }}
-      />
-      <miniDrawers.MenuItem
-        isDrawerOpen={isDrawerOpen}
-        icon={<SpeedIcon />}
-        text="Speed"
-        menuItems={PLAY_SPEEDS.map(playSpeed => ({
-          value: playSpeed,
-          key: playSpeed,
-          onClick: () => dispatch(setPlaySpeed(playSpeed)),
-        }))}
-        selectedValue={settings.playSpeed}
-      />
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text="Stop"
-        icon={<StopIcon />}
-        disabled={!gameHasStarted}
-        onClick={() => {
-          clearPlayInterval()
-          dispatch(restartGame())
-        }}
-      />
-      <miniDrawers.ButtonItem
-        isDrawerOpen={isDrawerOpen}
-        text="Step"
-        icon={<RedoIcon />}
-        disabled={!gameIsDefined}
-        onClick={() => {
-          clearPlayInterval()
-          dispatch(nextGameCommand())
-        }}
-      />
-      <miniDrawers.MenuItem
-        isDrawerOpen={isDrawerOpen}
-        text="Layout"
-        icon={<AutoAwesomeMosaicIcon />}
-        menuItems={
-          panelCount === 2
-            ? mapPanelLayoutsToMenuItems(TWO_PANEL_LAYOUTS, setTwoPanelLayout)
-            : mapPanelLayoutsToMenuItems(
-                THREE_PANEL_LAYOUTS,
-                setThreePanelLayout,
-              )
-        }
-        selectedValue={
-          panelCount === 2 ? settings.twoPanelLayout : settings.threePanelLayout
-        }
-      />
-    </miniDrawers.MiniDrawer>
+        onOpened={onOpened}
+        onClosed={onClosed}
+      >
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Clear"
+          icon={<DeleteIcon />}
+          onClick={() => {
+            clearPlayInterval()
+            onClear()
+          }}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text={gameInPlay && playInterval ? "Pause" : "Play"}
+          icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
+          disabled={!gameIsDefined}
+          onClick={() => {
+            if (!clearPlayInterval()) setPlayInterval()
+          }}
+        />
+        <miniDrawers.MenuItem
+          isDrawerOpen={isDrawerOpen}
+          icon={<SpeedIcon />}
+          text="Speed"
+          menuItems={PLAY_SPEEDS.map(playSpeed => ({
+            value: playSpeed,
+            key: playSpeed,
+            onClick: () => dispatch(setPlaySpeed(playSpeed)),
+          }))}
+          selectedValue={settings.playSpeed}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Stop"
+          icon={<StopIcon />}
+          disabled={!gameHasStarted}
+          onClick={() => {
+            clearPlayInterval()
+            dispatch(restartGame())
+          }}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Step"
+          icon={<RedoIcon />}
+          disabled={!gameIsDefined}
+          onClick={() => {
+            clearPlayInterval()
+            dispatch(nextGameCommand())
+          }}
+        />
+        <miniDrawers.MenuItem
+          isDrawerOpen={isDrawerOpen}
+          text="Layout"
+          icon={<AutoAwesomeMosaicIcon />}
+          menuItems={
+            panelCount === 2
+              ? mapPanelLayoutsToMenuItems(TWO_PANEL_LAYOUTS, setTwoPanelLayout)
+              : mapPanelLayoutsToMenuItems(
+                  THREE_PANEL_LAYOUTS,
+                  setThreePanelLayout,
+                )
+          }
+          selectedValue={
+            panelCount === 2
+              ? settings.twoPanelLayout
+              : settings.threePanelLayout
+          }
+        />
+      </miniDrawers.MiniDrawer>
+    </>
   )
 }
 

@@ -5,18 +5,17 @@ import {
   useRef,
   useState,
 } from "react"
-import { CircularProgress } from "@mui/material"
 // NOTE: `import type` is a TypeScript feature that only imports type
 //  information for compile-time type checking. When our TypeScript code is
 //  compiled into JavaScript, these type-only imports are completely erased.
 //  They do not generate any JavaScript code that would cause the phaser module
 //  to be loaded at runtime.
 import type { Game, Scene } from "phaser"
+import { CircularProgress } from "@mui/material"
 
-import { Events, Variables } from "./globals"
+import { Events, type SceneKey, Variables } from "./globals"
 import { useGameCommands, usePhaserGameContext } from "../app/hooks"
 import type { Level } from "../api/level"
-import type { PhaserGameRef } from "./PhaserGameContext"
 
 export type PhaserGameProps =
   | { mode: "play"; levelId: Level["id"] }
@@ -31,27 +30,42 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
-  const { ref, onInitialized } = phaserGameContext
+  const { ref, setActiveSceneKeys } = phaserGameContext
 
   // Expose Phaser game methods to parent components.
-  useImperativeHandle(
-    ref,
-    () =>
-      (gameIsInitialized
-        ? {
-            setCreateToolbox: toolbox => {
-              if (mode !== "create") return
-              gameRef.current!.registry.set(Variables.TOOLBOX, toolbox)
-              gameRef.current!.events.emit(Events.SET_TOOLBOX)
-            },
-          }
-        : null) as PhaserGameRef,
-    [gameIsInitialized, mode],
-  )
+  useImperativeHandle(ref, () => {
+    const { events, registry } =
+      (gameIsInitialized ? gameRef.current : null) || {}
+
+    return {
+      setCreateToolbox: toolbox => {
+        if (mode !== "create") return
+        registry?.set(Variables.TOOLBOX, toolbox)
+        events?.emit(Events.SET_TOOLBOX)
+      },
+      zoom: {
+        in: () => events?.emit(Events.ZOOM_IN),
+        out: () => events?.emit(Events.ZOOM_OUT),
+      },
+    }
+  }, [gameIsInitialized, mode])
 
   // Initialize Phaser when on mount and destroy it when it's unmounted.
   useEffect(() => {
     let active = true // Used to synchronously guard initialization logic.
+
+    // Each scene (see `BaseScene`) broadcasts its own active/inactive status
+    // onto the game's event emitter, along with its key. Use this to keep
+    // track of which scene keys are currently active.
+    const onSceneActivityChanged = (key: SceneKey, isActive: boolean) =>
+      setActiveSceneKeys(prevActiveSceneKeys => {
+        const wasActive = prevActiveSceneKeys.includes(key)
+        if (isActive === wasActive) return prevActiveSceneKeys // No change.
+
+        return isActive
+          ? [...prevActiveSceneKeys, key]
+          : prevActiveSceneKeys.filter(activeKey => activeKey !== key)
+      })
 
     const initPhaser = async () => {
       // Check if the container ref is set and the component is still active.
@@ -94,6 +108,12 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       // reload the relevant parts of the game.
       gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
 
+      // Listen for scene activity changes broadcast by each scene.
+      gameRef.current.events.on(
+        Events.SCENE_ACTIVITY_CHANGED,
+        onSceneActivityChanged,
+      )
+
       setGameIsInitialized(true) // Used to asynchronously trigger a rerender.
     }
 
@@ -102,16 +122,15 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
     return () => {
       active = false
       if (gameRef.current) {
+        gameRef.current.events.off(
+          Events.SCENE_ACTIVITY_CHANGED,
+          onSceneActivityChanged,
+        )
         gameRef.current.destroy(true)
         gameRef.current = null
       }
     }
-  }, [mode, levelId])
-
-  // Call the onInitialized callback when the Phaser game is initialized.
-  useEffect(() => {
-    if (gameIsInitialized) onInitialized()
-  }, [gameIsInitialized, onInitialized])
+  }, [mode, levelId, setActiveSceneKeys])
 
   // Pass the current game commands to Phaser.
   useEffect(() => {

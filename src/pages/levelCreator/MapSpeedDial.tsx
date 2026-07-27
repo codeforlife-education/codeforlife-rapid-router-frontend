@@ -22,7 +22,6 @@ import {
 } from "react"
 
 import type { MapToolbox } from "../../phaser/scenes/create/Level"
-import { usePhaserGameContext } from "../../app/hooks"
 
 const actions = {
   "mark-start": {
@@ -67,7 +66,6 @@ const MapSpeedDial: FC<MapSpeedDialProps> = ({
   openState: [open, setOpen],
   selectedState: [selected, setSelected],
 }) => {
-  const phaserGameContext = usePhaserGameContext()
   const speedDialRef = useRef<HTMLDivElement>(null)
   const [fabElement, setFabElement] = useState<HTMLElement | null>(null)
   const [tooltipOpen, setTooltipOpen] = useState(false)
@@ -83,15 +81,6 @@ const MapSpeedDial: FC<MapSpeedDialProps> = ({
       ) ?? null,
     )
   }, [])
-
-  // Update the Phaser game tool whenever the selected tool changes.
-  useEffect(() => {
-    if (!phaserGameContext?.isInitialized) return
-    phaserGameContext.ref.current?.setCreateToolbox({
-      box: "map",
-      tool: selected,
-    })
-  }, [phaserGameContext?.isInitialized, phaserGameContext?.ref, selected])
 
   const { Icon, backgroundColor } = actions[selected]
 

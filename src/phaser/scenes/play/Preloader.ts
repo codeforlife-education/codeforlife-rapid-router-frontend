@@ -1,9 +1,9 @@
 import Phaser from "phaser"
 
+import { SceneKeys, Variables } from "../../globals"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
 import type { OrthogonalTilemap } from "../../tilemaps"
-import { Variables } from "../../globals"
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for
@@ -12,6 +12,8 @@ import { Variables } from "../../globals"
  * Preloader Scene transitions to the Gameplay Scene.
  */
 export default class extends BasePreloader {
+  static readonly KEY = SceneKeys.Play.PRELOADER
+
   create() {
     // When all the assets have loaded, it's often worth creating global objects
     // here that the rest of the game can use. For example, you can define

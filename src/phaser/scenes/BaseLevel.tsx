@@ -5,9 +5,9 @@ import * as layers from "../layers"
 import BaseScene from "./BaseScene"
 import { Events } from "../globals"
 
-const ZOOM_STEP = 0.25
-const MIN_ZOOM = 0.5
-const MAX_ZOOM = 2
+const ZOOM_STEP = 0.125
+const MIN_ZOOM = 1 - ZOOM_STEP * 2
+const MAX_ZOOM = 1 + ZOOM_STEP * 8
 
 export interface BaseLevelData {
   background: (typeof images.URLs.Background)[keyof typeof images.URLs.Background]
@@ -18,8 +18,6 @@ export interface BaseLevelData {
 export default class BaseLevel<
   Data extends BaseLevelData = BaseLevelData,
 > extends BaseScene<Data> {
-  static readonly KEY = "Level"
-
   tilemap!: Phaser.Tilemaps.Tilemap
   backgroundTileSprite!: Phaser.GameObjects.TileSprite
   tilesets: Record<layers.Name, Phaser.Tilemaps.Tileset[]> = {

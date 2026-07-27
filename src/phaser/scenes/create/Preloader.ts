@@ -3,7 +3,7 @@ import { Delete as DeleteIcon } from "@mui/icons-material"
 import * as layers from "../../layers"
 import * as tilemaps from "../../tilemaps"
 import * as tilesets from "../../tilesets"
-import { TILE_HEIGHT, TILE_WIDTH } from "../../globals"
+import { SceneKeys, TILE_HEIGHT, TILE_WIDTH } from "../../globals"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
 
@@ -14,6 +14,8 @@ import Level from "./Level"
  * Preloader Scene transitions to the Level Scene.
  */
 export default class extends BasePreloader {
+  static readonly KEY = SceneKeys.Create.PRELOADER
+
   preload() {
     const tilemap = tilemaps.makeOrthogonal({
       properties: { background: "GRASS" },

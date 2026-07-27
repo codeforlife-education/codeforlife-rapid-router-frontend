@@ -12,7 +12,7 @@ import {
   QuestionMark as QuestionMarkIcon,
   SaveOutlined as SaveOutlinedIcon,
 } from "@mui/icons-material"
-import { type FC, useState } from "react"
+import { type FC, useEffect, useState } from "react"
 import { Divider } from "@mui/material"
 
 import * as miniDrawers from "../../components/miniDrawers"
@@ -20,6 +20,8 @@ import * as tilesets from "../../phaser/tilesets"
 import MapSpeedDial from "./MapSpeedDial"
 import type { MapToolbox } from "../../phaser/scenes/create/Level"
 import SceneryImageSelect from "./SceneryImageSelect"
+import { ZoomControls } from "../../phaser"
+import { usePhaserGameContext } from "../../app/hooks"
 
 type SelectableButtonId =
   | "map"
@@ -41,6 +43,20 @@ const Controls: FC<ControlsProps> = () => {
   const scenerySelectedState = useState<tilesets.scenery.ID>(
     tilesets.IDs.Scenery.Common.BUSH,
   )
+  const {
+    ref: { current: phaserGame },
+    activeSceneKeys,
+  } = usePhaserGameContext()
+
+  // Update the Phaser game tool whenever the selected tool changes.
+  useEffect(() => {
+    if (selected !== "map" && selected !== "scenery") return
+    phaserGame?.setCreateToolbox(
+      selected === "map"
+        ? { box: selected, tool: mapSelectedState[0] }
+        : { box: selected, tool: scenerySelectedState[0] },
+    )
+  }, [phaserGame, selected, mapSelectedState, scenerySelectedState])
 
   const makeSelectableButtonItemProps = (
     id: SelectableButtonId,
@@ -56,17 +72,22 @@ const Controls: FC<ControlsProps> = () => {
 
   return (
     <>
-      {selected === "map" && (
-        <MapSpeedDial
-          openState={mapOpenState}
-          selectedState={mapSelectedState}
-        />
-      )}
-      {selected === "scenery" && (
-        <SceneryImageSelect
-          openState={sceneryOpenState}
-          selectedState={scenerySelectedState}
-        />
+      {activeSceneKeys.includes("Create.LEVEL") && (
+        <>
+          <ZoomControls />
+          {selected === "map" && (
+            <MapSpeedDial
+              openState={mapOpenState}
+              selectedState={mapSelectedState}
+            />
+          )}
+          {selected === "scenery" && (
+            <SceneryImageSelect
+              openState={sceneryOpenState}
+              selectedState={scenerySelectedState}
+            />
+          )}
+        </>
       )}
       <miniDrawers.MiniDrawer
         open={isDrawerOpen}

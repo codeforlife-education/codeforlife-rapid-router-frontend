@@ -12,7 +12,11 @@ import {
   type Level as LevelModel,
   useRetrieveLevelQuery,
 } from "../../api/level"
-import { PhaserGameContext, type PhaserGameRef } from "../../phaser"
+import {
+  PhaserGameContext,
+  type PhaserGameRef,
+  type SceneKey,
+} from "../../phaser"
 import Controls from "./Controls"
 import Panels from "./Panels"
 import { paths } from "../../routes"
@@ -86,15 +90,11 @@ export type LevelProps =
 
 const Level: FC<LevelProps> = level => {
   const phaserGameRef = useRef<PhaserGameRef>(null)
-  const [phaserIsInitialized, setPhaserIsInitialized] = useState(false)
+  const [activeSceneKeys, setActiveSceneKeys] = useState<SceneKey[]>([])
 
   return (
     <PhaserGameContext.Provider
-      value={{
-        ref: phaserGameRef,
-        isInitialized: phaserIsInitialized,
-        onInitialized: () => setPhaserIsInitialized(true),
-      }}
+      value={{ ref: phaserGameRef, activeSceneKeys, setActiveSceneKeys }}
     >
       {"id" in level ? (
         level.mode === "blockly" ? (

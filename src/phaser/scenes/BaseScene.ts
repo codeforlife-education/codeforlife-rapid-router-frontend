@@ -4,7 +4,7 @@ import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 
 import "../gameObjects" // Register custom game objects.
-import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
+import { Events, type SceneKey, TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 type IconProps = Partial<{ width: number; height: number; color: string }>
 const DEFAULT_ICON_WIDTH = TILE_WIDTH / 2
@@ -13,9 +13,10 @@ const DEFAULT_ICON_HEIGHT = TILE_HEIGHT / 2
 export default class BaseScene<
   Data extends object | undefined = undefined,
 > extends Phaser.Scene {
-  static KEY: string
+  static KEY: SceneKey
 
   initData!: Data
+  private activityListenersRegistered = false
 
   constructor() {
     super(new.target.KEY)
@@ -23,6 +24,28 @@ export default class BaseScene<
 
   init(data: Data) {
     this.initData = data
+
+    this.registerActivityListeners()
+  }
+
+  private registerActivityListeners() {
+    if (this.activityListenersRegistered) return
+    this.activityListenersRegistered = true
+
+    // Listen for scene activity changes broadcast by each scene.
+    const emitActivity = (isActive: boolean) => () =>
+      this.game.events.emit(
+        Events.SCENE_ACTIVITY_CHANGED,
+        this.scene.key as SceneKey,
+        isActive,
+      )
+
+    this.events.on(Phaser.Scenes.Events.CREATE, emitActivity(true))
+    this.events.on(Phaser.Scenes.Events.RESUME, emitActivity(true))
+    this.events.on(Phaser.Scenes.Events.WAKE, emitActivity(true))
+    this.events.on(Phaser.Scenes.Events.SHUTDOWN, emitActivity(false))
+    this.events.on(Phaser.Scenes.Events.PAUSE, emitActivity(false))
+    this.events.on(Phaser.Scenes.Events.SLEEP, emitActivity(false))
   }
 
   /** Converts a MUI icon to a data-URI string. */
