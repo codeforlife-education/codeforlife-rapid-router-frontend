@@ -99,32 +99,27 @@ export default class extends BaseManager {
   private overObject(obj: Phaser.GameObjects.Image, x: number, y: number) {
     const bounds = this.bounds(obj, x, y)
 
+    return this.objects.some(other => {
+      if (other === obj) return false
+
+      const otherBounds = other.getBounds()
+
+      // This object overlaps another object if...
     return (
-      this.objects
-        // Get intersecting objects.
-        .filter(
-          other =>
-            other !== obj &&
-            Phaser.Geom.Intersects.RectangleToRectangle(
-              bounds,
-              other.getBounds(),
-            ),
-        )
-        // Get objects that are...
-        .filter(
-          other =>
-            // ...both below ground...
-            (obj.depth === objects.Depths.BELOW_GROUND &&
+        // ...its centre overlaps the other's bounds or...
+        otherBounds.contains(x, y) ||
+        // ...its bounds overlap the other's bounds and...
+        (Phaser.Geom.Intersects.RectangleToRectangle(bounds, otherBounds) &&
+          // ...both are below ground or...
+          ((obj.depth === objects.Depths.BELOW_GROUND &&
               other.depth === objects.Depths.BELOW_GROUND) ||
-            // ...or one is below ground and the other is on ground...
+            // ...one is below ground and the other is on ground.
             (obj.depth === objects.Depths.BELOW_GROUND &&
               other.depth === objects.Depths.GROUND) ||
             (obj.depth === objects.Depths.GROUND &&
-              other.depth === objects.Depths.BELOW_GROUND) ||
-            // ...or the centre of the object is inside the other object.
-            other.getBounds().contains(x, y),
-        ).length > 0
+              other.depth === objects.Depths.BELOW_GROUND)))
     )
+    })
   }
 
   /** Check if the world coordinates and dimensions overlap a road tile. */
