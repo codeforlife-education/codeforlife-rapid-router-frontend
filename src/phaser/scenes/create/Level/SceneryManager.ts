@@ -85,36 +85,57 @@ export default class extends BaseManager {
       : null
   }
 
-  /** Returns the scenery objects whose bounds contain the given point. */
-  private objectsAt(x: number, y: number) {
-    return this.objects.filter(other => other.getBounds().contains(x, y))
+  /** Returns the bounding rectangle of an object at the coordinates. */
+  private bounds(obj: Phaser.GameObjects.Image, x: number, y: number) {
+    return new Phaser.Geom.Rectangle(
+      x - obj.displayWidth / 2,
+      y - obj.displayHeight / 2,
+      obj.displayWidth,
+      obj.displayHeight,
+    )
   }
 
-  /** Returns the game objects currently under the pointer. */
-  private currentlyOver(pointer: Phaser.Input.Pointer) {
-    return this.level.input.hitTestPointer(
-      pointer,
-    ) as Phaser.GameObjects.Image[]
+  /** Check if the object at the coordinates overlaps any other object. */
+  private overObject(obj: Phaser.GameObjects.Image, x: number, y: number) {
+    const bounds = this.bounds(obj, x, y)
+
+    return (
+      this.objects
+        // Get intersecting objects.
+        .filter(
+          other =>
+            other !== obj &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+              bounds,
+              other.getBounds(),
+            ),
+        )
+        // Get objects that are...
+        .filter(
+          other =>
+            // ...both below ground...
+            (obj.depth === objects.Depths.BELOW_GROUND &&
+              other.depth === objects.Depths.BELOW_GROUND) ||
+            // ...or one is below ground and the other is on ground...
+            (obj.depth === objects.Depths.BELOW_GROUND &&
+              other.depth === objects.Depths.GROUND) ||
+            (obj.depth === objects.Depths.GROUND &&
+              other.depth === objects.Depths.BELOW_GROUND) ||
+            // ...or the centre of the object is inside the other object.
+            other.getBounds().contains(x, y),
+        ).length > 0
+    )
   }
 
   /** Check if the world coordinates and dimensions overlap a road tile. */
-  private overRoad(
-    worldX: number,
-    worldY: number,
-    obj: Phaser.GameObjects.Image,
-  ) {
-    const isOverRoad = (worldX: number, worldY: number): boolean => {
-      const tile = this.level.worldToTile(worldX, worldY)
+  private overRoad(obj: Phaser.GameObjects.Image, x: number, y: number) {
+    const isOverRoad = (x: number, y: number): boolean => {
+      const tile = this.level.worldToTile(x, y)
       if (!tile) return false
       return this.level.road.dirsToId(this.level.road.dirs(tile)) !== 0
     }
 
-    const { left, right, top, bottom } = new Phaser.Geom.Rectangle(
-      worldX - obj.displayWidth / 2,
-      worldY - obj.displayHeight / 2,
-      obj.displayWidth,
-      obj.displayHeight,
-    )
+    const { left, right, top, bottom } = this.bounds(obj, x, y)
 
     return (
       isOverRoad(left, top) ||
@@ -187,12 +208,11 @@ export default class extends BaseManager {
    * drag started if the position is invalid.
    */
   private dragTo(obj: Phaser.GameObjects.Image, dragX: number, dragY: number) {
-    const overObject = this.objectsAt(dragX, dragY).some(other => other !== obj)
-    const overRoad = this.overRoad(dragX, dragY, obj)
     const [x, y, cursor] =
-      overObject || overRoad
+      this.overObject(obj, dragX, dragY) || this.overRoad(obj, dragX, dragY)
         ? [this.dragStart!.x, this.dragStart!.y, "not-allowed"]
         : [dragX, dragY, "grabbing"]
+
     obj.setPosition(x, y)
     this.level.input.setDefaultCursor(cursor)
   }
@@ -280,17 +300,23 @@ export default class extends BaseManager {
 
   private handleGhost(
     pointer: Phaser.Input.Pointer,
-    currentlyOver: Phaser.GameObjects.Image[] = this.currentlyOver(pointer),
+    currentlyOver: Phaser.GameObjects.Image[] = this.level.input.hitTestPointer(
+      pointer,
+    ) as Phaser.GameObjects.Image[],
   ) {
     if (!this.ghost) return
 
-    // Over an existing object or dragging an object.
+    // Directly over an existing object or dragging an object.
     if (currentlyOver.length > 0 || this.dragStart) {
       this.ghost.object.setVisible(false)
       return
     }
 
-    if (this.overRoad(pointer.worldX, pointer.worldY, this.ghost.object)) {
+    // Indirectly over an existing object or road tile.
+    if (
+      this.overObject(this.ghost.object, pointer.worldX, pointer.worldY) ||
+      this.overRoad(this.ghost.object, pointer.worldX, pointer.worldY)
+    ) {
       this.ghost.object.setVisible(false)
       this.level.input.setDefaultCursor("not-allowed")
       return
