@@ -17,11 +17,13 @@ import { Divider } from "@mui/material"
 import * as miniDrawers from "../../components/miniDrawers"
 
 export interface ControlsProps {
+  onSelectCharacterClick: () => void
   onSelectCodeClick: () => void
   onSelectDescriptionClick: () => void
 }
 
 const Controls: FC<ControlsProps> = ({
+  onSelectCharacterClick,
   onSelectCodeClick,
   onSelectDescriptionClick,
 }) => {
@@ -61,6 +63,7 @@ const Controls: FC<ControlsProps> = ({
         {...makeSelectableButtonItemProps("character")}
         text="Character"
         icon={<PersonIcon />}
+        onClick={onSelectCharacterClick}
       />
       <miniDrawers.ButtonItem
         {...makeSelectableButtonItemProps("code")}
