@@ -68,11 +68,12 @@ const Controls: FC<ControlsProps> = ({
         icon={<ExtensionIcon />}
         onClick={onSelectCodeClick}
       />
-      <miniDrawers.ButtonItem
+      {/* TODO: Implement random road generator */}
+      {/* <miniDrawers.ButtonItem
         {...makeSelectableButtonItemProps("random")}
         text="Random"
         icon={<CasinoIcon />}
-      />
+      /> */}
       <miniDrawers.ButtonItem
         {...makeSelectableButtonItemProps("description")}
         text="Description"
