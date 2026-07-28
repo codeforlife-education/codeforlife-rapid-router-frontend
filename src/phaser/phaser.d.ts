@@ -150,6 +150,9 @@ declare module "phaser" {
           localY: number,
           event: Phaser.Types.Input.EventData,
         ) => void
+
+        // https://docs.phaser.io/api-documentation/event/input-events#game_out
+        type GameOut = (time: number, event: MouseEvent | TouchEvent) => void
       }
     }
   }

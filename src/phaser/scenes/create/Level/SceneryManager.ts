@@ -57,19 +57,24 @@ export default class extends BaseManager {
     // under the cursor here without needing a separate flag.
     const onPointerDown: Phaser.Input.Events.Listeners.PointerDown<
       Phaser.GameObjects.Image
-    > = (pointer, currentlyOver) => this.onPointerDown(pointer, currentlyOver)
+    > = (...args) => this.onPointerDown(...args)
     input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
     const onPointerMove: Phaser.Input.Events.Listeners.PointerMove<
       Phaser.GameObjects.Image
-    > = (pointer, currentlyOver) => this.onPointerMove(pointer, currentlyOver)
+    > = (...args) => this.onPointerMove(...args)
     input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+
+    const onGameOut: Phaser.Input.Events.Listeners.GameOut = (...args) =>
+      this.onGameOut(...args)
+    input.on(Phaser.Input.Events.GAME_OUT, onGameOut)
 
     events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       game.events.off(Events.ADD_ROAD, onAddRoad)
       game.events.off(Events.SET_TOOLBOX, onSetToolbox)
       input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
       input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+      input.off(Phaser.Input.Events.GAME_OUT, onGameOut)
     })
   }
 
@@ -294,15 +299,15 @@ export default class extends BaseManager {
   }
 
   private handleGhost(
-    pointer: Phaser.Input.Pointer,
-    currentlyOver: Phaser.GameObjects.Image[] = this.level.input.hitTestPointer(
-      pointer,
-    ) as Phaser.GameObjects.Image[],
+    pointer?: Phaser.Input.Pointer,
+    currentlyOver: Phaser.GameObjects.Image[] = pointer
+      ? (this.level.input.hitTestPointer(pointer) as Phaser.GameObjects.Image[])
+      : [],
   ) {
     if (!this.ghost) return
 
     // Directly over an existing object or dragging an object.
-    if (currentlyOver.length > 0 || this.dragStart) {
+    if (!pointer || currentlyOver.length > 0 || this.dragStart) {
       this.ghost.object.setVisible(false)
       return
     }
@@ -351,6 +356,12 @@ export default class extends BaseManager {
     (pointer, currentlyOver) => {
       if (!this.tool) return
       this.handleGhost(pointer, currentlyOver)
+    }
+
+  /** Handle the pointer leaving the game canvas. */
+  private onGameOut: Phaser.Input.Events.Listeners.GameOut = () => {
+    if (!this.tool) return
+    this.handleGhost()
     }
 
   /** When a road is added, delete any overlapping scenery objects. */
