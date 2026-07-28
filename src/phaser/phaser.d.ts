@@ -1,3 +1,5 @@
+import type { Property } from "csstype"
+
 declare module "phaser" {
   namespace GameObjects {
     namespace Graphics {
@@ -81,12 +83,16 @@ declare module "phaser" {
     namespace Input {
       type InputConfigurationWithoutHitArea = Omit<
         Phaser.Types.Input.InputConfiguration,
-        "hitArea" | "hitAreaCallback"
-      >
+        "hitArea" | "hitAreaCallback" | "cursor"
+      > & { cursor?: Property.Cursor }
     }
   }
 
   namespace Input {
+    interface InputPlugin extends Phaser.Input.InputPlugin {
+      setDefaultCursor(cursor: Property.Cursor): Phaser.Input.InputPlugin
+    }
+
     namespace Events {
       namespace Listeners {
         // https://docs.phaser.io/api-documentation/event/input-events#pointer_down

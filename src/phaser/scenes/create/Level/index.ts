@@ -251,19 +251,15 @@ export default class extends BaseLevel<LevelData> {
     obj: Phaser.GameObjects.Components.GetBounds | Phaser.Geom.Rectangle,
     tile: Tile | Phaser.Geom.Rectangle,
   ) {
-    obj = "getBounds" in obj ? obj.getBounds() : obj
-
     if ("col" in tile) {
       const bounds = this.tileToBounds(tile)
       if (!bounds) return false
       tile = bounds
     }
 
-    return (
-      obj.left < tile.right &&
-      obj.right > tile.left &&
-      obj.top < tile.bottom &&
-      obj.bottom > tile.top
+    return Phaser.Geom.Rectangle.Overlaps(
+      "getBounds" in obj ? obj.getBounds() : obj,
+      tile,
     )
   }
 }

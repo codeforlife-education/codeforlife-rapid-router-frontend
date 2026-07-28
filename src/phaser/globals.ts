@@ -25,6 +25,7 @@ export const Events = createIdRegistry({
   "zoom-in": "ZOOM_IN",
   "zoom-out": "ZOOM_OUT",
   "scene-activity-changed": "SCENE_ACTIVITY_CHANGED",
+  "add-endpoint": "ADD_ENDPOINT",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 

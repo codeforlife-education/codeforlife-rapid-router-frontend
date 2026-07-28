@@ -48,6 +48,8 @@ type Endpoint = House | Cfc
 type Pointer<E extends Endpoint = Endpoint> = { main: Tile; endpoint: E }
 type Style = Tile & { style: "add" | "rotate" | "delete"; type: Type }
 
+export type AddEndpointEventData = Tile & Endpoint
+
 export default class extends BaseManager {
   /**
    * The current CFC endpoint tile, if any.
@@ -346,6 +348,13 @@ export default class extends BaseManager {
     // Occupy the tile and any crossover tiles for the endpoint variant.
     const endpoint = { type, obj, variant } as Endpoint
     this.endpoint(tile, endpoint)
+
+    // Emit an event to notify other systems that an endpoint has been added.
+    this.level.game.events.emit(Events.ADD_ENDPOINT, {
+      ...tile,
+      ...endpoint,
+    } as AddEndpointEventData)
+
     return endpoint
   }
 

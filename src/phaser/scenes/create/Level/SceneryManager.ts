@@ -2,6 +2,7 @@ import Phaser from "phaser"
 
 import * as objects from "../../../layers/objectGroup/objects"
 import type * as sceneryTilesets from "../../../tilesets/scenery"
+import type { AddEndpointEventData } from "./EndpointManager"
 import type { AddRoadEventData } from "./RoadManager"
 import BaseManager from "./BaseManager"
 import { Events } from "../../../globals"
@@ -49,6 +50,10 @@ export default class extends BaseManager {
     const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
     game.events.on(Events.ADD_ROAD, onAddRoad)
 
+    const onAddEndpoint = (data: AddEndpointEventData) =>
+      this.onAddEndpoint(data)
+    game.events.on(Events.ADD_ENDPOINT, onAddEndpoint)
+
     const onSetToolbox = () => this.onSetToolbox()
     game.events.on(Events.SET_TOOLBOX, onSetToolbox)
 
@@ -71,6 +76,7 @@ export default class extends BaseManager {
 
     events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       game.events.off(Events.ADD_ROAD, onAddRoad)
+      game.events.off(Events.ADD_ENDPOINT, onAddEndpoint)
       game.events.off(Events.SET_TOOLBOX, onSetToolbox)
       input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
       input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
@@ -102,8 +108,24 @@ export default class extends BaseManager {
     )
   }
 
+  private overlapsEndpoint(
+    obj: Phaser.Geom.Rectangle | Phaser.GameObjects.Components.GetBounds,
+    endpoint: Phaser.GameObjects.Image,
+  ) {
+    return Phaser.Geom.Rectangle.Overlaps(
+      "getBounds" in obj ? obj.getBounds() : obj,
+      endpoint.getBounds(),
+    )
+  }
+
+  private overObject(obj: Phaser.GameObjects.Image): boolean
+  private overObject(
+    obj: Phaser.GameObjects.Image,
+    x: number,
+    y: number,
+  ): boolean
   /** Check if the object at the coordinates overlaps any other object. */
-  private overObject(obj: Phaser.GameObjects.Image, x: number, y: number) {
+  private overObject(obj: Phaser.GameObjects.Image, x = obj.x, y = obj.y) {
     const bounds = this.bounds(obj, x, y)
 
     return (
@@ -118,7 +140,7 @@ export default class extends BaseManager {
         // ...its centre overlaps the other's bounds or...
           sceneryBounds.contains(x, y) ||
         // ...its bounds overlap the other's bounds and...
-          (Phaser.Geom.Intersects.RectangleToRectangle(bounds, sceneryBounds) &&
+          (Phaser.Geom.Rectangle.Overlaps(bounds, sceneryBounds) &&
           // ...both are below ground or...
           ((obj.depth === objects.Depths.BELOW_GROUND &&
               scenery.depth === objects.Depths.BELOW_GROUND) ||
@@ -130,12 +152,7 @@ export default class extends BaseManager {
     )
       }) ||
       // Check if the object overlaps any endpoint object.
-      this.endpoints.some(endpoint =>
-        Phaser.Geom.Intersects.RectangleToRectangle(
-          bounds,
-          endpoint.getBounds(),
-        ),
-      )
+      this.endpoints.some(endpoint => this.overlapsEndpoint(bounds, endpoint))
     )
   }
 
@@ -246,7 +263,7 @@ export default class extends BaseManager {
   /** Stop dragging the given scenery object. */
   private endDrag(obj: Phaser.GameObjects.Image) {
     this.dragStart = null
-    this.level.input.setDefaultCursor("default")
+    this.level.input.setDefaultCursor("grab")
     obj.setScale(1)
   }
 
@@ -397,6 +414,12 @@ export default class extends BaseManager {
 
     for (const obj of [...this.scenery]) {
       if (this.level.objectOverlapsTile(obj, tile)) this.delete(obj)
+    }
+  }
+
+  private onAddEndpoint({ obj: endpoint }: AddEndpointEventData) {
+    for (const obj of [...this.scenery]) {
+      if (this.overlapsEndpoint(obj, endpoint)) this.delete(obj)
     }
   }
 
