@@ -1,5 +1,7 @@
 import Phaser from "phaser"
 
+import * as objects from "../layers/objectGroup/objects"
+
 export default class extends Phaser.GameObjects.Container {
   readonly radius: number
   readonly backgroundColorOut: number
@@ -13,7 +15,8 @@ export default class extends Phaser.GameObjects.Container {
     backgroundColorOut: number,
     backgroundColorOver: number,
     {
-      depth = 1,
+      // Place above all scenery objects.
+      depth = Math.max(...Object.values(objects.Depths)) + 1,
       iconMargin = 4,
     }: Phaser.Types.GameObjects.FloatingActionButton.Options = {},
   ) {
