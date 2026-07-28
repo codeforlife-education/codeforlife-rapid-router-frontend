@@ -165,20 +165,39 @@ export default class extends BaseManager {
 
   /** Check if the world coordinates and dimensions overlap a road tile. */
   private overlapsRoad(obj: Phaser.GameObjects.Image, x: number, y: number) {
-    const isOverRoad = (x: number, y: number): boolean => {
-      const tile = this.level.worldToTile(x, y)
-      if (!tile) return false
-      return this.level.road.dirsToId(this.level.road.dirs(tile)) !== 0
+    const bounds = this.bounds(obj, x, y)
+
+    // Clip the bounds to the tilemap's world extents first. Otherwise, a
+    // portion of the object hanging off the edge of the map would get its
+    // tile index clamped to the nearest edge tile, making it look like it
+    // overlaps a road there even when it doesn't actually reach that tile.
+    const mapBounds = new Phaser.Geom.Rectangle(
+      0,
+      0,
+      this.level.tilemap.widthInPixels,
+      this.level.tilemap.heightInPixels,
+    )
+    const clipped = Phaser.Geom.Rectangle.Intersection(bounds, mapBounds)
+    if (clipped.width <= 0 || clipped.height <= 0) return false
+
+    // Sampling only the 4 corners misses road tiles that lie entirely
+    // beneath the interior of objects wider/taller than a single tile (e.g.
+    // the pond), so we walk every tile the (clipped) bounds span instead.
+    const topLeft = this.level.worldToNearestTile(clipped.left, clipped.top)
+    const bottomRight = this.level.worldToNearestTile(
+      clipped.right - 1,
+      clipped.bottom - 1,
+    )
+    if (!topLeft || !bottomRight) return false
+
+    for (let row = topLeft.row; row <= bottomRight.row; row++) {
+      for (let col = topLeft.col; col <= bottomRight.col; col++) {
+        if (this.level.road.dirsToId(this.level.road.dirs({ col, row })) !== 0)
+          return true
+      }
     }
 
-    const { left, right, top, bottom } = this.bounds(obj, x, y)
-
-    return (
-      isOverRoad(left, top) ||
-      isOverRoad(right, top) ||
-      isOverRoad(left, bottom) ||
-      isOverRoad(right, bottom)
-    )
+    return false
   }
 
   private add(
