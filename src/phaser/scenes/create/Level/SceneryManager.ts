@@ -109,28 +109,21 @@ export default class extends BaseManager {
   }
 
   private overlapsEndpoint(
-    obj: Phaser.Geom.Rectangle | Phaser.GameObjects.Components.GetBounds,
+    obj: Phaser.GameObjects.Image,
     endpoint: Phaser.GameObjects.Image,
+    bounds = obj.getBounds(),
   ) {
-    return Phaser.Geom.Rectangle.Overlaps(
-      "getBounds" in obj ? obj.getBounds() : obj,
-      endpoint.getBounds(),
+    return (
+      obj !== endpoint &&
+      Phaser.Geom.Rectangle.Overlaps(bounds, endpoint.getBounds())
     )
   }
 
-  private overObject(obj: Phaser.GameObjects.Image): boolean
-  private overObject(
+  private overlapsScenery(
     obj: Phaser.GameObjects.Image,
-    x: number,
-    y: number,
-  ): boolean
-  /** Check if the object at the coordinates overlaps any other object. */
-  private overObject(obj: Phaser.GameObjects.Image, x = obj.x, y = obj.y) {
-    const bounds = this.bounds(obj, x, y)
-
-    return (
-      // Check if the object overlaps any other scenery object.
-      this.scenery.some(scenery => {
+    scenery: Phaser.GameObjects.Image,
+    bounds = obj.getBounds(),
+  ) {
         if (scenery === obj) return false
 
         const sceneryBounds = scenery.getBounds()
@@ -138,7 +131,7 @@ export default class extends BaseManager {
       // This object overlaps another object if...
     return (
         // ...its centre overlaps the other's bounds or...
-          sceneryBounds.contains(x, y) ||
+      sceneryBounds.contains(bounds.centerX, bounds.centerY) ||
         // ...its bounds overlap the other's bounds and...
           (Phaser.Geom.Rectangle.Overlaps(bounds, sceneryBounds) &&
           // ...both are below ground or...
@@ -150,14 +143,28 @@ export default class extends BaseManager {
             (obj.depth === objects.Depths.GROUND &&
                 scenery.depth === objects.Depths.BELOW_GROUND)))
     )
-      }) ||
+  }
+
+  private overlapsObject(obj: Phaser.GameObjects.Image): boolean
+  private overlapsObject(
+    obj: Phaser.GameObjects.Image,
+    x: number,
+    y: number,
+  ): boolean
+  /** Check if the object at the coordinates overlaps any other object. */
+  private overlapsObject(obj: Phaser.GameObjects.Image, x = obj.x, y = obj.y) {
+    const bounds = this.bounds(obj, x, y)
+
+    return (
+      // Check if the object overlaps any other scenery object.
+      this.scenery.some(s => this.overlapsScenery(obj, s, bounds)) ||
       // Check if the object overlaps any endpoint object.
-      this.endpoints.some(endpoint => this.overlapsEndpoint(bounds, endpoint))
+      this.endpoints.some(e => this.overlapsEndpoint(obj, e, bounds))
     )
   }
 
   /** Check if the world coordinates and dimensions overlap a road tile. */
-  private overRoad(obj: Phaser.GameObjects.Image, x: number, y: number) {
+  private overlapsRoad(obj: Phaser.GameObjects.Image, x: number, y: number) {
     const isOverRoad = (x: number, y: number): boolean => {
       const tile = this.level.worldToTile(x, y)
       if (!tile) return false
@@ -252,7 +259,8 @@ export default class extends BaseManager {
    */
   private dragTo(obj: Phaser.GameObjects.Image, dragX: number, dragY: number) {
     const [x, y, cursor] =
-      this.overObject(obj, dragX, dragY) || this.overRoad(obj, dragX, dragY)
+      this.overlapsObject(obj, dragX, dragY) ||
+      this.overlapsRoad(obj, dragX, dragY)
         ? [this.dragStart!.x, this.dragStart!.y, "not-allowed"]
         : [dragX, dragY, "grabbing"]
 
@@ -357,8 +365,8 @@ export default class extends BaseManager {
 
     // Indirectly over an existing object or road tile.
     if (
-      this.overObject(this.ghost.object, pointer.worldX, pointer.worldY) ||
-      this.overRoad(this.ghost.object, pointer.worldX, pointer.worldY)
+      this.overlapsObject(this.ghost.object, pointer.worldX, pointer.worldY) ||
+      this.overlapsRoad(this.ghost.object, pointer.worldX, pointer.worldY)
     ) {
       this.ghost.object.setVisible(false)
       this.level.input.setDefaultCursor("not-allowed")
