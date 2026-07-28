@@ -33,9 +33,8 @@ export default class BaseLevel<
     Record<layers.objectGroup.Name, Phaser.GameObjects.GameObject[]> = {
     "Tile.ROAD": null as unknown as Phaser.Tilemaps.TilemapLayer,
     "Tile.ENVIRONMENT": null as unknown as Phaser.Tilemaps.TilemapLayer,
-    "ObjectGroup.SCENERY": null as unknown as Phaser.GameObjects.GameObject[],
-    "ObjectGroup.ENDPOINTS": null as unknown as Phaser.GameObjects.GameObject[],
-  }
+    "ObjectGroup.SCENERY": null as unknown as Phaser.GameObjects.Image[],
+    "ObjectGroup.ENDPOINTS": null as unknown as Phaser.GameObjects.Image[],
 
   create() {
     this.createTilemap()
@@ -53,23 +52,12 @@ export default class BaseLevel<
   }
 
   /**
-   * Creates the tilemap for the level using the specified key and tileset
-   * names.The tilemap is the main structure that holds all the layers and
-   * objects in the level. This method ensures that the layers and objects are
-   * created in the correct order for proper rendering.
-   */
-  createTilemap() {
-    // 1. Create a tilemap from the cached tilemap data.
-    this.tilemap = this.make.tilemap({ key: "level" })
-    const centerX = this.tilemap.widthInPixels / 2
-    const centerY = this.tilemap.heightInPixels / 2
-
-    // 2. Render a tile sprite behind everything as the background.
+  /** Creates the background tile sprite. */
+  private createBackgroundTileSprite() {
     this.backgroundTileSprite = this.add.tileSprite(
-      centerX,
-      centerY,
-      this.scale.width * 3,
-      this.scale.height * 3,
+      ...this.tilemapCenter,
+      this.scale.width * 1.5,
+      this.scale.height * 1.5,
       this.initData.background,
     )
     this.backgroundTileSprite
@@ -89,51 +77,69 @@ export default class BaseLevel<
           this.tilemap.tileHeight,
       )
       .setDepth(-1) // Render behind everything
+  }
 
-    // 3. The road layer is created, on top of the background layer.
-    this.tilesets["Tile.ROAD"] = this.initData.tilesets["Tile.ROAD"].map(
+  /** Creates a tile layer for the specified layer name. */
+  private createTileLayer(layer: layers.tile.Name) {
+    this.tilesets[layer] = this.initData.tilesets[layer].map(
       ({ name }) => this.tilemap.addTilesetImage(name)!,
     )
-    this.layers["Tile.ROAD"] = this.tilemap.createLayer(
-      layers.Names.Tile.ROAD,
-      this.tilesets["Tile.ROAD"],
-    )
+    this.layers[layer] = this.tilemap.createLayer(layer, this.tilesets[layer])
+  }
+
+  /** Creates an object group layer for the specified layer name. */
+  private createObjectGroupLayer(layer: layers.objectGroup.Name) {
+    this.layers[layer] = this.tilemap
+      .createFromObjects(
+        layer,
+        this.initData.tilesets[layer].map(({ name: key, gid }) => ({
+          key,
+          gid,
+          classType: Phaser.GameObjects.Image,
+        })),
+      )
+      .map(obj => {
+        const image = obj as Phaser.GameObjects.Image
+        return image.setDepth(
+          layers.objectGroup.objects.getDepth(
+            image.name as layers.objectGroup.objects.Name,
+          ),
+        )
+      })
+  }
+
+  /** Returns the center coordinates of the tilemap as [x, y]. */
+  get tilemapCenter(): [number, number] {
+    return [this.tilemap.widthInPixels / 2, this.tilemap.heightInPixels / 2]
+  }
+
+  /**
+   * Creates the tilemap for the level using the specified key and tileset
+   * names.The tilemap is the main structure that holds all the layers and
+   * objects in the level. This method ensures that the layers and objects are
+   * created in the correct order for proper rendering.
+   */
+  createTilemap() {
+    // 1. Create a tilemap from the cached tilemap data.
+    this.tilemap = this.make.tilemap({ key: "level" })
+
+    // 2. Render a tile sprite behind everything as the background.
+    this.createBackgroundTileSprite()
+
+    // 3. The road layer is created, on top of the background layer.
+    this.createTileLayer("Tile.ROAD")
 
     // 4. The environment layer is created, on top of the road layer.
-    this.tilesets["Tile.ENVIRONMENT"] = this.initData.tilesets[
-      "Tile.ENVIRONMENT"
-    ].map(({ name }) => this.tilemap.addTilesetImage(name)!)
-    this.layers["Tile.ENVIRONMENT"] = this.tilemap.createLayer(
-      layers.Names.Tile.ENVIRONMENT,
-      this.tilesets["Tile.ENVIRONMENT"],
-    )
+    this.createTileLayer("Tile.ENVIRONMENT")
 
     // 5. The endpoint objects are created, on top of the environment layer.
-    this.layers["ObjectGroup.ENDPOINTS"] = this.tilemap.createFromObjects(
-      layers.Names.ObjectGroup.ENDPOINTS,
-      this.initData.tilesets["ObjectGroup.ENDPOINTS"].map(
-        ({ name: key, gid }) => ({
-          key,
-          gid,
-          classType: Phaser.GameObjects.Image,
-        }),
-      ),
-    )
+    this.createObjectGroupLayer("ObjectGroup.ENDPOINTS")
 
     // 6. The scenery objects are created, on top of all layers.
-    this.layers["ObjectGroup.SCENERY"] = this.tilemap.createFromObjects(
-      layers.Names.ObjectGroup.SCENERY,
-      this.initData.tilesets["ObjectGroup.SCENERY"].map(
-        ({ name: key, gid }) => ({
-          key,
-          gid,
-          classType: Phaser.GameObjects.Image,
-        }),
-      ),
-    )
+    this.createObjectGroupLayer("ObjectGroup.SCENERY")
 
     // 7. Center the camera on the tilemap.
-    this.cameras.main.centerOn(centerX, centerY)
+    this.cameras.main.centerOn(...this.tilemapCenter)
   }
 
   putTileAt(

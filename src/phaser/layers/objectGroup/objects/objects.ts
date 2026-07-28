@@ -38,10 +38,10 @@ export const Depths = createIdRegistry({
 export type Depth = (typeof Depths)[keyof typeof Depths]
 
 // Global registry of object depths.
-const DEPTHS: Partial<Record<ID, Depth>> = {}
+const DEPTHS: Partial<Record<ID | Name, Depth>> = {}
 
 // Getter for an object depth by its GID.
-export const getDepth = (id: ID) => DEPTHS[id] ?? Depths.GROUND
+export const getDepth = (id: ID | Name) => DEPTHS[id] ?? Depths.GROUND
 
 export type Object<N extends Name, GID extends ID> = Omit<
   _Object,
@@ -94,10 +94,10 @@ export type Factory<
 > = FactoryBase<N, GID> & FactoryVariants<N, GID, V>
 
 // Global registry of object factories.
-const FACTORIES: Partial<Record<ID, FactoryBase<Name, ID>>> = {}
+const FACTORIES: Partial<Record<ID | Name, FactoryBase<Name, ID>>> = {}
 
 // Getter for an object factory by its GID.
-export const getFactory = (id: ID) => FACTORIES[id]
+export const getFactory = (id: ID | Name) => FACTORIES[id]
 
 export const factory = <
   N extends Name,
@@ -119,7 +119,7 @@ export const factory = <
   }: FactoryKwArgs<N, GID>,
   variants: V = {} as V,
 ): Factory<N, GID, V> => {
-  DEPTHS[gid] = depth
+  DEPTHS[gid] = DEPTHS[name] = depth
 
   baseX += baseCol * TILE_WIDTH
   baseY += baseRow * TILE_HEIGHT
@@ -148,7 +148,7 @@ export const factory = <
     ...obj,
   })
 
-  FACTORIES[gid] = base
+  FACTORIES[gid] = FACTORIES[name] = base
 
   return (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
     (f, [variantName, variantKwArgs]) => {
