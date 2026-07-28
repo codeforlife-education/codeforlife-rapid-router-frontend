@@ -30,7 +30,7 @@ export default class BaseLevel<
     layers.tile.Name,
     Phaser.Tilemaps.TilemapLayer | Phaser.Tilemaps.TilemapGPULayer
   > &
-    Record<layers.objectGroup.Name, Phaser.GameObjects.GameObject[]> = {
+    Record<layers.objectGroup.Name, Phaser.GameObjects.Image[]> = {
     "Tile.ROAD": null as unknown as Phaser.Tilemaps.TilemapLayer,
     "Tile.ENVIRONMENT": null as unknown as Phaser.Tilemaps.TilemapLayer,
     "ObjectGroup.SCENERY": null as unknown as Phaser.GameObjects.Image[],

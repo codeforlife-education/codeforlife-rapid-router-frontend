@@ -9,7 +9,7 @@ import type { default as Level } from "."
 
 export default class extends BaseManager {
   /** The maximum number of scenery objects that can be added to the level. */
-  private readonly maxObjectCount = 50
+  private readonly maxLength = 50
 
   /** The currently selected scenery object. */
   private selectedObject: Phaser.GameObjects.Image | null = null
@@ -78,10 +78,12 @@ export default class extends BaseManager {
     })
   }
 
-  private get objects() {
-    return this.level.layers[
-      "ObjectGroup.SCENERY"
-    ] as Phaser.GameObjects.Image[]
+  private get scenery() {
+    return this.level.layers["ObjectGroup.SCENERY"]
+  }
+
+  private get endpoints() {
+    return this.level.layers["ObjectGroup.ENDPOINTS"]
   }
 
   private get tool() {
@@ -104,27 +106,37 @@ export default class extends BaseManager {
   private overObject(obj: Phaser.GameObjects.Image, x: number, y: number) {
     const bounds = this.bounds(obj, x, y)
 
-    return this.objects.some(other => {
-      if (other === obj) return false
+    return (
+      // Check if the object overlaps any other scenery object.
+      this.scenery.some(scenery => {
+        if (scenery === obj) return false
 
-      const otherBounds = other.getBounds()
+        const sceneryBounds = scenery.getBounds()
 
       // This object overlaps another object if...
     return (
         // ...its centre overlaps the other's bounds or...
-        otherBounds.contains(x, y) ||
+          sceneryBounds.contains(x, y) ||
         // ...its bounds overlap the other's bounds and...
-        (Phaser.Geom.Intersects.RectangleToRectangle(bounds, otherBounds) &&
+          (Phaser.Geom.Intersects.RectangleToRectangle(bounds, sceneryBounds) &&
           // ...both are below ground or...
           ((obj.depth === objects.Depths.BELOW_GROUND &&
-              other.depth === objects.Depths.BELOW_GROUND) ||
+              scenery.depth === objects.Depths.BELOW_GROUND) ||
             // ...one is below ground and the other is on ground.
             (obj.depth === objects.Depths.BELOW_GROUND &&
-              other.depth === objects.Depths.GROUND) ||
+                scenery.depth === objects.Depths.GROUND) ||
             (obj.depth === objects.Depths.GROUND &&
-              other.depth === objects.Depths.BELOW_GROUND)))
+                scenery.depth === objects.Depths.BELOW_GROUND)))
     )
-    })
+      }) ||
+      // Check if the object overlaps any endpoint object.
+      this.endpoints.some(endpoint =>
+        Phaser.Geom.Intersects.RectangleToRectangle(
+          bounds,
+          endpoint.getBounds(),
+        ),
+      )
+    )
   }
 
   /** Check if the world coordinates and dimensions overlap a road tile. */
@@ -150,14 +162,14 @@ export default class extends BaseManager {
     worldY: number,
     id: sceneryTilesets.ID,
   ): Phaser.GameObjects.Image | null {
-    if (this.objects.length >= this.maxObjectCount) return null
+    if (this.scenery.length >= this.maxLength) return null
 
     const factory = objects.getFactory(id)
     if (!factory) return null
 
     let obj = this.level
       .addObject("ObjectGroup.SCENERY", factory({ x: 0, y: 0 }))
-      .setInteractive({ cursor: "grab" })
+      .setInteractive()
       .setOrigin(0.5, 0.5)
       .setPosition(worldX, worldY)
 
@@ -173,6 +185,18 @@ export default class extends BaseManager {
     const onDragEnd: Phaser.Input.Events.Listeners.GameObjectDragEnd = () =>
       this.endDrag(obj)
 
+    const onPointerOver: Phaser.Input.Events.Listeners.GameObjectPointerOver =
+      () => {
+        if (!this.tool || this.dragStart) return
+        this.level.input.setDefaultCursor("grab")
+      }
+
+    const onPointerOut: Phaser.Input.Events.Listeners.GameObjectPointerOut =
+      () => {
+        if (!this.tool || this.dragStart) return
+        this.level.input.setDefaultCursor("default")
+      }
+
     const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp =
       () => {
         if (!this.tool) return
@@ -183,6 +207,8 @@ export default class extends BaseManager {
       .on(Phaser.Input.Events.DRAG_START, onDragStart)
       .on(Phaser.Input.Events.DRAG, onDrag)
       .on(Phaser.Input.Events.DRAG_END, onDragEnd)
+      .on(Phaser.Input.Events.POINTER_OVER, onPointerOver)
+      .on(Phaser.Input.Events.POINTER_OUT, onPointerOut)
       .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
 
     this.level.input.setDraggable(obj)
@@ -369,7 +395,7 @@ export default class extends BaseManager {
     const tile = this.level.tileToBounds({ col, row })
     if (!tile) return
 
-    for (const obj of [...this.objects]) {
+    for (const obj of [...this.scenery]) {
       if (this.level.objectOverlapsTile(obj, tile)) this.delete(obj)
     }
   }
@@ -386,6 +412,6 @@ export default class extends BaseManager {
     }
 
     // Enable or disable dragging for all scenery objects.
-    this.level.input.setDraggable(this.objects, draggable)
+    this.level.input.setDraggable(this.scenery, draggable)
   }
 }
