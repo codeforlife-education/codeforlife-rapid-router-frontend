@@ -35,6 +35,7 @@ export default class BaseLevel<
     "Tile.ENVIRONMENT": null as unknown as Phaser.Tilemaps.TilemapLayer,
     "ObjectGroup.SCENERY": null as unknown as Phaser.GameObjects.Image[],
     "ObjectGroup.ENDPOINTS": null as unknown as Phaser.GameObjects.Image[],
+  }
 
   create() {
     this.createTilemap()
@@ -51,7 +52,6 @@ export default class BaseLevel<
     })
   }
 
-  /**
   /** Creates the background tile sprite. */
   private createBackgroundTileSprite() {
     this.backgroundTileSprite = this.add.tileSprite(

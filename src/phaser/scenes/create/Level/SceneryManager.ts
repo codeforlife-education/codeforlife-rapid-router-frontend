@@ -124,24 +124,24 @@ export default class extends BaseManager {
     scenery: Phaser.GameObjects.Image,
     bounds = obj.getBounds(),
   ) {
-        if (scenery === obj) return false
+    if (scenery === obj) return false
 
-        const sceneryBounds = scenery.getBounds()
+    const sceneryBounds = scenery.getBounds()
 
-      // This object overlaps another object if...
+    // This object overlaps another object if...
     return (
-        // ...its centre overlaps the other's bounds or...
+      // ...its centre overlaps the other's bounds or...
       sceneryBounds.contains(bounds.centerX, bounds.centerY) ||
-        // ...its bounds overlap the other's bounds and...
-          (Phaser.Geom.Rectangle.Overlaps(bounds, sceneryBounds) &&
-          // ...both are below ground or...
-          ((obj.depth === objects.Depths.BELOW_GROUND &&
-              scenery.depth === objects.Depths.BELOW_GROUND) ||
-            // ...one is below ground and the other is on ground.
-            (obj.depth === objects.Depths.BELOW_GROUND &&
-                scenery.depth === objects.Depths.GROUND) ||
-            (obj.depth === objects.Depths.GROUND &&
-                scenery.depth === objects.Depths.BELOW_GROUND)))
+      // ...its bounds overlap the other's bounds and...
+      (Phaser.Geom.Rectangle.Overlaps(bounds, sceneryBounds) &&
+        // ...both are below ground or...
+        ((obj.depth === objects.Depths.BELOW_GROUND &&
+          scenery.depth === objects.Depths.BELOW_GROUND) ||
+          // ...one is below ground and the other is on ground.
+          (obj.depth === objects.Depths.BELOW_GROUND &&
+            scenery.depth === objects.Depths.GROUND) ||
+          (obj.depth === objects.Depths.GROUND &&
+            scenery.depth === objects.Depths.BELOW_GROUND)))
     )
   }
 
@@ -413,7 +413,7 @@ export default class extends BaseManager {
   private onGameOut: Phaser.Input.Events.Listeners.GameOut = () => {
     if (!this.tool) return
     this.handleGhost()
-    }
+  }
 
   /** When a road is added, delete any overlapping scenery objects. */
   private onAddRoad({ col, row }: AddRoadEventData) {
