@@ -103,6 +103,11 @@ export const makeOrthogonal = <
   layers: _layers,
   ...tilemap
 }: MakeOrthogonalKwArgs<COLS, ROWS>): OrthogonalTilemap => {
+  const tilesetsById = _tilesets.reduce(
+    (acc, tileset) => ({ ...acc, [tileset.firstgid]: tileset }),
+    {} as Partial<Record<tilesets.ID, tilesets.Tileset>>,
+  )
+
   const makeTileLayer = <
     Name extends layers.tile.Name,
     ID extends layers.tile.data.ID,
@@ -142,10 +147,11 @@ export const makeOrthogonal = <
       height,
       objects: _objects.map(
         // Provide default values for width and height based on the tilemap.
-        ({ width = mapTileWidth, height = mapTileHeight, ...obj }) => ({
+        ({ gid, ...obj }) => ({
           id: objectIdCounter++,
-          width,
-          height,
+          gid,
+          width: tilesetsById[gid]?.imagewidth ?? mapTileWidth,
+          height: tilesetsById[gid]?.imageheight ?? mapTileHeight,
           ...obj,
         }),
       ),
