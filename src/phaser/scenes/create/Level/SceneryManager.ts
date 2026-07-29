@@ -9,6 +9,12 @@ import BaseManager from "./BaseManager"
 import { Events } from "../../../globals"
 import type { default as Level } from "."
 
+type Drag = {
+  obj: Phaser.GameObjects.Image
+  start: { x: number; y: number }
+  listeners: { on: () => void; off: () => void }
+}
+
 export default class extends BaseManager {
   /** The maximum number of scenery objects that can be added to the level. */
   private readonly maxLength = 50
@@ -16,11 +22,8 @@ export default class extends BaseManager {
   /** The currently selected scenery object. */
   private selectedObject: Phaser.GameObjects.Image | null = null
 
-  /** The starting position of the currently dragged scenery object. */
-  private drag: {
-    obj: Phaser.GameObjects.Image
-    start: { x: number; y: number }
-  } | null = null
+  /** The currently dragged scenery object. */
+  private drag: Drag | null = null
 
   /** The semi-transparent preview image. */
   private ghost: {
@@ -191,7 +194,18 @@ export default class extends BaseManager {
       .setPosition(worldX, worldY)
 
     const onDragStart: Phaser.Input.Events.Listeners.GameObjectDragStart = () =>
-      this.startDrag(obj)
+      this.startDrag(obj, {
+        on: () => {
+          obj
+            .on(Phaser.Input.Events.DRAG, onDrag)
+            .on(Phaser.Input.Events.DRAG_END, onDragEnd)
+        },
+        off: () => {
+          obj
+            .off(Phaser.Input.Events.DRAG, onDrag)
+            .off(Phaser.Input.Events.DRAG_END, onDragEnd)
+        },
+      })
 
     const onDrag: Phaser.Input.Events.Listeners.GameObjectDrag = (
       _,
@@ -222,8 +236,6 @@ export default class extends BaseManager {
 
     obj = obj
       .on(Phaser.Input.Events.DRAG_START, onDragStart)
-      .on(Phaser.Input.Events.DRAG, onDrag)
-      .on(Phaser.Input.Events.DRAG_END, onDragEnd)
       .on(Phaser.Input.Events.POINTER_OVER, onPointerOver)
       .on(Phaser.Input.Events.POINTER_OUT, onPointerOut)
       .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
@@ -239,11 +251,15 @@ export default class extends BaseManager {
   }
 
   /** Begin dragging the given scenery object from its current position. */
-  private startDrag(obj: Phaser.GameObjects.Image) {
-    this.drag = { obj, start: { x: obj.x, y: obj.y } }
+  private startDrag(
+    obj: Phaser.GameObjects.Image,
+    listeners: Drag["listeners"],
+  ) {
+    this.drag = { obj, start: { x: obj.x, y: obj.y }, listeners }
     this.level.input.setDefaultCursor("grabbing")
     obj.setScale(1.1)
     this.deselect()
+    listeners.on()
   }
 
   /**
@@ -265,6 +281,9 @@ export default class extends BaseManager {
 
   /** Stop dragging the given scenery object. */
   private endDrag(obj: Phaser.GameObjects.Image) {
+    if (!this.drag) return
+
+    this.drag.listeners.off()
     this.drag = null
     this.level.input.setDefaultCursor("grab")
     obj.setScale(1)
@@ -277,22 +296,24 @@ export default class extends BaseManager {
    * object, drive the same drag behaviour manually until it's released.
    */
   private dragNewObject(obj: Phaser.GameObjects.Image) {
-    this.startDrag(obj)
-
     const onPointerMove: Phaser.Input.Events.Listeners.PointerMove<
       Phaser.GameObjects.Image
     > = pointer => this.dragTo(obj, pointer.worldX, pointer.worldY)
 
     const onPointerUp: Phaser.Input.Events.Listeners.PointerUp<
       Phaser.GameObjects.Image
-    > = () => {
-      this.endDrag(obj)
-      this.level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
-      this.level.input.off(Phaser.Input.Events.POINTER_UP, onPointerUp)
-    }
+    > = () => this.endDrag(obj)
 
-    this.level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
-    this.level.input.on(Phaser.Input.Events.POINTER_UP, onPointerUp)
+    this.startDrag(obj, {
+      on: () => {
+        this.level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+        this.level.input.on(Phaser.Input.Events.POINTER_UP, onPointerUp)
+      },
+      off: () => {
+        this.level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+        this.level.input.off(Phaser.Input.Events.POINTER_UP, onPointerUp)
+      },
+    })
   }
 
   private select(obj: Phaser.GameObjects.Image) {
