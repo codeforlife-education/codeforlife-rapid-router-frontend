@@ -1,5 +1,6 @@
 import Phaser from "phaser"
 
+import "./Image"
 import Button from "./Button"
 import CustomGraphics from "./CustomGraphics"
 import FloatingActionButton from "./FloatingActionButton"

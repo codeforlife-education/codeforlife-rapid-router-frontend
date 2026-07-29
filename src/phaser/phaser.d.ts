@@ -49,6 +49,14 @@ declare module "phaser" {
       ): this
     }
 
+    interface Image {
+      /** Returns the top-left corner this image would have if its origin were positioned at (x, y). */
+      getRelativeTopLeft(x: number, y: number): Phaser.Types.Math.Vector2Like
+
+      /** Returns the bounding rectangle this image would have if its origin were positioned at (x, y). */
+      getRelativeBounds(x: number, y: number): Phaser.Geom.Rectangle
+    }
+
     interface GameObjectFactory {
       button(
         x: number,

@@ -99,27 +99,6 @@ export default class extends BaseManager {
       : null
   }
 
-  /** Returns the offsets of the object's origin point. */
-  private getOriginOffsets = (obj: Phaser.GameObjects.Image) => ({
-    x: obj.displayWidth * obj.originX,
-    y: obj.displayHeight * obj.originY,
-  })
-
-  /** Returns the bounding rectangle of an object at the coordinates. */
-  private getRelativeBounds(
-    obj: Phaser.GameObjects.Image,
-    x: number,
-    y: number,
-  ) {
-    const offsets = this.getOriginOffsets(obj)
-    return new Phaser.Geom.Rectangle(
-      x - offsets.x,
-      y - offsets.y,
-      obj.displayWidth,
-      obj.displayHeight,
-    )
-  }
-
   private overlapsEndpoint(
     obj: Phaser.GameObjects.Image,
     endpoint: Phaser.GameObjects.Image,
@@ -165,7 +144,7 @@ export default class extends BaseManager {
   ): boolean
   /** Check if the object at the coordinates overlaps any other object. */
   private overlapsObject(obj: Phaser.GameObjects.Image, x = obj.x, y = obj.y) {
-    const bounds = this.getRelativeBounds(obj, x, y)
+    const bounds = obj.getRelativeBounds(x, y)
 
     return (
       // Check if the object overlaps any other scenery object.
@@ -177,7 +156,7 @@ export default class extends BaseManager {
 
   /** Check if the world coordinates and dimensions overlap a road tile. */
   private overlapsRoad(obj: Phaser.GameObjects.Image, x: number, y: number) {
-    const bounds = this.getRelativeBounds(obj, x, y)
+    const bounds = obj.getRelativeBounds(x, y)
 
     const tiles = this.level.tilemap.getTilesWithinWorldXY(
       bounds.x,
@@ -317,12 +296,9 @@ export default class extends BaseManager {
     this.selectedObject = obj
     obj.setTint(0xaaddff)
 
-    const offsets = this.getOriginOffsets(obj)
+    const { x, y } = obj.getTopRight()
     this.deleteButton
-      .setPosition(
-        obj.x - offsets.x + obj.displayWidth + this.deleteButton.radius,
-        obj.y - offsets.y - this.deleteButton.radius,
-      )
+      .setPosition(x + this.deleteButton.radius, y - this.deleteButton.radius)
       .setVisible(true)
   }
 
