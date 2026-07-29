@@ -17,11 +17,14 @@ export default class extends BaseManager {
   private selectedObject: Phaser.GameObjects.Image | null = null
 
   /** The starting position of the currently dragged scenery object. */
-  private dragStart: { x: number; y: number } | null = null
+  private drag: {
+    obj: Phaser.GameObjects.Image
+    start: { x: number; y: number }
+  } | null = null
 
   /** The semi-transparent preview image. */
   private ghost: {
-    object: Phaser.GameObjects.Image
+    obj: Phaser.GameObjects.Image
     id: sceneryTilesets.ID
   } | null = null
 
@@ -201,13 +204,13 @@ export default class extends BaseManager {
 
     const onPointerOver: Phaser.Input.Events.Listeners.GameObjectPointerOver =
       () => {
-        if (!this.tool || this.dragStart) return
+        if (!this.tool || this.drag) return
         this.level.input.setDefaultCursor("grab")
       }
 
     const onPointerOut: Phaser.Input.Events.Listeners.GameObjectPointerOut =
       () => {
-        if (!this.tool || this.dragStart) return
+        if (!this.tool || this.drag) return
         this.level.input.setDefaultCursor("default")
       }
 
@@ -237,7 +240,7 @@ export default class extends BaseManager {
 
   /** Begin dragging the given scenery object from its current position. */
   private startDrag(obj: Phaser.GameObjects.Image) {
-    this.dragStart = { x: obj.x, y: obj.y }
+    this.drag = { obj, start: { x: obj.x, y: obj.y } }
     this.level.input.setDefaultCursor("grabbing")
     obj.setScale(1.1)
     this.deselect()
@@ -248,10 +251,12 @@ export default class extends BaseManager {
    * drag started if the position is invalid.
    */
   private dragTo(obj: Phaser.GameObjects.Image, dragX: number, dragY: number) {
+    if (!this.drag) return
+
     const [x, y, cursor] =
       this.overlapsObject(obj, dragX, dragY) ||
       this.overlapsRoad(obj, dragX, dragY)
-        ? [this.dragStart!.x, this.dragStart!.y, "not-allowed"]
+        ? [this.drag.start.x, this.drag.start.y, "not-allowed"]
         : [dragX, dragY, "grabbing"]
 
     obj.setPosition(x, y)
@@ -260,7 +265,7 @@ export default class extends BaseManager {
 
   /** Stop dragging the given scenery object. */
   private endDrag(obj: Phaser.GameObjects.Image) {
-    this.dragStart = null
+    this.drag = null
     this.level.input.setDefaultCursor("grab")
     obj.setScale(1)
   }
@@ -327,7 +332,7 @@ export default class extends BaseManager {
 
     this.ghost = {
       id,
-      object: this.level.add
+      obj: this.level.add
         .image(0, 0, tileset.name)
         .setOrigin(0.5, 0.5)
         .setDisplaySize(frame.realWidth, frame.realHeight)
@@ -346,29 +351,27 @@ export default class extends BaseManager {
     if (!this.ghost) return
 
     // Directly over an existing object or dragging an object.
-    if (!pointer || currentlyOver.length > 0 || this.dragStart) {
-      this.ghost.object.setVisible(false)
+    if (!pointer || currentlyOver.length > 0 || this.drag) {
+      this.ghost.obj.setVisible(false)
       return
     }
 
     // Indirectly over an existing object or road tile.
     if (
-      this.overlapsObject(this.ghost.object, pointer.worldX, pointer.worldY) ||
-      this.overlapsRoad(this.ghost.object, pointer.worldX, pointer.worldY)
+      this.overlapsObject(this.ghost.obj, pointer.worldX, pointer.worldY) ||
+      this.overlapsRoad(this.ghost.obj, pointer.worldX, pointer.worldY)
     ) {
-      this.ghost.object.setVisible(false)
+      this.ghost.obj.setVisible(false)
       this.level.input.setDefaultCursor("not-allowed")
       return
     }
 
-    this.ghost.object
-      .setPosition(pointer.worldX, pointer.worldY)
-      .setVisible(true)
+    this.ghost.obj.setPosition(pointer.worldX, pointer.worldY).setVisible(true)
     this.level.input.setDefaultCursor("grabbing")
   }
 
   private destroyGhost() {
-    this.ghost?.object.destroy()
+    this.ghost?.obj.destroy()
     this.ghost = null
   }
 
@@ -382,7 +385,7 @@ export default class extends BaseManager {
       if (currentlyOver.length > 0) return
 
       // Only place if the ghost is visible, meaning the position is valid.
-      if (!this.ghost?.object.visible) return
+      if (!this.ghost?.obj.visible) return
 
       this.deselect()
       const obj = this.add(pointer.worldX, pointer.worldY, tool)
@@ -400,7 +403,9 @@ export default class extends BaseManager {
   /** Handle the pointer leaving the game canvas. */
   private onGameOut: Phaser.Input.Events.Listeners.GameOut = () => {
     if (!this.tool) return
-    this.handleGhost()
+    if (this.ghost) this.handleGhost()
+    if (this.selectedObject) this.deselect()
+    if (this.drag) this.endDrag(this.drag.obj)
   }
 
   /** When a road is added, delete any overlapping scenery objects. */
