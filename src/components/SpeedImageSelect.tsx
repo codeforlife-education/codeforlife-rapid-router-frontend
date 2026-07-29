@@ -180,7 +180,12 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             <ImageList
               cols={cols}
               gap={gap}
-              sx={{ width: `${imageListWidth}px`, m: 0, p: 0 }}
+              sx={{
+                width: `${imageListWidth}px`,
+                m: 0,
+                p: 0,
+                userSelect: "none",
+              }}
             >
               {categories.map(({ key: categoryKey, subheader, images }) => (
                 <Fragment key={categoryKey}>
