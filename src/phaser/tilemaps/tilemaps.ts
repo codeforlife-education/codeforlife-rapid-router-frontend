@@ -145,16 +145,12 @@ export const makeOrthogonal = <
       name,
       width,
       height,
-      objects: _objects.map(
-        // Provide default values for width and height based on the tilemap.
-        ({ gid, ...obj }) => ({
-          id: objectIdCounter++,
-          gid,
-          width: tilesetsById[gid]?.imagewidth ?? mapTileWidth,
-          height: tilesetsById[gid]?.imageheight ?? mapTileHeight,
-          ...obj,
-        }),
-      ),
+      objects: _objects.map(obj => ({
+        id: objectIdCounter++,
+        width: tilesetsById[obj.gid]?.imagewidth ?? mapTileWidth,
+        height: tilesetsById[obj.gid]?.imageheight ?? mapTileHeight,
+        ...obj,
+      })),
       ...layer,
     })
 

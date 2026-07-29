@@ -2,6 +2,7 @@ import Phaser from "phaser"
 
 import type * as images from "../images"
 import * as layers from "../layers"
+import type * as tilesets from "../tilesets"
 import BaseScene from "./BaseScene"
 import { Events } from "../globals"
 
@@ -11,8 +12,11 @@ const MAX_ZOOM = 1 + ZOOM_STEP * 8
 
 export interface BaseLevelData {
   background: (typeof images.URLs.Background)[keyof typeof images.URLs.Background]
-  tilesets: Record<layers.tile.Name, Array<{ name: string }>> &
-    Record<layers.objectGroup.Name, Array<{ name: string; gid: number }>>
+  tilesets: Record<layers.tile.Name, Array<Pick<tilesets.Tileset, "name">>> &
+    Record<
+      layers.objectGroup.Name,
+      Array<Pick<tilesets.Tileset, "name"> & { gid: tilesets.ID }>
+    >
 }
 
 export default class BaseLevel<
@@ -92,19 +96,21 @@ export default class BaseLevel<
     this.layers[layer] = this.tilemap
       .createFromObjects(
         layer,
-        this.initData.tilesets[layer].map(({ name: key, gid }) => ({
-          key,
+        this.initData.tilesets[layer].map(({ name, gid }) => ({
+          key: name,
           gid,
           classType: Phaser.GameObjects.Image,
         })),
       )
       .map(obj => {
         const image = obj as Phaser.GameObjects.Image
-        return image.setDepth(
-          layers.objectGroup.objects.getDepth(
-            image.name as layers.objectGroup.objects.Name,
-          ),
-        )
+        return image
+          .setDisplaySize(image.frame.realWidth, image.frame.realHeight)
+          .setDepth(
+            layers.objectGroup.objects.getDepth(
+              image.name as layers.objectGroup.objects.Name,
+            ),
+          )
       })
   }
 
