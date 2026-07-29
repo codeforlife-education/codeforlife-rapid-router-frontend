@@ -1,5 +1,6 @@
 import Phaser from "phaser"
 
+import * as layers from "../../../layers"
 import * as objects from "../../../layers/objectGroup/objects"
 import type * as sceneryTilesets from "../../../tilesets/scenery"
 import type { AddEndpointEventData } from "./EndpointManager"
@@ -167,37 +168,17 @@ export default class extends BaseManager {
   private overlapsRoad(obj: Phaser.GameObjects.Image, x: number, y: number) {
     const bounds = this.bounds(obj, x, y)
 
-    // Clip the bounds to the tilemap's world extents first. Otherwise, a
-    // portion of the object hanging off the edge of the map would get its
-    // tile index clamped to the nearest edge tile, making it look like it
-    // overlaps a road there even when it doesn't actually reach that tile.
-    const mapBounds = new Phaser.Geom.Rectangle(
-      0,
-      0,
-      this.level.tilemap.widthInPixels,
-      this.level.tilemap.heightInPixels,
+    const tiles = this.level.tilemap.getTilesWithinWorldXY(
+      bounds.x,
+      bounds.y,
+      bounds.width,
+      bounds.height,
+      { isNotEmpty: true },
+      undefined,
+      layers.Names.Tile.ROAD,
     )
-    const clipped = Phaser.Geom.Rectangle.Intersection(bounds, mapBounds)
-    if (clipped.width <= 0 || clipped.height <= 0) return false
 
-    // Sampling only the 4 corners misses road tiles that lie entirely
-    // beneath the interior of objects wider/taller than a single tile (e.g.
-    // the pond), so we walk every tile the (clipped) bounds span instead.
-    const topLeft = this.level.worldToNearestTile(clipped.left, clipped.top)
-    const bottomRight = this.level.worldToNearestTile(
-      clipped.right - 1,
-      clipped.bottom - 1,
-    )
-    if (!topLeft || !bottomRight) return false
-
-    for (let row = topLeft.row; row <= bottomRight.row; row++) {
-      for (let col = topLeft.col; col <= bottomRight.col; col++) {
-        if (this.level.road.dirsToId(this.level.road.dirs({ col, row })) !== 0)
-          return true
-      }
-    }
-
-    return false
+    return !!tiles && tiles.length > 0
   }
 
   private add(
