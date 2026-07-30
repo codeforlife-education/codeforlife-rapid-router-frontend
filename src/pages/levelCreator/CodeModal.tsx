@@ -6,9 +6,11 @@ import { Close as CloseIcon } from "@mui/icons-material"
 import FormControl from "@mui/material/FormControl"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import IconButton from "@mui/material/IconButton"
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import InputLabel from "@mui/material/InputLabel"
 import MenuItem from "@mui/material/MenuItem"
 import Modal from "@mui/material/Modal"
+import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 
 import BlockListItem, { type BlockCount } from "./BlockListItem"
@@ -21,13 +23,51 @@ const BLOCKS = (CUSTOM_BLOCKS as BlockDefinition<string>[]).filter(
   block => !(START_BLOCK_TYPES as readonly string[]).includes(block.type),
 )
 
+const LANGUAGE_OPTIONS: Record<string, string> = {
+  Blockly:
+    "Solve your level using Blockly blocks only. Select which ones below.",
+  "Blockly with Python view":
+    "As you play your level with Blockly, you will see the equivalent Python translation in a code editor.",
+  Python: "Solve your level using Python code only.",
+}
+
+const LanguageOptionLabel: FC<{ label: string; tooltip: string }> = ({
+  label,
+  tooltip,
+}) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 1,
+      width: "100%",
+    }}
+  >
+    {label}
+    <Tooltip title={tooltip}>
+      <InfoOutlinedIcon
+        fontSize="small"
+        sx={{ color: "text.secondary" }}
+        onMouseDown={event => event.stopPropagation()}
+      />
+    </Tooltip>
+  </Box>
+)
+
+// Used to fill the multi-column grid layouts column-by-column (top to
+// bottom in the first column, then top to bottom in the next, and so on)
+// instead of the grid's default row-by-row fill order.
+const BLOCK_ROWS_TWO_COLUMNS = Math.ceil(BLOCKS.length / 2)
+const BLOCK_ROWS_THREE_COLUMNS = Math.ceil(BLOCKS.length / 3)
+
 export interface CodeModalProps {
   open: boolean
   onClose: () => void
 }
 
 const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
-  const [language, setLanguage] = useState("blockly")
+  const [language, setLanguage] = useState("Blockly")
 
   const handleChange = (event: SelectChangeEvent) => {
     setLanguage(event.target.value)
@@ -101,24 +141,35 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
         <Typography>
           Here you can select the code you can use while playing your new level!
         </Typography>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel id="language-label">Language</InputLabel>
-          <Select
-            labelId="language-label"
-            id="language-select"
-            label="Language"
-            value={language}
-            onChange={handleChange}
-          >
-            <MenuItem value="blockly">Blockly</MenuItem>
-            <MenuItem value="blocklyWithPythonView">
-              Blockly with Python view
-            </MenuItem>
-            <MenuItem value="python">Python</MenuItem>
-            <MenuItem value="both">Both</MenuItem>
-          </Select>
-        </FormControl>
-        {language !== "python" && (
+        <Box sx={{ mb: 2 }}>
+          <FormControl>
+            <InputLabel id="language-label">Language</InputLabel>
+            <Select
+              labelId="language-label"
+              id="language-select"
+              label="Language"
+              value={language}
+              onChange={handleChange}
+              MenuProps={{
+                anchorOrigin: { vertical: "bottom", horizontal: "left" },
+                transformOrigin: { vertical: "top", horizontal: "left" },
+              }}
+              renderValue={value => (
+                <LanguageOptionLabel
+                  label={value}
+                  tooltip={LANGUAGE_OPTIONS[value]}
+                />
+              )}
+            >
+              {Object.entries(LANGUAGE_OPTIONS).map(([label, tooltip]) => (
+                <MenuItem key={label} value={label}>
+                  <LanguageOptionLabel label={label} tooltip={tooltip} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+        {language !== "Python" && (
           <>
             <Typography variant="h6">Blocks</Typography>
             <FormControlLabel
@@ -131,7 +182,24 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
                 />
               }
             />
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  lg: "repeat(2, 1fr)",
+                  xl: "repeat(3, 1fr)",
+                },
+                gridTemplateRows: {
+                  xs: `repeat(${BLOCKS.length}, auto)`,
+                  lg: `repeat(${BLOCK_ROWS_TWO_COLUMNS}, auto)`,
+                  xl: `repeat(${BLOCK_ROWS_THREE_COLUMNS}, auto)`,
+                },
+                gridAutoFlow: "column",
+                rowGap: 1.5,
+                columnGap: 4,
+              }}
+            >
               {BLOCKS.map(block => (
                 <BlockListItem
                   key={block.type}

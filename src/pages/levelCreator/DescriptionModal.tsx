@@ -52,16 +52,18 @@ const DescriptionModal: FC<DescriptionModalProps> = ({ open, onClose }) => {
           multiline
           label="Subtitle"
           rows={6}
-          sx={{ mb: 2 }}
+          sx={{ mb: 2, "& textarea": { resize: "vertical" } }}
           placeholder="What is the subtitle for this level?"
+          slotProps={{ input: { inputComponent: "textarea" } }}
         />
         <TextField
           fullWidth
           multiline
           label="Description"
           rows={6}
-          sx={{ mb: 2 }}
+          sx={{ mb: 2, "& textarea": { resize: "vertical" } }}
           placeholder="What do players have to do to complete this level?"
+          slotProps={{ input: { inputComponent: "textarea" } }}
         />
         <Typography>
           Players will have the option to view a hint when they have made an
@@ -72,7 +74,9 @@ const DescriptionModal: FC<DescriptionModalProps> = ({ open, onClose }) => {
           multiline
           label="Hint"
           rows={6}
+          sx={{ "& textarea": { resize: "vertical" } }}
           placeholder="What advice do you want to give for this level?"
+          slotProps={{ input: { inputComponent: "textarea" } }}
         />
       </Box>
     </Modal>
