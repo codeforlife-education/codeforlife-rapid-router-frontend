@@ -20,8 +20,7 @@ import {
   useRef,
   useState,
 } from "react"
-
-import type { MapToolbox } from "../../phaser/scenes/create/Level"
+import type Phaser from "phaser"
 
 const actions = {
   "mark-start": {
@@ -50,15 +49,15 @@ const actions = {
     backgroundColor: "green",
   },
 } as const satisfies Record<
-  MapToolbox["tool"],
+  Phaser.Types.Scenes.Create.Toolbox.Map["tool"],
   { Icon: SvgIconComponent; title: string; backgroundColor: string }
 >
 
 export interface MapSpeedDialProps {
   openState: [boolean, Dispatch<SetStateAction<boolean>>]
   selectedState: [
-    MapToolbox["tool"],
-    Dispatch<SetStateAction<MapToolbox["tool"]>>,
+    Phaser.Types.Scenes.Create.Toolbox.Map["tool"],
+    Dispatch<SetStateAction<Phaser.Types.Scenes.Create.Toolbox.Map["tool"]>>,
   ]
 }
 
@@ -122,7 +121,11 @@ const MapSpeedDial: FC<MapSpeedDialProps> = ({
                   tooltip: { open: true, title },
                   staticTooltipLabel: { sx: { whiteSpace: "nowrap" } },
                 }}
-                onClick={() => setSelected(tool as MapToolbox["tool"])}
+                onClick={() =>
+                  setSelected(
+                    tool as Phaser.Types.Scenes.Create.Toolbox.Map["tool"],
+                  )
+                }
               />
             ),
           )}

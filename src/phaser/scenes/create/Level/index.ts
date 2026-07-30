@@ -1,22 +1,12 @@
 import Phaser from "phaser"
 
-import type * as scenery from "../../../tilesets/scenery"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
-import { SceneKeys, Variables } from "../../../globals"
 import DragManager from "./DragManager"
 import EndpointManager from "./EndpointManager"
 import RoadManager from "./RoadManager"
+import { SceneKeys } from "../../../globals"
 import SceneryManager from "./SceneryManager"
 
-type _Toolbox<B extends string, T> = { box: B; tool: T }
-export type MapToolbox = _Toolbox<
-  "map",
-  "add-road" | "delete-road" | "add-house" | "delete-house" | "mark-start"
->
-export type SceneryToolbox = _Toolbox<"scenery", scenery.ID>
-export type Toolbox = MapToolbox | SceneryToolbox
-
-export type Tile = { col: number; row: number }
 export type Direction = "top" | "bottom" | "left" | "right"
 export type DirectionSet = Set<Direction> & { readonly size: 0 | 1 | 2 | 3 | 4 }
 
@@ -89,7 +79,7 @@ export default class extends BaseLevel<LevelData> {
 
   /** The currently active tool selected by the player. */
   get toolbox() {
-    return this.game.registry.get(Variables.TOOLBOX) as Toolbox | undefined
+    return this.getVariable<Phaser.Types.Scenes.Create.Toolbox.Any>("toolbox")
   }
 
   /**
@@ -97,7 +87,10 @@ export default class extends BaseLevel<LevelData> {
    * tile when the cursor is outside the tilemap bounds. Returns null only if
    * the tilemap conversion itself fails.
    */
-  worldToNearestTile(worldX: number, worldY: number): Tile | null {
+  worldToNearestTile(
+    worldX: number,
+    worldY: number,
+  ): Phaser.Types.Tilemaps.Tile | null {
     const tileXY = this.tilemap.worldToTileXY(worldX, worldY)
     if (!tileXY) return null
     const col = Phaser.Math.Clamp(tileXY.x, 0, this.tilemap.width - 1)
@@ -109,7 +102,10 @@ export default class extends BaseLevel<LevelData> {
    * Returns the tile at the given world coordinates without clamping to the
    * tilemap bounds. Returns null when the cursor is outside the tilemap.
    */
-  worldToTile(worldX: number, worldY: number): Tile | null {
+  worldToTile(
+    worldX: number,
+    worldY: number,
+  ): Phaser.Types.Tilemaps.Tile | null {
     const tileXY = this.tilemap.worldToTileXY(worldX, worldY)
     if (!tileXY || !this.tileInMap({ col: tileXY.x, row: tileXY.y }))
       return null
@@ -117,19 +113,20 @@ export default class extends BaseLevel<LevelData> {
   }
 
   /** Converts a tile position to world coordinates. */
-  tileToWorld = ({ col, row }: Tile) => this.tilemap.tileToWorldXY(col, row)
+  tileToWorld = ({ col, row }: Phaser.Types.Tilemaps.Tile) =>
+    this.tilemap.tileToWorldXY(col, row)
 
   /** Returns a unique key for the given tile position. */
-  tileToKey = ({ col, row }: Tile) => `${row},${col}`
+  tileToKey = ({ col, row }: Phaser.Types.Tilemaps.Tile) => `${row},${col}`
 
   /** Returns the tile position for the given key. */
-  keyToTile(key: string): Tile {
+  keyToTile(key: string): Phaser.Types.Tilemaps.Tile {
     const [row, col] = key.split(",").map(Number)
     return { row, col }
   }
 
   /** Checks if the given tile is within the bounds of the tilemap. */
-  tileInMap = ({ col, row }: Tile): boolean =>
+  tileInMap = ({ col, row }: Phaser.Types.Tilemaps.Tile): boolean =>
     row >= 0 &&
     row < this.tilemap.height &&
     col >= 0 &&
@@ -140,7 +137,10 @@ export default class extends BaseLevel<LevelData> {
    * cursor jumps diagonally (fast movement), the axis with the larger delta
    * wins so we always produce a single cardinal direction.
    */
-  dirBetweenTiles(from: Tile, to: Tile): Direction {
+  dirBetweenTiles(
+    from: Phaser.Types.Tilemaps.Tile,
+    to: Phaser.Types.Tilemaps.Tile,
+  ): Direction {
     const dRow = to.row - from.row
     const dCol = to.col - from.col
     return Math.abs(dRow) >= Math.abs(dCol)
@@ -156,7 +156,10 @@ export default class extends BaseLevel<LevelData> {
    * Returns a map of valid directions for the given tile. A direction is
    * considered valid if it does not lead outside the tilemap bounds.
    */
-  validTileDirs = ({ col, row }: Tile): Record<Direction, boolean> => ({
+  validTileDirs = ({
+    col,
+    row,
+  }: Phaser.Types.Tilemaps.Tile): Record<Direction, boolean> => ({
     left: col > 0,
     right: col < this.tilemap.width - 1,
     top: row > 0,
@@ -167,7 +170,10 @@ export default class extends BaseLevel<LevelData> {
    * Returns the tile after moving in the given directions.
    * Returns null if the resulting tile is outside the tilemap bounds.
    */
-  moveFromTile({ col, row }: Tile, dirs: Direction[]): Tile | null {
+  moveFromTile(
+    { col, row }: Phaser.Types.Tilemaps.Tile,
+    dirs: Direction[],
+  ): Phaser.Types.Tilemaps.Tile | null {
     for (const dir of dirs) {
       if (dir === "left") col--
       else if (dir === "right") col++
@@ -181,9 +187,12 @@ export default class extends BaseLevel<LevelData> {
 
   /** Walk tiles from the start tile to the end tile. */
   walkBetweenTiles(
-    from: Tile,
-    to: Tile,
-    processTile: (current: Tile, next: Tile) => void,
+    from: Phaser.Types.Tilemaps.Tile,
+    to: Phaser.Types.Tilemaps.Tile,
+    processTile: (
+      current: Phaser.Types.Tilemaps.Tile,
+      next: Phaser.Types.Tilemaps.Tile,
+    ) => void,
   ) {
     // Calculate the delta from the start tile to the end tile.
     const dRow = to.row - from.row
@@ -193,7 +202,7 @@ export default class extends BaseLevel<LevelData> {
     if (dRow !== 0 && dCol !== 0) return
 
     // Determine the step direction for each axis: -1, 0, or +1.
-    const step: Tile = {
+    const step: Phaser.Types.Tilemaps.Tile = {
       row: dRow === 0 ? 0 : dRow > 0 ? 1 : -1,
       col: dCol === 0 ? 0 : dCol > 0 ? 1 : -1,
     }
@@ -202,7 +211,7 @@ export default class extends BaseLevel<LevelData> {
     let current = from
     while (current.row !== to.row || current.col !== to.col) {
       // Calculate the next tile along the path.
-      const next: Tile = {
+      const next: Phaser.Types.Tilemaps.Tile = {
         row: current.row + step.row,
         col: current.col + step.col,
       }
@@ -215,7 +224,7 @@ export default class extends BaseLevel<LevelData> {
 
   /** Highlights a single tile with a transparent overlay. */
   highlightTile(
-    tileOrWorld: Tile | Phaser.Math.Vector2,
+    tileOrWorld: Phaser.Types.Tilemaps.Tile | Phaser.Math.Vector2,
     color: number,
     alpha = 0.4,
   ) {
@@ -234,7 +243,7 @@ export default class extends BaseLevel<LevelData> {
   }
 
   /** Converts a tile position to a bounding box in world coordinates. */
-  tileToBounds(tile: Tile): Phaser.Geom.Rectangle | null {
+  tileToBounds(tile: Phaser.Types.Tilemaps.Tile): Phaser.Geom.Rectangle | null {
     const world = this.tileToWorld(tile)
     if (!world) return null
 
@@ -249,7 +258,7 @@ export default class extends BaseLevel<LevelData> {
   /** Checks if a given box overlaps with a tile. */
   objectOverlapsTile(
     obj: Phaser.GameObjects.Components.GetBounds | Phaser.Geom.Rectangle,
-    tile: Tile | Phaser.Geom.Rectangle,
+    tile: Phaser.Types.Tilemaps.Tile | Phaser.Geom.Rectangle,
   ) {
     if ("col" in tile) {
       const bounds = this.tileToBounds(tile)

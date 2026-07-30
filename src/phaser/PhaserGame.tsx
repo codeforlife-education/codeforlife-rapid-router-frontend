@@ -7,15 +7,15 @@ import {
   useRef,
   useState,
 } from "react"
+import { CircularProgress } from "@mui/material"
 // NOTE: `import type` is a TypeScript feature that only imports type
 //  information for compile-time type checking. When our TypeScript code is
 //  compiled into JavaScript, these type-only imports are completely erased.
 //  They do not generate any JavaScript code that would cause the phaser module
 //  to be loaded at runtime.
-import type { Game, Events as PhaserEvents, Scene } from "phaser"
-import { CircularProgress } from "@mui/material"
+import type Phaser from "phaser"
 
-import { Events, type SceneKey, type Variable, Variables } from "./globals"
+import { Events, type Variable, Variables } from "./globals"
 import { useGameCommands, usePhaserGameContext } from "../app/hooks"
 import type { Level } from "../api/level"
 import type { PhaserGameRef } from "./PhaserGameContext"
@@ -29,7 +29,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const gameCommands = useGameCommands()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const gameRef = useRef<Game>(null)
+  const gameRef = useRef<Phaser.Game>(null)
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
@@ -49,7 +49,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
         defaultValue?: T,
       ) => {
         // Listen for updates to the variable and update the state accordingly.
-        const onPhaserSetVariable: PhaserEvents.PhaserSetVariable = setKey => {
+        const onPhaserSetVariable: Phaser.Events.PhaserSetVariable = setKey => {
           if (getKey !== setKey) return
           set((registry?.get(getKey) as T | undefined) ?? defaultValue)
         }
@@ -76,7 +76,10 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
     // Each scene (see `BaseScene`) broadcasts its own active/inactive status
     // onto the game's event emitter, along with its key. Use this to keep
     // track of which scene keys are currently active.
-    const onSceneActivityChanged = (key: SceneKey, isActive: boolean) =>
+    const onSceneActivityChanged: Phaser.Events.SceneActivityChanged = (
+      key,
+      isActive,
+    ) =>
       setActiveSceneKeys(prevActiveSceneKeys => {
         const wasActive = prevActiveSceneKeys.includes(key)
         if (isActive === wasActive) return prevActiveSceneKeys // No change.
@@ -95,7 +98,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       const Phaser = await import("phaser")
       const { default: scene } = (await import(
         `./scenes/${mode}/index.ts`
-      )) as { default: Scene[] }
+      )) as { default: Phaser.Scene[] }
 
       // Run the checks again to ensure that the component was not unmounted
       // and remounted while the imports were being asynchronously fetched.

@@ -4,8 +4,6 @@ import * as layers from "../../../layers"
 import * as objects from "../../../layers/objectGroup/objects"
 import type * as sceneryTilesets from "../../../tilesets/scenery"
 import { Events, Variables } from "../../../globals"
-import type { AddEndpointEventData } from "./EndpointManager"
-import type { AddRoadEventData } from "./RoadManager"
 import BaseManager from "./BaseManager"
 import type { default as Level } from "."
 
@@ -37,6 +35,7 @@ export default class extends BaseManager {
   constructor(level: Level) {
     super(level)
 
+    level.setVariable("sceneryObjectCount", this.scenery.length)
     level.setVariable("maxSceneryObjectCount", this.maxLength)
 
     this.deleteButton = this.createDeleteButton(level)
@@ -56,11 +55,12 @@ export default class extends BaseManager {
   }
 
   private registerEventListeners({ game, input, events }: Level) {
-    const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
+    const onAddRoad: Phaser.Events.AddRoad = (...args) =>
+      this.onAddRoad(...args)
     game.events.on(Events.ADD_ROAD, onAddRoad)
 
-    const onAddEndpoint = (data: AddEndpointEventData) =>
-      this.onAddEndpoint(data)
+    const onAddEndpoint: Phaser.Events.AddEndpoint = (...args) =>
+      this.onAddEndpoint(...args)
     game.events.on(Events.ADD_ENDPOINT, onAddEndpoint)
 
     const onReactSetVariable: Phaser.Events.ReactSetVariable = (...args) =>
@@ -431,7 +431,7 @@ export default class extends BaseManager {
   }
 
   /** When a road is added, delete any overlapping scenery objects. */
-  private onAddRoad({ col, row }: AddRoadEventData) {
+  private onAddRoad: Phaser.Events.AddRoad = ({ col, row }) => {
     const tile = this.level.tileToBounds({ col, row })
     if (!tile) return
 
@@ -440,7 +440,7 @@ export default class extends BaseManager {
     }
   }
 
-  private onAddEndpoint({ obj: endpoint }: AddEndpointEventData) {
+  private onAddEndpoint: Phaser.Events.AddEndpoint = ({ obj: endpoint }) => {
     for (const obj of [...this.scenery]) {
       if (this.overlapsEndpoint(obj, endpoint)) this.delete(obj)
     }

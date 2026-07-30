@@ -1,25 +1,16 @@
 import Phaser from "phaser"
 
-import type {
-  Direction,
-  DirectionSet,
-  default as Level,
-  Tile,
-  Toolbox,
-} from "."
+import type { Direction, DirectionSet, default as Level } from "."
 import BaseManager from "./BaseManager"
 import { Events } from "../../../globals"
-
-export type DragEndEventData = {
-  toolbox: Toolbox
-  sequence: Tile[]
-  set: Set<string>
-}
 
 export type HighlightConfig = { color: number; alpha?: number }
 export type ToolConfig = { drawDirs: boolean; highlight: HighlightConfig }
 export type ToolConfigs = Partial<
-  Record<Toolbox["box"], Partial<Record<Toolbox["tool"], ToolConfig>>>
+  Record<
+    Phaser.Types.Scenes.Create.Toolbox.Any["box"],
+    Partial<Record<Phaser.Types.Scenes.Create.Toolbox.Any["tool"], ToolConfig>>
+  >
 >
 
 export default class extends BaseManager {
@@ -27,14 +18,14 @@ export default class extends BaseManager {
   private readonly toolConfigs: ToolConfigs
 
   /** The tool that was active when the current drag started. */
-  private _toolbox?: Toolbox
+  private _toolbox?: Phaser.Types.Scenes.Create.Toolbox.Any
 
   /**
    * Full ordered sequence of tiles visited during the current drag, including
    * revisits. Revisits are necessary to accumulate all directions correctly
    * (e.g. a tile crossed twice in different directions gets both directions).
    */
-  private _sequence: Tile[] = []
+  private _sequence: Phaser.Types.Tilemaps.Tile[] = []
 
   /**
    * Set of unique tile keys visited in the current drag, used to efficiently
@@ -55,18 +46,19 @@ export default class extends BaseManager {
 
     this.toolConfigs = toolConfigs
 
-    const onPointerDown = (pointer: Phaser.Input.Pointer) =>
-      this.onPointerDown(pointer)
+    const onPointerDown: Phaser.Input.Events.PointerDown = (...args) =>
+      this.onPointerDown(...args)
     level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
-    const onPointerMove = (pointer: Phaser.Input.Pointer) =>
-      this.onPointerMove(pointer)
+    const onPointerMove: Phaser.Input.Events.PointerMove = (...args) =>
+      this.onPointerMove(...args)
     level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
 
-    const onPointerUp = () => this.onPointerUp()
+    const onPointerUp: Phaser.Input.Events.PointerUp = () => this.endDrag()
     level.input.on(Phaser.Input.Events.POINTER_UP, onPointerUp)
 
-    const onPointerUpOutside = () => this.onPointerUpOutside()
+    const onPointerUpOutside: Phaser.Input.Events.PointerUpOutside = () =>
+      this.endDrag()
     level.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, onPointerUpOutside)
 
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -80,7 +72,9 @@ export default class extends BaseManager {
     })
   }
 
-  private toolConfig(toolbox: Toolbox | undefined = this._toolbox) {
+  private toolConfig(
+    toolbox: Phaser.Types.Scenes.Create.Toolbox.Any | undefined = this._toolbox,
+  ) {
     if (!toolbox) return null
     const { box, tool } = toolbox
 
@@ -94,7 +88,10 @@ export default class extends BaseManager {
   }
 
   /** Highlights a tile using the provided configuration. */
-  private highlightTile(tile: Tile, config: HighlightConfig) {
+  private highlightTile(
+    tile: Phaser.Types.Tilemaps.Tile,
+    config: HighlightConfig,
+  ) {
     this.level.highlightTile(tile, config.color, config.alpha)
   }
 
@@ -102,7 +99,7 @@ export default class extends BaseManager {
    * Draws an arrow indicating the direction of travel from the center of a tile
    * to its edge.
    */
-  private drawDir(tile: Tile, dir: Direction) {
+  private drawDir(tile: Phaser.Types.Tilemaps.Tile, dir: Direction) {
     if (!this.level.validTileDirs(tile)[dir]) return
 
     const worldXY = this.level.tileToWorld(tile)
@@ -129,7 +126,11 @@ export default class extends BaseManager {
     this.level.graphics.arrow(cx, cy, ex, ey, tw * 0.15, th * 0.2)
   }
 
-  private add(current: Tile, next: Tile, toolConfig: ToolConfig) {
+  private add(
+    current: Phaser.Types.Tilemaps.Tile,
+    next: Phaser.Types.Tilemaps.Tile,
+    toolConfig: ToolConfig,
+  ) {
     // Record the order of the tiles visited during the drag.
     this._sequence.push(next)
 
@@ -166,7 +167,7 @@ export default class extends BaseManager {
   }
 
   /** Start a drag operation at the nearest tile to the pointer. */
-  private onPointerDown(pointer: Phaser.Input.Pointer) {
+  private onPointerDown: Phaser.Input.Events.PointerDown = pointer => {
     const toolbox = this.level.toolbox
     const toolConfig = this.toolConfig(toolbox)
     if (!toolConfig) return
@@ -185,7 +186,7 @@ export default class extends BaseManager {
   }
 
   /** Walk tiles from the last tile to the current tile. */
-  private onPointerMove(pointer: Phaser.Input.Pointer) {
+  private onPointerMove: Phaser.Input.Events.PointerMove = pointer => {
     const toolConfig = this.toolConfig()
     if (!toolConfig) return
 
@@ -204,7 +205,7 @@ export default class extends BaseManager {
   }
 
   /** End a drag operation. */
-  private onPointerUp() {
+  private endDrag() {
     if (!this._toolbox) return
 
     if (this._sequence.length > 1) {
@@ -212,7 +213,7 @@ export default class extends BaseManager {
         toolbox: this._toolbox,
         sequence: this._sequence,
         set: new Set(this._set),
-      } as DragEndEventData)
+      } as Phaser.Events.DragEndData)
     }
 
     this._toolbox = undefined
@@ -221,6 +222,4 @@ export default class extends BaseManager {
     this._dirs.clear()
     this.level.graphics.clear()
   }
-
-  private onPointerUpOutside = () => this.onPointerUp()
 }

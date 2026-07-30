@@ -1,11 +1,39 @@
 import type { Property } from "csstype"
 
-import type { Variable } from "../globals"
+import type { Variable, SceneKey } from "./globals"
+import type * as layers from "./layers"
+import type * as tilesets from "./tilesets"
+
+type _Toolbox<B extends string, T> = { box: B; tool: T }
 
 declare module "phaser" {
   namespace Events {
     type ReactSetVariable = (key: Variable) => void
     type PhaserSetVariable = (key: Variable) => void
+
+    type DragEndData = {
+      toolbox: Phaser.Types.Scenes.Create.Toolbox.Any
+      sequence: Phaser.Types.Tilemaps.Tile[]
+      set: Set<string>
+    }
+    type DragEnd = (data: DragEndData) => void
+
+    type AddRoadData = Phaser.Types.Tilemaps.Tile & {
+      id: layers.tile.data.RoadID
+    }
+    type AddRoad = (data: AddRoadData) => void
+
+    type DeleteRoadData = Phaser.Types.Tilemaps.Tile
+    type DeleteRoad = (data: DeleteRoadData) => void
+
+    type AddEndpointData = Phaser.Types.Tilemaps.Tile & {
+      type: "house" | "cfc"
+      obj: Phaser.GameObjects.Image
+      variant: { key: string; crossoverTiles: { col: number; row: number }[] }
+    }
+    type AddEndpoint = (data: AddEndpointData) => void
+
+    type SceneActivityChanged = (key: SceneKey, isActive: boolean) => void
   }
 
   namespace GameObjects {
@@ -89,6 +117,28 @@ declare module "phaser" {
   }
 
   namespace Types {
+    namespace Tilemaps {
+      type Tile = { col: number; row: number }
+    }
+
+    namespace Scenes {
+      namespace Create {
+        namespace Toolbox {
+          type Map = _Toolbox<
+            "map",
+            | "add-road"
+            | "delete-road"
+            | "add-house"
+            | "delete-house"
+            | "mark-start"
+          >
+          type Scenery = _Toolbox<"scenery", tilesets.scenery.ID>
+          type Any = Map | Scenery
+        }
+      }
+      namespace Play {}
+    }
+
     namespace GameObjects {
       namespace FloatingActionButton {
         type Options = { depth?: number; iconMargin?: number }
@@ -126,6 +176,9 @@ declare module "phaser" {
         Obj extends
           Phaser.GameObjects.GameObject = Phaser.GameObjects.GameObject,
       > = (pointer: Phaser.Input.Pointer, currentlyOver: Obj[]) => void
+
+      // https://docs.phaser.io/api-documentation/event/input-events#pointer_up_outside
+      type PointerUpOutside = (pointer: Phaser.Input.Pointer) => void
 
       // https://docs.phaser.io/api-documentation/event/input-events#gameobject_drag_start
       type GameObjectDragStart = (

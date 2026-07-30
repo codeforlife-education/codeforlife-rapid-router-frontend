@@ -109,6 +109,6 @@ export default class BaseScene<
   /** Sets a variable in the Phaser registry and emits an event. */
   setVariable(key: Variable, value: any) {
     this.registry.set(key, value)
-    this.events.emit(Events.PHASER_SET_VARIABLE, key)
+    this.game.events.emit(Events.PHASER_SET_VARIABLE, key)
   }
 }

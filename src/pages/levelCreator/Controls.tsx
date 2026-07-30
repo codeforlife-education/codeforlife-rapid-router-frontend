@@ -14,10 +14,10 @@ import {
 } from "@mui/icons-material"
 import { type FC, useEffect, useState } from "react"
 import { Divider } from "@mui/material"
+import type Phaser from "phaser"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import * as tilesets from "../../phaser/tilesets"
-import type { MapToolbox, SceneryToolbox } from "../../phaser/scenes/create"
 import MapSpeedDial from "./MapSpeedDial"
 import SceneryImageSelect from "./SceneryImageSelect"
 import { ZoomControls } from "../../phaser"
@@ -38,7 +38,8 @@ const Controls: FC<ControlsProps> = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [selected, setSelected] = useState<SelectableButtonId>("map")
   const mapOpenState = useState(false)
-  const mapSelectedState = useState<MapToolbox["tool"]>("add-road")
+  const mapSelectedState =
+    useState<Phaser.Types.Scenes.Create.Toolbox.Map["tool"]>("add-road")
   const sceneryOpenState = useState(false)
   const scenerySelectedState = useState<tilesets.scenery.ID>(
     tilesets.IDs.Scenery.Common.BUSH,
@@ -54,8 +55,14 @@ const Controls: FC<ControlsProps> = () => {
     phaserGame.setVariable(
       "toolbox",
       selected === "map"
-        ? ({ box: selected, tool: mapSelectedState[0] } as MapToolbox)
-        : ({ box: selected, tool: scenerySelectedState[0] } as SceneryToolbox),
+        ? ({
+            box: selected,
+            tool: mapSelectedState[0],
+          } as Phaser.Types.Scenes.Create.Toolbox.Map)
+        : ({
+            box: selected,
+            tool: scenerySelectedState[0],
+          } as Phaser.Types.Scenes.Create.Toolbox.Scenery),
     )
   }, [phaserGame, selected, mapSelectedState, scenerySelectedState])
 
