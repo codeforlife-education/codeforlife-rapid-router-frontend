@@ -18,10 +18,10 @@ const ZoomControls: FC<ZoomControlsProps> = () => {
       spacing={1}
       sx={{ position: "fixed", top: 16, right: 16, zIndex: 1 }}
     >
-      <Fab size="small" onClick={() => phaserGame?.zoom.out()}>
+      <Fab size="small" onClick={() => phaserGame?.zoomOut()}>
         <img src={ZoomOutSvg} alt="Zoom out" width="100%" height="100%" />
       </Fab>
-      <Fab size="small" onClick={() => phaserGame?.zoom.in()}>
+      <Fab size="small" onClick={() => phaserGame?.zoomIn()}>
         <img src={ZoomInSvg} alt="Zoom in" width="100%" height="100%" />
       </Fab>
     </Stack>

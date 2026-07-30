@@ -3,10 +3,10 @@ import Phaser from "phaser"
 import * as layers from "../../../layers"
 import * as objects from "../../../layers/objectGroup/objects"
 import type * as sceneryTilesets from "../../../tilesets/scenery"
+import { Events, Variables } from "../../../globals"
 import type { AddEndpointEventData } from "./EndpointManager"
 import type { AddRoadEventData } from "./RoadManager"
 import BaseManager from "./BaseManager"
-import { Events } from "../../../globals"
 import type { default as Level } from "."
 
 type Drag = {
@@ -36,16 +36,18 @@ export default class extends BaseManager {
 
   constructor(level: Level) {
     super(level)
+
+    level.setVariable("maxSceneryObjectCount", this.maxLength)
+
     this.deleteButton = this.createDeleteButton(level)
     this.registerEventListeners(level)
   }
 
   private createDeleteButton({ add }: Level) {
-    const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp =
-      pointer => {
-        if (this.selectedObject) this.delete(this.selectedObject)
-        this.handleGhost(pointer)
-      }
+    const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = pointer => {
+      if (this.selectedObject) this.delete(this.selectedObject)
+      this.handleGhost(pointer)
+    }
 
     return add
       .fab(0, 0, "delete-icon", 0xff0000, 0xc0392b)
@@ -61,30 +63,31 @@ export default class extends BaseManager {
       this.onAddEndpoint(data)
     game.events.on(Events.ADD_ENDPOINT, onAddEndpoint)
 
-    const onSetToolbox = () => this.onSetToolbox()
-    game.events.on(Events.SET_TOOLBOX, onSetToolbox)
+    const onReactSetVariable: Phaser.Events.ReactSetVariable = (...args) =>
+      this.onReactSetVariable(...args)
+    game.events.on(Events.REACT_SET_VARIABLE, onReactSetVariable)
 
     // Phaser fires the scene-level POINTER_DOWN with currentlyOver BEFORE the
     // individual game-object POINTER_DOWN events, so we can inspect what is
     // under the cursor here without needing a separate flag.
-    const onPointerDown: Phaser.Input.Events.Listeners.PointerDown<
+    const onPointerDown: Phaser.Input.Events.PointerDown<
       Phaser.GameObjects.Image
     > = (...args) => this.onPointerDown(...args)
     input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
-    const onPointerMove: Phaser.Input.Events.Listeners.PointerMove<
+    const onPointerMove: Phaser.Input.Events.PointerMove<
       Phaser.GameObjects.Image
     > = (...args) => this.onPointerMove(...args)
     input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
 
-    const onGameOut: Phaser.Input.Events.Listeners.GameOut = (...args) =>
+    const onGameOut: Phaser.Input.Events.GameOut = (...args) =>
       this.onGameOut(...args)
     input.on(Phaser.Input.Events.GAME_OUT, onGameOut)
 
     events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       game.events.off(Events.ADD_ROAD, onAddRoad)
       game.events.off(Events.ADD_ENDPOINT, onAddEndpoint)
-      game.events.off(Events.SET_TOOLBOX, onSetToolbox)
+      game.events.off(Events.REACT_SET_VARIABLE, onReactSetVariable)
       input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
       input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
       input.off(Phaser.Input.Events.GAME_OUT, onGameOut)
@@ -193,7 +196,9 @@ export default class extends BaseManager {
       .setOrigin(0.5, 0.5)
       .setPosition(worldX, worldY)
 
-    const onDragStart: Phaser.Input.Events.Listeners.GameObjectDragStart = () =>
+    this.level.setVariable("sceneryObjectCount", this.scenery.length)
+
+    const onDragStart: Phaser.Input.Events.GameObjectDragStart = () =>
       this.startDrag(obj, {
         on: () => {
           obj
@@ -207,32 +212,26 @@ export default class extends BaseManager {
         },
       })
 
-    const onDrag: Phaser.Input.Events.Listeners.GameObjectDrag = (
-      _,
-      dragX,
-      dragY,
-    ) => this.dragTo(obj, dragX, dragY)
+    const onDrag: Phaser.Input.Events.GameObjectDrag = (_, dragX, dragY) =>
+      this.dragTo(obj, dragX, dragY)
 
-    const onDragEnd: Phaser.Input.Events.Listeners.GameObjectDragEnd = () =>
+    const onDragEnd: Phaser.Input.Events.GameObjectDragEnd = () =>
       this.endDrag(obj)
 
-    const onPointerOver: Phaser.Input.Events.Listeners.GameObjectPointerOver =
-      () => {
-        if (!this.tool || this.drag) return
-        this.level.input.setDefaultCursor("grab")
-      }
+    const onPointerOver: Phaser.Input.Events.GameObjectPointerOver = () => {
+      if (!this.tool || this.drag) return
+      this.level.input.setDefaultCursor("grab")
+    }
 
-    const onPointerOut: Phaser.Input.Events.Listeners.GameObjectPointerOut =
-      () => {
-        if (!this.tool || this.drag) return
-        this.level.input.setDefaultCursor("default")
-      }
+    const onPointerOut: Phaser.Input.Events.GameObjectPointerOut = () => {
+      if (!this.tool || this.drag) return
+      this.level.input.setDefaultCursor("default")
+    }
 
-    const onPointerUp: Phaser.Input.Events.Listeners.GameObjectPointerUp =
-      () => {
-        if (!this.tool) return
-        this.select(obj)
-      }
+    const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = () => {
+      if (!this.tool) return
+      this.select(obj)
+    }
 
     obj = obj
       .on(Phaser.Input.Events.DRAG_START, onDragStart)
@@ -248,6 +247,7 @@ export default class extends BaseManager {
   private delete(obj: Phaser.GameObjects.Image) {
     if (this.selectedObject === obj) this.deselect()
     this.level.destroyObject("ObjectGroup.SCENERY", obj)
+    this.level.setVariable("sceneryObjectCount", this.scenery.length)
   }
 
   /** Begin dragging the given scenery object from its current position. */
@@ -296,11 +296,11 @@ export default class extends BaseManager {
    * object, drive the same drag behaviour manually until it's released.
    */
   private dragNewObject(obj: Phaser.GameObjects.Image) {
-    const onPointerMove: Phaser.Input.Events.Listeners.PointerMove<
+    const onPointerMove: Phaser.Input.Events.PointerMove<
       Phaser.GameObjects.Image
     > = pointer => this.dragTo(obj, pointer.worldX, pointer.worldY)
 
-    const onPointerUp: Phaser.Input.Events.Listeners.PointerUp<
+    const onPointerUp: Phaser.Input.Events.PointerUp<
       Phaser.GameObjects.Image
     > = () => this.endDrag(obj)
 
@@ -379,6 +379,7 @@ export default class extends BaseManager {
 
     // Indirectly over an existing object or road tile.
     if (
+      this.scenery.length >= this.maxLength ||
       this.overlapsObject(this.ghost.obj, pointer.worldX, pointer.worldY) ||
       this.overlapsRoad(this.ghost.obj, pointer.worldX, pointer.worldY)
     ) {
@@ -396,7 +397,7 @@ export default class extends BaseManager {
     this.ghost = null
   }
 
-  private onPointerDown: Phaser.Input.Events.Listeners.PointerDown<Phaser.GameObjects.Image> =
+  private onPointerDown: Phaser.Input.Events.PointerDown<Phaser.GameObjects.Image> =
     (pointer, currentlyOver) => {
       const tool = this.tool
       if (!tool) return
@@ -415,14 +416,14 @@ export default class extends BaseManager {
       if (obj && pointer.isDown) this.dragNewObject(obj)
     }
 
-  private onPointerMove: Phaser.Input.Events.Listeners.PointerMove<Phaser.GameObjects.Image> =
+  private onPointerMove: Phaser.Input.Events.PointerMove<Phaser.GameObjects.Image> =
     (pointer, currentlyOver) => {
       if (!this.tool) return
       this.handleGhost(pointer, currentlyOver)
     }
 
   /** Handle the pointer leaving the game canvas. */
-  private onGameOut: Phaser.Input.Events.Listeners.GameOut = () => {
+  private onGameOut: Phaser.Input.Events.GameOut = () => {
     if (!this.tool) return
     if (this.ghost) this.handleGhost()
     if (this.selectedObject) this.deselect()
@@ -445,7 +446,9 @@ export default class extends BaseManager {
     }
   }
 
-  private onSetToolbox() {
+  private onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
+    if (key !== Variables.TOOLBOX) return
+
     let draggable = true
 
     const tool = this.tool

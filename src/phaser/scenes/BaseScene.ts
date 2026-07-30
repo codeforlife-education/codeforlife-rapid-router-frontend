@@ -4,7 +4,13 @@ import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 
 import "../gameObjects" // Register custom game objects.
-import { Events, type SceneKey, TILE_HEIGHT, TILE_WIDTH } from "../globals"
+import {
+  Events,
+  type SceneKey,
+  TILE_HEIGHT,
+  TILE_WIDTH,
+  type Variable,
+} from "../globals"
 
 type IconProps = Partial<{ width: number; height: number; color: string }>
 const DEFAULT_ICON_WIDTH = TILE_WIDTH / 2
@@ -91,5 +97,18 @@ export default class BaseScene<
   /** Loads a MUI icon as an SVG. */
   loadMuiIcon(key: string, icon: typeof SvgIcon, iconProps?: IconProps) {
     return this.load.svg(key, this.muiIconToDataUriString(icon, iconProps))
+  }
+
+  /** Gets a variable from the Phaser registry. */
+  getVariable<T>(key: Variable): T | undefined
+  getVariable<T>(key: Variable, defaultValue: T): T
+  getVariable<T>(key: Variable, defaultValue?: T) {
+    return (this.game.registry.get(key) as T | undefined) ?? defaultValue
+  }
+
+  /** Sets a variable in the Phaser registry and emits an event. */
+  setVariable(key: Variable, value: any) {
+    this.registry.set(key, value)
+    this.events.emit(Events.PHASER_SET_VARIABLE, key)
   }
 }

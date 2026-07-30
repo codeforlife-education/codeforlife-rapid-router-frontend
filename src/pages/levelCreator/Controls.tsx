@@ -17,8 +17,8 @@ import { Divider } from "@mui/material"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import * as tilesets from "../../phaser/tilesets"
+import type { MapToolbox, SceneryToolbox } from "../../phaser/scenes/create"
 import MapSpeedDial from "./MapSpeedDial"
-import type { MapToolbox } from "../../phaser/scenes/create/Level"
 import SceneryImageSelect from "./SceneryImageSelect"
 import { ZoomControls } from "../../phaser"
 import { usePhaserGameContext } from "../../app/hooks"
@@ -50,11 +50,12 @@ const Controls: FC<ControlsProps> = () => {
 
   // Update the Phaser game tool whenever the selected tool changes.
   useEffect(() => {
-    if (selected !== "map" && selected !== "scenery") return
-    phaserGame?.setCreateToolbox(
+    if (!phaserGame || (selected !== "map" && selected !== "scenery")) return
+    phaserGame.setVariable(
+      "toolbox",
       selected === "map"
-        ? { box: selected, tool: mapSelectedState[0] }
-        : { box: selected, tool: scenerySelectedState[0] },
+        ? ({ box: selected, tool: mapSelectedState[0] } as MapToolbox)
+        : ({ box: selected, tool: scenerySelectedState[0] } as SceneryToolbox),
     )
   }, [phaserGame, selected, mapSelectedState, scenerySelectedState])
 

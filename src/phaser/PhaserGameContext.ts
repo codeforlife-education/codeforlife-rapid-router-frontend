@@ -5,12 +5,20 @@ import {
   createContext,
 } from "react"
 
-import type { SceneKey } from "./globals"
-import type { Toolbox } from "./scenes/create"
+import type { SceneKey, Variable } from "./globals"
 
 export type PhaserGameRef = {
-  zoom: { in: () => void; out: () => void }
-  setCreateToolbox: (toolbox: Toolbox) => void
+  zoomIn: () => void
+  zoomOut: () => void
+  getVariable: {
+    <T>(key: Variable, set: Dispatch<SetStateAction<T | undefined>>): () => void
+    <T>(
+      key: Variable,
+      set: Dispatch<SetStateAction<T>>,
+      defaultValue: T,
+    ): () => void
+  }
+  setVariable: (key: Variable, value?: any) => void
 }
 
 export type PhaserGameContextValue = {

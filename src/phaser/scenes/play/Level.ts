@@ -18,7 +18,9 @@ export interface LevelData extends BaseLevelData {}
 export default class extends BaseLevel<LevelData> {
   static readonly KEY = SceneKeys.Play.LEVEL
 
-  private commands: GameCommand[] = []
+  private get commands() {
+    return this.getVariable<GameCommand[]>("commands", [])
+  }
 
   create() {
     this.scene.launch(HUD.KEY)
@@ -26,14 +28,12 @@ export default class extends BaseLevel<LevelData> {
     super.create()
 
     // Listen for updates to the game commands.
-    const getCommands = () => this.getCommands()
-    this.game.events.on(Events.SET_COMMANDS, getCommands)
+    const onReactSetVariable: Phaser.Events.ReactSetVariable = (...args) =>
+      this.onReactSetVariable(...args)
+    this.game.events.on(Events.REACT_SET_VARIABLE, onReactSetVariable)
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.game.events.off(Events.SET_COMMANDS, getCommands)
+      this.game.events.off(Events.REACT_SET_VARIABLE, onReactSetVariable)
     })
-
-    // WARN: This must come last!
-    this.game.events.emit(Events.GAMEPLAY_SCENE_READY)
   }
 
   // @ts-expect-error will be used in the future
@@ -42,12 +42,16 @@ export default class extends BaseLevel<LevelData> {
     this.scene.pause()
   }
 
-  private getCommands() {
-    this.commands = this.game.registry.get(Variables.COMMANDS) as GameCommand[]
-  }
-
   // @ts-expect-error will be used in the future
   private runCommands() {
+    // TODO: Implement the logic to process the character commands and update
+    // the game state accordingly.
+    console.log(this.commands)
+  }
+
+  private onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
+    if (key !== Variables.COMMANDS) return
+
     // TODO: Implement the logic to process the character commands and update
     // the game state accordingly.
     console.log(this.commands)

@@ -44,10 +44,10 @@ export default class extends Phaser.GameObjects.Container {
     return this.getAt<Phaser.GameObjects.Image>(1)
   }
 
-  onPointerOver: Phaser.Input.Events.Listeners.GameObjectPointerOver = () =>
+  onPointerOver: Phaser.Input.Events.GameObjectPointerOver = () =>
     this.background.setFillStyle(this.backgroundColorOver)
 
-  onPointerOut: Phaser.Input.Events.Listeners.GameObjectPointerOut = () =>
+  onPointerOut: Phaser.Input.Events.GameObjectPointerOut = () =>
     this.background.setFillStyle(this.backgroundColorOut)
 
   setInteractive({
