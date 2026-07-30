@@ -37,7 +37,7 @@ export default class extends BaseLevel<LevelData> {
   scenery!: SceneryManager
 
   /** Graphics used to render tile highlights for tools. */
-  graphics!: Phaser.GameObjects.CustomGraphics
+  graphics!: Phaser.GameObjects.Graphics
 
   /** A mapping of each direction to its opposite direction. */
   readonly dirOpposites: Record<Direction, Direction> = {
@@ -53,7 +53,7 @@ export default class extends BaseLevel<LevelData> {
 
     // Draw a permanent grid over the tilemap to visualize the tile boundaries.
     this.add
-      .customGraphics()
+      .graphics()
       .grid(
         this.tilemap.width,
         this.tilemap.height,
@@ -63,7 +63,7 @@ export default class extends BaseLevel<LevelData> {
 
     // Create a configurable graphics objects for tools to use.
     // Set the depth to 1 so it renders above the grid and tilemap layers.
-    this.graphics = this.add.customGraphics().setDepth(1)
+    this.graphics = this.add.graphics().setDepth(1)
 
     // Initialize the managers.
     this.drag = new DragManager(this, {

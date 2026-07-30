@@ -37,17 +37,25 @@ declare module "phaser" {
   }
 
   namespace GameObjects {
-    namespace Graphics {
-      type RequiredLineStyle = { width: number; color: number; alpha?: number }
-      type RequiredFillStyle = { color: number; alpha?: number }
-    }
+    interface Graphics extends Phaser.GameObjects.Graphics {
+      defaultArrowShaftStyle: Phaser.Types.GameObjects.Graphics.RequiredLineStyle
+      defaultArrowHeadStyle: Phaser.Types.GameObjects.Graphics.RequiredFillStyle
+      defaultGridStyle: Phaser.Types.GameObjects.Graphics.RequiredLineStyle
 
-    type Button = {
-      bg: Phaser.GameObjects.Rectangle
-      label: Phaser.GameObjects.Text
-    }
-
-    interface CustomGraphics extends Phaser.GameObjects.Graphics {
+      /**
+       * Draws an arrow from (x1, y1) to (x2, y2).
+       * The arrowhead is a filled isosceles triangle of the given width and height.
+       *
+       * @param x1 - The x-coordinate of the start point of the arrow.
+       * @param y1 - The y-coordinate of the start point of the arrow.
+       * @param x2 - The x-coordinate of the end point of the arrow.
+       * @param y2 - The y-coordinate of the end point of the arrow.
+       * @param headWidth - The width of the arrowhead triangle.
+       * @param headHeight - The height of the arrowhead triangle.
+       * @param shaftStyle - The line style for the arrow shaft.
+       * @param headStyle - The fill style for the arrowhead.
+       * @returns The Graphics object for chaining.
+       */
       arrow(
         x1: number,
         y1: number,
@@ -55,17 +63,33 @@ declare module "phaser" {
         y2: number,
         headWidth: number,
         headHeight: number,
-        shaftStyle?: RequiredLineStyle,
-        headStyle?: RequiredFillStyle,
+        shaftStyle?: Phaser.Types.GameObjects.Graphics.RequiredLineStyle,
+        headStyle?: Phaser.Types.GameObjects.Graphics.RequiredFillStyle,
       ): this
 
+      /**
+       * Draws a grid with the given cell dimensions and number of columns and rows.
+       * The Graphics object must already have lineStyle set.
+       *
+       * @param cols - The number of columns in the grid.
+       * @param rows - The number of rows in the grid.
+       * @param cellWidth - The width of each cell in the grid.
+       * @param cellHeight - The height of each cell in the grid.
+       * @param style - The line style for the grid lines.
+       * @returns The Graphics object for chaining.
+       */
       grid(
         cols: number,
         rows: number,
         cellWidth: number,
         cellHeight: number,
-        style?: RequiredLineStyle,
+        style?: Phaser.Types.GameObjects.Graphics.RequiredLineStyle,
       ): this
+    }
+
+    type Button = {
+      bg: Phaser.GameObjects.Rectangle
+      label: Phaser.GameObjects.Text
     }
 
     interface FloatingActionButton extends Phaser.GameObjects.Container {
@@ -103,8 +127,6 @@ declare module "phaser" {
         bgStyle: Phaser.Types.GameObjects.Graphics.FillStyle,
       ): Button
 
-      customGraphics(): CustomGraphics
-
       fab(
         x: number,
         y: number,
@@ -140,6 +162,15 @@ declare module "phaser" {
     }
 
     namespace GameObjects {
+      namespace Graphics {
+        type RequiredLineStyle = {
+          width: number
+          color: number
+          alpha?: number
+        }
+        type RequiredFillStyle = { color: number; alpha?: number }
+      }
+
       namespace FloatingActionButton {
         type Options = { depth?: number; iconMargin?: number }
       }
