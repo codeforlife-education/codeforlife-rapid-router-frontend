@@ -83,43 +83,6 @@ const CharacterModal: FC<CharacterModalProps> = ({ open, onClose }) => {
         <Typography>
           Here you can choose your character. Who will you play as?
         </Typography>
-        <RadioGroup
-          value={character}
-          onChange={event => setCharacter(event.target.value)}
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
-            gap: 1,
-            mt: 2,
-          }}
-        >
-          {CHARACTER_OPTIONS.map(option => (
-            <FormControlLabel
-              key={option.value}
-              value={option.value}
-              control={<Radio />}
-              sx={{ m: 0, alignItems: "center" }}
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 0.5,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={option.image}
-                    alt={option.name}
-                    sx={{ width: 120, height: 120 }}
-                  />
-                  <Typography>{option.name}</Typography>
-                </Box>
-              }
-            />
-          ))}
-        </RadioGroup>
         <TextField
           type="number"
           label={getMaxMovesLabel(character)}
@@ -130,9 +93,49 @@ const CharacterModal: FC<CharacterModalProps> = ({ open, onClose }) => {
               setMaxMoves(Math.min(100, Math.max(1, value)))
             }
           }}
-          slotProps={{ htmlInput: { min: 1, max: 100 } }}
-          sx={{ mt: 2, width: 200 }}
+          slotProps={{ htmlInput: { min: 1, max: 100, size: 4 } }}
+          sx={{ mt: 2, width: "fit-content" }}
         />
+        <RadioGroup
+          value={character}
+          onChange={event => setCharacter(event.target.value)}
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(2, 1fr)",
+              md: "repeat(3, 1fr)",
+              lg: "repeat(4, 1fr)",
+            },
+            gap: 1,
+            mt: 2,
+          }}
+        >
+          {CHARACTER_OPTIONS.map(option => (
+            <Box
+              key={option.value}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 0.5,
+              }}
+            >
+              <Box
+                component="img"
+                src={option.image}
+                alt={option.name}
+                sx={{ width: 200, height: 200 }}
+              />
+              <FormControlLabel
+                value={option.value}
+                control={<Radio />}
+                label={option.name}
+                sx={{ m: 0 }}
+              />
+            </Box>
+          ))}
+        </RadioGroup>
       </Box>
     </Modal>
   )
