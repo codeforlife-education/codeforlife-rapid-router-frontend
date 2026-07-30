@@ -2,6 +2,7 @@ import {
   type Dispatch,
   type FC,
   type SetStateAction,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -35,39 +36,53 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
     throw ReferenceError("Phaser game context not provided.")
   const { ref, setActiveSceneKeys } = phaserGameContext
 
+  const getVariable = useCallback(
+    (<T,>(
+      getKey: Variable,
+      set: Dispatch<SetStateAction<T | undefined>>,
+      defaultValue?: T,
+    ) => {
+      if (!gameIsInitialized || !gameRef.current) return () => {}
+      const { events, registry } = gameRef.current
+
+      // Listen for updates to the variable and update the state accordingly.
+      const onPhaserSetVariable: Phaser.Events.PhaserSetVariable = setKey => {
+        if (getKey !== setKey) return
+        set((registry.get(getKey) as T | undefined) ?? defaultValue)
+      }
+      // Immediately get the current value.
+      onPhaserSetVariable(getKey)
+      // Listen for future updates to the variable.
+      events.on(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
+      // Return a cleanup function to remove the event listener when the
+      // component unmounts or the dependencies change.
+      return () => events.off(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
+    }) as PhaserGameRef["getVariable"],
+    [gameIsInitialized],
+  )
+
+  const setVariable = useCallback(
+    ((key, value) => {
+      if (!gameIsInitialized || !gameRef.current) return
+      const { events, registry } = gameRef.current
+
+      registry.set(key, value)
+      events.emit(Events.REACT_SET_VARIABLE, key)
+    }) as PhaserGameRef["setVariable"],
+    [gameIsInitialized],
+  )
+
   // Expose Phaser game methods to parent components.
   useImperativeHandle(ref, () => {
-    const { events, registry } =
-      (gameIsInitialized ? gameRef.current : null) || {}
+    const { events } = (gameIsInitialized ? gameRef.current : null) || {}
 
     return {
       zoomIn: () => events?.emit(Events.ZOOM_IN),
       zoomOut: () => events?.emit(Events.ZOOM_OUT),
-      getVariable: (<T,>(
-        getKey: Variable,
-        set: Dispatch<SetStateAction<T | undefined>>,
-        defaultValue?: T,
-      ) => {
-        // Listen for updates to the variable and update the state accordingly.
-        const onPhaserSetVariable: Phaser.Events.PhaserSetVariable = setKey => {
-          if (getKey !== setKey) return
-          set((registry?.get(getKey) as T | undefined) ?? defaultValue)
-        }
-        // Immediately get the current value.
-        onPhaserSetVariable(getKey)
-        // Listen for future updates to the variable.
-        const args = [Events.PHASER_SET_VARIABLE, onPhaserSetVariable] as const
-        events?.on(...args)
-        // Return a cleanup function to remove the event listener when the
-        // component unmounts or the dependencies change.
-        return () => events?.off(...args)
-      }) as PhaserGameRef["getVariable"],
-      setVariable: (key, value) => {
-        registry?.set(key, value)
-        events?.emit(Events.REACT_SET_VARIABLE, key)
-      },
+      getVariable,
+      setVariable,
     }
-  }, [gameIsInitialized])
+  }, [gameIsInitialized, getVariable, setVariable])
 
   // Initialize Phaser when on mount and destroy it when it's unmounted.
   useEffect(() => {
@@ -155,33 +170,10 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   }, [mode, levelId, setActiveSceneKeys])
 
   // Pass the current game commands to Phaser.
-  // useEffect(() => {
-  //   // Only set the commands if we're in play mode and the game has been
-  //   // initialized.
-  //   if (mode !== "play" || !gameRef.current) return
-
-  //   // Save the current commands into the registry.
-  //   gameRef.current.registry.set(Variables.COMMANDS, gameCommands)
-
-  //   // Tells any currently active scenes to fetch the new data.
-  //   const emitSetCommandsEvent = () => {
-  //     if (gameRef.current) gameRef.current.events.emit(Events.SET_COMMANDS)
-  //   }
-
-  //   // Immediately emit an event for any active scenes to get the new commands.
-  //   emitSetCommandsEvent()
-
-  //   // Re-emit the event when the gameplay scene is ready.
-  //   gameRef.current.events.on(Events.GAMEPLAY_SCENE_READY, emitSetCommandsEvent)
-
-  //   return () => {
-  //     if (!gameRef.current) return
-  //     gameRef.current.events.off(
-  //       Events.GAMEPLAY_SCENE_READY,
-  //       emitSetCommandsEvent,
-  //     )
-  //   }
-  // }, [mode, gameCommands])
+  useEffect(() => {
+    if (mode !== "play" || !gameRef.current) return
+    setVariable("commands", gameCommands)
+  }, [mode, gameCommands, setVariable])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
