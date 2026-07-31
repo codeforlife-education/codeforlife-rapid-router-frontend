@@ -37,6 +37,15 @@ export const barn = {
       left: { rotation: 270 },
     },
   ),
+  snow: factory(
+    { gid: _IDs.Barn.SNOW, name: _Names.Barn.SNOW },
+    {
+      top: { rotation: 0 },
+      right: { rotation: 90 },
+      bottom: { rotation: 180 },
+      left: { rotation: 270 },
+    },
+  ),
 } as const
 
 export const warehouse = {

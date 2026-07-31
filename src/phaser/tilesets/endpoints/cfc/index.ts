@@ -19,6 +19,10 @@ export const barn = {
     image: "./barn/red.svg",
     firstgid: _IDs.Barn.RED,
   }),
+  snow: make({
+    image: "./barn/snow.svg",
+    firstgid: _IDs.Barn.SNOW,
+  }),
 } as const
 
 export const warehouse = {

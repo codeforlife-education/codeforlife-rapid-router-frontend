@@ -14,22 +14,22 @@ export type ID = tilesets.endpoints.ID | tilesets.scenery.ID
 export const Names = createPathStrings({
   Endpoints: {
     CFC: {
-      Barn: ["BLACK", "RED"],
+      Barn: ["BLACK", "RED", "SNOW"],
       Warehouse: ["DEFAULT", "SNOW"],
     },
     House: {
       Snow: ["BLUE", "ORANGE", "STRAW"],
-      Common: ["BLUE", "ORANGE", "STRAW", "WOOD"],
+      Common: ["BLUE", "ORANGE", "STRAW"],
     },
   },
   Scenery: {
     Snow: {
-      Building: ["BARN", "HOSPITAL", "SCHOOL", "SHOP"],
+      Building: ["HOSPITAL", "SCHOOL", "SHOP"],
       Nature: ["BUSH", "CROPS", "POND", { Tree: ["OAK", "PINE"] }],
       Other: ["SOLAR_PANEL"],
     },
     Nature: ["BUSH", "CROPS", "HAY", "POND", { Tree: ["OAK", "PINE"] }],
-    Building: ["HOSPITAL", "HOUSE", "SCHOOL", "SHOP"],
+    Building: ["HOSPITAL", "HOUSE", "LOG_CABIN", "SCHOOL", "SHOP"],
     Other: ["SOLAR_PANEL"],
   },
 } as const)

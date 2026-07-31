@@ -57,6 +57,11 @@ const categories = [
         src: tilesets.scenery.building.house.image,
       },
       {
+        key: tilesets.IDs.Scenery.Building.LOG_CABIN,
+        title: "Log Cabin",
+        src: tilesets.scenery.building.logCabin.image,
+      },
+      {
         key: tilesets.IDs.Scenery.Building.SCHOOL,
         title: "School",
         src: tilesets.scenery.building.school.image,
@@ -72,11 +77,6 @@ const categories = [
     key: "snow",
     subheader: "Snow",
     images: [
-      {
-        key: tilesets.IDs.Scenery.Snow.Building.BARN,
-        title: "Barn",
-        src: tilesets.scenery.snow.building.barn.image,
-      },
       {
         key: tilesets.IDs.Scenery.Snow.Building.HOSPITAL,
         title: "Hospital",

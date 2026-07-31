@@ -24,10 +24,6 @@ export const common = {
     image: "./common/straw.svg",
     firstgid: _IDs.Common.STRAW,
   }),
-  wood: make({
-    image: "./common/wood.svg",
-    firstgid: _IDs.Common.WOOD,
-  }),
 } as const
 
 export const snow = {

@@ -13,11 +13,6 @@ const factory = <N extends Name, GID extends tilesets.scenery.snow.ID>(
   kwArgs: snow.FactoryKwArgs<N, GID>,
 ) => snow.factory(kwArgs)
 
-export const barn = factory({
-  gid: _IDs.BARN,
-  name: _Names.BARN,
-})
-
 export const hospital = factory({
   gid: _IDs.HOSPITAL,
   name: _Names.HOSPITAL,

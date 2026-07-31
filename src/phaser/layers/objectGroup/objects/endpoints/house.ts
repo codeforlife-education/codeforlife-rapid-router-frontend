@@ -102,19 +102,6 @@ export const common = {
       bottomLeft: { rotation: 315 },
     },
   ),
-  wood: factory(
-    { gid: _IDs.Common.WOOD, name: _Names.Common.WOOD },
-    {
-      left: { rotation: 0 },
-      topLeft: { rotation: 45 },
-      top: { rotation: 90 },
-      topRight: { rotation: 135 },
-      right: { rotation: 180 },
-      bottomRight: { rotation: 225 },
-      bottom: { rotation: 270 },
-      bottomLeft: { rotation: 315 },
-    },
-  ),
 } as const
 
 export const snow = {

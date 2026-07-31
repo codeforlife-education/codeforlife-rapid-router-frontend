@@ -13,5 +13,5 @@ const make = <GID extends ID>(kwArgs: snow.MakeKwArgs<GID>) =>
 export const solarPanel = make({
   image: "./solar_panel.svg",
   firstgid: _IDs.SOLAR_PANEL,
-  // imagescale: 0.4,
+  imagescale: 0.2,
 })

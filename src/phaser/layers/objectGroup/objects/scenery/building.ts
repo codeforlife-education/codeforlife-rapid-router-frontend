@@ -23,6 +23,11 @@ export const house = factory({
   name: _Names.HOUSE,
 })
 
+export const logCabin = factory({
+  gid: _IDs.LOG_CABIN,
+  name: _Names.LOG_CABIN,
+})
+
 export const school = factory({
   gid: _IDs.SCHOOL,
   name: _Names.SCHOOL,

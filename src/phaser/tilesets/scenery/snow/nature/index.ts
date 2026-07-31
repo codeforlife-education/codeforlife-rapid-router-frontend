@@ -19,7 +19,7 @@ export const bush = make({
 export const crops = make({
   image: "./crops.svg",
   firstgid: _IDs.CROPS,
-  // imagescale: 0.4,
+  imagescale: 0.3,
 })
 
 export const pond = make({
