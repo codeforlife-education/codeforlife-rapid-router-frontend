@@ -21,6 +21,7 @@ type Position =
   | "bottomLeft"
   | "bottomRight"
 
+// TODO: move to types phaser.d.ts
 type VariantBase<K extends string> = {
   key: K
   crossoverTiles: Phaser.Types.Tilemaps.Tile[]
