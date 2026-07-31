@@ -1,4 +1,4 @@
 export * as building from "./building"
 export * as nature from "./nature"
 export * as other from "./other"
-export { type ID, IDs } from "./snow"
+export { type Name } from "./snow"

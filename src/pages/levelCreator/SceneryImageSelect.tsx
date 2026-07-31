@@ -7,33 +7,64 @@ import { useBreakpoint } from "../../app/hooks"
 
 const categories = [
   {
-    key: "common",
-    subheader: "Common",
+    key: "nature",
+    subheader: "Nature",
     images: [
       {
-        key: tilesets.IDs.Scenery.Common.BUSH,
+        key: tilesets.IDs.Scenery.Nature.BUSH,
         title: "Bush",
-        src: tilesets.scenery.common.bush.image,
+        src: tilesets.scenery.nature.bush.image,
       },
       {
-        key: tilesets.IDs.Scenery.Common.HAY,
+        key: tilesets.IDs.Scenery.Nature.CROPS,
+        title: "Crops",
+        src: tilesets.scenery.nature.crops.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Nature.HAY,
         title: "Hay",
-        src: tilesets.scenery.common.hay.image,
+        src: tilesets.scenery.nature.hay.image,
       },
       {
-        key: tilesets.IDs.Scenery.Common.POND,
+        key: tilesets.IDs.Scenery.Nature.POND,
         title: "Pond",
-        src: tilesets.scenery.common.pond.image,
+        src: tilesets.scenery.nature.pond.image,
       },
       {
-        key: tilesets.IDs.Scenery.Common.TREE1,
-        title: "Tree",
-        src: tilesets.scenery.common.tree1.image,
+        key: tilesets.IDs.Scenery.Nature.Tree.OAK,
+        title: "Oak Tree",
+        src: tilesets.scenery.nature.tree.oak.image,
       },
       {
-        key: tilesets.IDs.Scenery.Common.TREE2,
+        key: tilesets.IDs.Scenery.Nature.Tree.PINE,
         title: "Pine Tree",
-        src: tilesets.scenery.common.tree2.image,
+        src: tilesets.scenery.nature.tree.pine.image,
+      },
+    ],
+  },
+  {
+    key: "building",
+    subheader: "Building",
+    images: [
+      {
+        key: tilesets.IDs.Scenery.Building.HOSPITAL,
+        title: "Hospital",
+        src: tilesets.scenery.building.hospital.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Building.HOUSE,
+        title: "House",
+        src: tilesets.scenery.building.house.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Building.SCHOOL,
+        title: "School",
+        src: tilesets.scenery.building.school.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Building.SHOP,
+        title: "Shop",
+        src: tilesets.scenery.building.shop.image,
       },
     ],
   },
@@ -41,26 +72,66 @@ const categories = [
     key: "snow",
     subheader: "Snow",
     images: [
-      // snow
       {
-        key: tilesets.IDs.Scenery.Snow.BUSH,
+        key: tilesets.IDs.Scenery.Snow.Building.BARN,
+        title: "Barn",
+        src: tilesets.scenery.snow.building.barn.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Snow.Building.HOSPITAL,
+        title: "Hospital",
+        src: tilesets.scenery.snow.building.hospital.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Snow.Building.SCHOOL,
+        title: "School",
+        src: tilesets.scenery.snow.building.school.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Snow.Building.SHOP,
+        title: "Shop",
+        src: tilesets.scenery.snow.building.shop.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Snow.Nature.BUSH,
         title: "Bush",
-        src: tilesets.scenery.snow.bush.image,
+        src: tilesets.scenery.snow.nature.bush.image,
       },
       {
-        key: tilesets.IDs.Scenery.Snow.POND,
+        key: tilesets.IDs.Scenery.Snow.Nature.CROPS,
+        title: "Crops",
+        src: tilesets.scenery.snow.nature.crops.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Snow.Nature.POND,
         title: "Pond",
-        src: tilesets.scenery.snow.pond.image,
+        src: tilesets.scenery.snow.nature.pond.image,
       },
       {
-        key: tilesets.IDs.Scenery.Snow.TREE1,
-        title: "Tree",
-        src: tilesets.scenery.snow.tree1.image,
+        key: tilesets.IDs.Scenery.Snow.Nature.Tree.OAK,
+        title: "Oak Tree",
+        src: tilesets.scenery.snow.nature.tree.oak.image,
       },
       {
-        key: tilesets.IDs.Scenery.Snow.TREE2,
+        key: tilesets.IDs.Scenery.Snow.Nature.Tree.PINE,
         title: "Pine Tree",
-        src: tilesets.scenery.snow.tree2.image,
+        src: tilesets.scenery.snow.nature.tree.pine.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Snow.Other.SOLAR_PANEL,
+        title: "Solar Panel",
+        src: tilesets.scenery.snow.other.solarPanel.image,
+      },
+    ],
+  },
+  {
+    key: "other",
+    subheader: "Other",
+    images: [
+      {
+        key: tilesets.IDs.Scenery.Other.SOLAR_PANEL,
+        title: "Solar Panel",
+        src: tilesets.scenery.other.solarPanel.image,
       },
     ],
   },

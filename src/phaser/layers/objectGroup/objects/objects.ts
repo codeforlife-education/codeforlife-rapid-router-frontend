@@ -23,8 +23,14 @@ export const Names = createPathStrings({
     },
   },
   Scenery: {
-    Snow: ["BUSH", "POND", "TREE1", "TREE2"],
-    Common: ["BUSH", "HAY", "POND", "TREE1", "TREE2"],
+    Snow: {
+      Building: ["BARN", "HOSPITAL", "SCHOOL", "SHOP"],
+      Nature: ["BUSH", "CROPS", "POND", { Tree: ["OAK", "PINE"] }],
+      Other: ["SOLAR_PANEL"],
+    },
+    Nature: ["BUSH", "CROPS", "HAY", "POND", { Tree: ["OAK", "PINE"] }],
+    Building: ["HOSPITAL", "HOUSE", "SCHOOL", "SHOP"],
+    Other: ["SOLAR_PANEL"],
   },
 } as const)
 export type Name = DeepStringsOf<typeof Names>

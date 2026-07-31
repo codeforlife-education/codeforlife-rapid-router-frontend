@@ -1,3 +1,5 @@
-export * as common from "./common"
+export * as building from "./building"
+export * as nature from "./nature"
+export * as other from "./other"
 export * as snow from "./snow"
 export { type Name } from "./scenery"

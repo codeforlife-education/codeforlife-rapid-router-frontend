@@ -1,42 +1,35 @@
 import { flattenNumberValues } from "codeforlife/utils/object"
 
-import * as environment from "../environment"
-import * as tilesets from "../../tilesets"
+import * as snow from "../snow"
+import * as tilesets from "../../../tilesets"
 
-const _IDs = tilesets.IDs.Environment.Snow
+const _IDs = tilesets.IDs.Scenery.Snow.Building
 export const IDs = flattenNumberValues(_IDs)
 export type ID = (typeof IDs)[number]
 
-const make = <GID extends ID, T extends boolean = false>(
-  kwArgs: environment.MakeKwArgs<GID, T>,
-) => environment.make(import.meta.url, kwArgs)
+const make = <GID extends ID>(kwArgs: snow.MakeKwArgs<GID>) =>
+  snow.make(import.meta.url, kwArgs)
 
 export const barn = make({
   image: "./barn.svg",
   firstgid: _IDs.BARN,
-})
-
-export const crops = make({
-  image: "./crops.svg",
-  firstgid: _IDs.CROPS,
+  // imagescale: 0.4,
 })
 
 export const hospital = make({
   image: "./hospital.svg",
   firstgid: _IDs.HOSPITAL,
+  // imagescale: 0.4,
 })
 
 export const school = make({
   image: "./school.svg",
   firstgid: _IDs.SCHOOL,
+  // imagescale: 0.4,
 })
 
 export const shop = make({
   image: "./shop.svg",
   firstgid: _IDs.SHOP,
-})
-
-export const solarPanel = make({
-  image: "./solar_panel.svg",
-  firstgid: _IDs.SOLAR_PANEL,
+  // imagescale: 0.4,
 })

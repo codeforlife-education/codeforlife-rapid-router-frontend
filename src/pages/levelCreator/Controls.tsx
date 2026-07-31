@@ -42,7 +42,7 @@ const Controls: FC<ControlsProps> = () => {
     useState<Phaser.Types.Scenes.Create.Toolbox.Map["tool"]>("add-road")
   const sceneryOpenState = useState(false)
   const scenerySelectedState = useState<tilesets.scenery.ID>(
-    tilesets.IDs.Scenery.Common.BUSH,
+    tilesets.IDs.Scenery.Nature.BUSH,
   )
   const {
     ref: { current: phaserGame },
