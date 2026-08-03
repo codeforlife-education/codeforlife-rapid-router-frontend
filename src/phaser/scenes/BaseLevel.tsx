@@ -186,6 +186,7 @@ export default class BaseLevel<
         obj.y,
         tileset.name,
       )
+      .setName(obj.name)
       .setOrigin(0, 1)
       .setDisplaySize(frame.realWidth, frame.realHeight)
       .setAngle(obj.rotation)

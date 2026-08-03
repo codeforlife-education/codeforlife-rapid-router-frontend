@@ -16,6 +16,7 @@ const factory = <N extends Name, GID extends tilesets.scenery.nature.ID>(
 export const bush = factory({
   gid: _IDs.BUSH,
   name: _Names.BUSH,
+  density: objects.Densities.PERMEABLE,
 })
 
 export const crops = factory({
@@ -40,11 +41,13 @@ export const tree = {
     gid: _IDs.Tree.OAK,
     name: _Names.Tree.OAK,
     depth: objects.Depths.ABOVE_GROUND,
+    density: objects.Densities.PERMEABLE,
   }),
   pine: factory({
     gid: _IDs.Tree.PINE,
     name: _Names.Tree.PINE,
     depth: objects.Depths.ABOVE_GROUND,
+    density: objects.Densities.PERMEABLE,
   }),
 } as const
 
@@ -52,6 +55,7 @@ export const snow = {
   bush: factory({
     gid: _IDs.Snow.BUSH,
     name: _Names.Snow.BUSH,
+    density: objects.Densities.PERMEABLE,
   }),
   crops: factory({
     gid: _IDs.Snow.CROPS,
@@ -68,11 +72,13 @@ export const snow = {
       gid: _IDs.Snow.Tree.OAK,
       name: _Names.Snow.Tree.OAK,
       depth: objects.Depths.ABOVE_GROUND,
+      density: objects.Densities.PERMEABLE,
     }),
     pine: factory({
       gid: _IDs.Snow.Tree.PINE,
       name: _Names.Snow.Tree.PINE,
       depth: objects.Depths.ABOVE_GROUND,
+      density: objects.Densities.PERMEABLE,
     }),
   },
 } as const

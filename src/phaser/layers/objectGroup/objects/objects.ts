@@ -58,6 +58,19 @@ const DEPTHS: Partial<Record<ID | Name, Depth>> = {}
 // Getter for an object depth by its GID.
 export const getDepth = (id: ID | Name) => DEPTHS[id] ?? Depths.GROUND
 
+// Enum of object densities.
+export const Densities = createIdRegistry({
+  0: "PERMEABLE", // can overlap (e.g., bush).
+  1: "SOLID", // cannot overlap (e.g., house).
+} as const)
+export type Density = (typeof Densities)[keyof typeof Densities]
+
+// Global registry of object densities.
+const DENSITIES: Partial<Record<ID | Name, Density>> = {}
+
+// Getter for an object density by its GID.
+export const getDensity = (id: ID | Name) => DENSITIES[id] ?? Densities.SOLID
+
 export type Object<N extends Name, GID extends ID> = Omit<
   _Object,
   "type" | "name" | "gid"
@@ -101,6 +114,7 @@ export type FactoryKwArgs<N extends Name, GID extends ID> = {
   name: N
   gid: GID
   depth?: Depth
+  density?: Density
 } & FactoryBaseKwArgs<N, GID>
 export type Factory<
   N extends Name,
@@ -123,6 +137,7 @@ export const factory = <
     gid,
     name,
     depth = Depths.GROUND,
+    density = Densities.SOLID,
     x: baseX = 0,
     y: baseY = 0,
     col: baseCol = 0,
@@ -135,6 +150,7 @@ export const factory = <
   variants: V = {} as V,
 ): Factory<N, GID, V> => {
   DEPTHS[gid] = DEPTHS[name] = depth
+  DENSITIES[gid] = DENSITIES[name] = density
 
   baseX += baseCol * TILE_WIDTH
   baseY += baseRow * TILE_HEIGHT

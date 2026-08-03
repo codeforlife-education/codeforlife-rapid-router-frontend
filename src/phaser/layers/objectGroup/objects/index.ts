@@ -14,4 +14,7 @@ export {
   getDepth,
   Depths,
   type Depth,
+  type Density,
+  getDensity,
+  Densities,
 } from "./objects"

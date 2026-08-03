@@ -128,21 +128,36 @@ export default class extends BaseManager {
 
     const sceneryBounds = scenery.getBounds()
 
-    // This object overlaps another object if...
-    return (
-      // ...its centre overlaps the other's bounds or...
-      sceneryBounds.contains(bounds.centerX, bounds.centerY) ||
-      // ...its bounds overlap the other's bounds and...
-      (Phaser.Geom.Rectangle.Overlaps(bounds, sceneryBounds) &&
-        // ...both are below ground or...
-        ((obj.depth === objects.Depths.BELOW_GROUND &&
-          scenery.depth === objects.Depths.BELOW_GROUND) ||
-          // ...one is below ground and the other is on ground.
-          (obj.depth === objects.Depths.BELOW_GROUND &&
-            scenery.depth === objects.Depths.GROUND) ||
-          (obj.depth === objects.Depths.GROUND &&
-            scenery.depth === objects.Depths.BELOW_GROUND)))
+    // The centre of one object can never be inside the bounds of another.
+    if (sceneryBounds.contains(bounds.centerX, bounds.centerY)) return true
+
+    // The bounds of the objects don't overlap - no need for further checks.
+    if (!Phaser.Geom.Rectangle.Overlaps(bounds, sceneryBounds)) return false
+
+    // 2 objects that are both below ground can't overlap.
+    if (
+      obj.depth === objects.Depths.BELOW_GROUND &&
+      scenery.depth === objects.Depths.BELOW_GROUND
     )
+      return true
+
+    // A solid object can't overlap another object unless one is above ground
+    // and the other is below ground.
+    if (
+      (objects.getDensity(obj.name as objects.Name) ===
+        objects.Densities.SOLID ||
+        objects.getDensity(scenery.name as objects.Name) ===
+          objects.Densities.SOLID) &&
+      !(
+        (obj.depth === objects.Depths.BELOW_GROUND &&
+          scenery.depth === objects.Depths.ABOVE_GROUND) ||
+        (obj.depth === objects.Depths.ABOVE_GROUND &&
+          scenery.depth === objects.Depths.BELOW_GROUND)
+      )
+    )
+      return true
+
+    return false // The objects are allowed to overlap.
   }
 
   private overlapsObject(obj: Phaser.GameObjects.Image): boolean
