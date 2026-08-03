@@ -370,6 +370,7 @@ export default class extends BaseManager {
       id,
       obj: this.level.add
         .image(0, 0, tileset.name)
+        .setName(obj.name)
         .setOrigin(0.5, 0.5)
         .setDisplaySize(frame.realWidth, frame.realHeight)
         .setAlpha(0.5)
