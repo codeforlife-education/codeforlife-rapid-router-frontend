@@ -9,6 +9,8 @@ import {
 } from "@mui/material"
 import { type FC, Fragment, type JSX, useEffect, useState } from "react"
 
+import MarqueeTitle from "./MarqueeTitle"
+
 type Image = { key: string | number; title: string; src: string }
 type Category = { key: string; subheader: string; images: readonly Image[] }
 type ImageKey<Categories extends readonly Category[]> = {
@@ -28,6 +30,7 @@ export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   fab: { margin: number; size: number }
   categories: Categories
   lineHeight?: number
+  titleScrollSpeed?: number
   image: { size: number; padding?: number }
 }
 
@@ -47,6 +50,7 @@ const Img: FC<{ height: number; src: string; alt: string }> = ({
 const SpeedImageSelect = <Categories extends readonly Category[]>({
   ease = "cubic-bezier(0.4, 0, 0.2, 1)",
   lineHeight = 24,
+  titleScrollSpeed,
   padding = 2,
   gap = 8,
   cols,
@@ -217,24 +221,27 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                         outlineColor:
                           selected === imageKey ? "green" : "transparent",
                         "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+                        minWidth: 0,
+                        maxWidth: `${image.size + pxImagePadding * 2}px`,
                       }}
                     >
                       <Img src={src} alt={title} height={image.size} />
                       <ImageListItemBar
-                        title={title}
+                        title={
+                          <MarqueeTitle
+                            title={title}
+                            lineHeight={lineHeight}
+                            speed={titleScrollSpeed}
+                          />
+                        }
                         position="below"
                         sx={{
                           [`& .${imageListItemBarClasses.title}`]: {
-                            lineHeight: `${lineHeight}px`,
                             p: 0,
                             m: 0,
                             fontSize: "0.75rem",
-                            textAlign: "center",
                             color: "common.white",
                             maxWidth: "100%",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
                           },
                           [`& .${imageListItemBarClasses.titleWrap}`]: {
                             p: 0,
