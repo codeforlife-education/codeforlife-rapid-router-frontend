@@ -119,6 +119,11 @@ export default class extends BaseManager {
     )
   }
 
+  /**
+   * Check if an object overlaps another scenery object. Returns:
+   * - `true` if the objects are not allowed to overlap.
+   * - `false` if the objects are allowed to overlap.
+   */
   private overlapsScenery(
     obj: Phaser.GameObjects.Image,
     scenery: Phaser.GameObjects.Image,
