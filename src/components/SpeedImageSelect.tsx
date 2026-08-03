@@ -87,6 +87,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   const pxPadding = padding * spacing
   const pxFabMargin = fab.margin * spacing
   const pxImagePadding = (image.padding ?? 0.5) * spacing
+  const pxImageSize = image.size
 
   // Calculate the width.
   const imageListWidth =
@@ -116,6 +117,73 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
     setScrollable(false)
     if (key) onChange(key)
     onClose()
+  }
+
+  const ImageItem: FC<{ key: string; image: Image }> = ({ key, image }) => {
+    const [tooltipOpen, setTooltipOpen] = useState(false)
+
+    return (
+      <Tooltip
+        key={key}
+        title={image.title}
+        placement="bottom"
+        slotProps={{
+          popper: {
+            modifiers: [
+              {
+                name: "offset",
+                options: {
+                  offset: [0, lineHeight * -1.5],
+                },
+              },
+            ],
+          },
+        }}
+        open={tooltipOpen}
+        onOpen={() => setTooltipOpen(true)}
+        onClose={() => setTooltipOpen(false)}
+      >
+        <ImageListItem
+          onClick={() => handleClose(image.key as ImageKey<Categories>)}
+          sx={{
+            cursor: "pointer",
+            borderRadius: 1,
+            padding: `${pxImagePadding}px`,
+            outline: "2px solid",
+            outlineOffset: "-2px",
+            outlineColor: selected === image.key ? "green" : "transparent",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+            minWidth: 0,
+            maxWidth: `${pxImageSize + pxImagePadding * 2}px`,
+          }}
+        >
+          <Img src={image.src} alt={image.title} height={pxImageSize} />
+          <ImageListItemBar
+            title={
+              <MarqueeTitle
+                title={image.title}
+                lineHeight={lineHeight}
+                speed={titleScrollSpeed}
+              />
+            }
+            position="below"
+            sx={{
+              [`& .${imageListItemBarClasses.title}`]: {
+                p: 0,
+                m: 0,
+                fontSize: "0.75rem",
+                color: tooltipOpen ? "transparent" : "common.white",
+                maxWidth: "100%",
+              },
+              [`& .${imageListItemBarClasses.titleWrap}`]: {
+                p: 0,
+                m: 0,
+              },
+            }}
+          />
+        </ImageListItem>
+      </Tooltip>
+    )
   }
 
   return (
@@ -206,50 +274,11 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                       {subheader}
                     </ListSubheader>
                   </ImageListItem>
-                  {images.map(({ key: imageKey, title, src }) => (
-                    <ImageListItem
-                      key={`${categoryKey}-${imageKey}`}
-                      onClick={() =>
-                        handleClose(imageKey as ImageKey<Categories>)
-                      }
-                      sx={{
-                        cursor: "pointer",
-                        borderRadius: 1,
-                        padding: `${pxImagePadding}px`,
-                        outline: "2px solid",
-                        outlineOffset: "-2px",
-                        outlineColor:
-                          selected === imageKey ? "green" : "transparent",
-                        "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
-                        minWidth: 0,
-                        maxWidth: `${image.size + pxImagePadding * 2}px`,
-                      }}
-                    >
-                      <Img src={src} alt={title} height={image.size} />
-                      <ImageListItemBar
-                        title={
-                          <MarqueeTitle
-                            title={title}
-                            lineHeight={lineHeight}
-                            speed={titleScrollSpeed}
-                          />
-                        }
-                        position="below"
-                        sx={{
-                          [`& .${imageListItemBarClasses.title}`]: {
-                            p: 0,
-                            m: 0,
-                            fontSize: "0.75rem",
-                            color: "common.white",
-                            maxWidth: "100%",
-                          },
-                          [`& .${imageListItemBarClasses.titleWrap}`]: {
-                            p: 0,
-                            m: 0,
-                          },
-                        }}
-                      />
-                    </ImageListItem>
+                  {images.map(image => (
+                    <ImageItem
+                      key={`${categoryKey}-${image.key}`}
+                      image={image}
+                    />
                   ))}
                 </Fragment>
               ))}

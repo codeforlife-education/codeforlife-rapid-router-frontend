@@ -14,7 +14,7 @@ export interface MarqueeTitleProps {
 const MarqueeTitle: FC<MarqueeTitleProps> = ({
   title,
   lineHeight,
-  speed = 30,
+  speed = 20,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
@@ -46,19 +46,27 @@ const MarqueeTitle: FC<MarqueeTitleProps> = ({
   }, [title])
 
   const scrolling = distance > 0
-  // Roughly constant scroll speed regardless of overflow distance, with a
-  // minimum duration so short overflows aren't jarringly fast.
-  const duration = Math.max(4, distance / speed + 2)
-  // Bake the exact measured distance into the keyframes themselves (rather
-  // than a CSS variable) so the scroll always ends precisely at the edge.
-  const marquee = useMemo(
-    () => keyframes`
-      0%, 10% { transform: translateX(0); }
-      45%, 55% { transform: translateX(${-distance}px); }
-      90%, 100% { transform: translateX(0); }
-    `,
-    [distance],
-  )
+  // Pauses are a fixed number of seconds regardless of title length, and the
+  // scroll itself always covers `distance` at exactly `speed` px/s. This
+  // means every title scrolls at the same actual speed and each one's total
+  // loop duration depends only on its own overflow — they run independently
+  // rather than all being stretched/squashed to finish in lockstep.
+  const pauseSeconds = 1
+  const moveSeconds = distance / speed
+  const duration = 2 * pauseSeconds + 2 * moveSeconds
+  // Bake the exact measured distance (and timings) into the keyframes
+  // themselves (rather than a CSS variable) so the scroll always ends
+  // precisely at the edge.
+  const marquee = useMemo(() => {
+    const pauseEnd = (pauseSeconds / duration) * 100
+    const moveOutEnd = ((pauseSeconds + moveSeconds) / duration) * 100
+    const pauseOutEnd = ((2 * pauseSeconds + moveSeconds) / duration) * 100
+    return keyframes`
+      0%, ${pauseEnd}% { transform: translateX(0); }
+      ${moveOutEnd}%, ${pauseOutEnd}% { transform: translateX(${-distance}px); }
+      100% { transform: translateX(0); }
+    `
+  }, [distance, duration, moveSeconds])
 
   return (
     <Box
