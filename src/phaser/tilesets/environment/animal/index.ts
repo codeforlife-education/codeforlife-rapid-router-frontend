@@ -20,3 +20,5 @@ export const pigeon = make({
   image: "./pigeon.svg",
   firstgid: _IDs.PIGEON,
 })
+
+export default [cow, pigeon]

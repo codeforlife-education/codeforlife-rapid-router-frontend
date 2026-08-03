@@ -37,3 +37,18 @@ export const shop = factory({
   gid: _IDs.SHOP,
   name: _Names.SHOP,
 })
+
+export const snow = {
+  hospital: factory({
+    gid: _IDs.Snow.HOSPITAL,
+    name: _Names.Snow.HOSPITAL,
+  }),
+  school: factory({
+    gid: _IDs.Snow.SCHOOL,
+    name: _Names.Snow.SCHOOL,
+  }),
+  shop: factory({
+    gid: _IDs.Snow.SHOP,
+    name: _Names.Snow.SHOP,
+  }),
+} as const

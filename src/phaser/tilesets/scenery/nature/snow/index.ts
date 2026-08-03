@@ -1,14 +1,14 @@
 import { flattenNumberValues } from "codeforlife/utils/object"
 
-import * as snow from "../snow"
+import * as nature from "../nature"
 import * as tilesets from "../../../tilesets"
 
-const _IDs = tilesets.IDs.Scenery.Snow.Nature
+const _IDs = tilesets.IDs.Scenery.Nature.Snow
 export const IDs = flattenNumberValues(_IDs)
 export type ID = (typeof IDs)[number]
 
-const make = <GID extends ID>(kwArgs: snow.MakeKwArgs<GID>) =>
-  snow.make(import.meta.url, kwArgs)
+const make = <GID extends ID>(kwArgs: nature.MakeKwArgs<GID>) =>
+  nature.make(import.meta.url, kwArgs)
 
 export const bush = make({
   image: "./bush.svg",
@@ -40,3 +40,5 @@ export const tree = {
     imagescale: 0.515,
   }),
 } as const
+
+export default [bush, crops, pond, tree.oak, tree.pine]

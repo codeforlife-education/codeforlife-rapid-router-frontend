@@ -21,3 +21,5 @@ export const green = make({
   firstgid: _IDs.GREEN,
   properties: { canDriveThrough: true },
 })
+
+export default [red, green]

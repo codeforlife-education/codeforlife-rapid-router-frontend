@@ -16,9 +16,19 @@ const categories = [
         src: tilesets.scenery.nature.bush.image,
       },
       {
+        key: tilesets.IDs.Scenery.Nature.Snow.BUSH,
+        title: "Snowy Bush",
+        src: tilesets.scenery.nature.snow.bush.image,
+      },
+      {
         key: tilesets.IDs.Scenery.Nature.CROPS,
         title: "Crops",
         src: tilesets.scenery.nature.crops.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Nature.Snow.CROPS,
+        title: "Snowy Crops",
+        src: tilesets.scenery.nature.snow.crops.image,
       },
       {
         key: tilesets.IDs.Scenery.Nature.HAY,
@@ -31,14 +41,29 @@ const categories = [
         src: tilesets.scenery.nature.pond.image,
       },
       {
+        key: tilesets.IDs.Scenery.Nature.Snow.POND,
+        title: "Frozen Pond",
+        src: tilesets.scenery.nature.snow.pond.image,
+      },
+      {
         key: tilesets.IDs.Scenery.Nature.Tree.OAK,
         title: "Oak Tree",
         src: tilesets.scenery.nature.tree.oak.image,
       },
       {
+        key: tilesets.IDs.Scenery.Nature.Snow.Tree.OAK,
+        title: "Snowy Oak Tree",
+        src: tilesets.scenery.nature.snow.tree.oak.image,
+      },
+      {
         key: tilesets.IDs.Scenery.Nature.Tree.PINE,
         title: "Pine Tree",
         src: tilesets.scenery.nature.tree.pine.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Nature.Snow.Tree.PINE,
+        title: "Snowy Pine Tree",
+        src: tilesets.scenery.nature.snow.tree.pine.image,
       },
     ],
   },
@@ -50,6 +75,11 @@ const categories = [
         key: tilesets.IDs.Scenery.Building.HOSPITAL,
         title: "Hospital",
         src: tilesets.scenery.building.hospital.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Building.Snow.HOSPITAL,
+        title: "Snowy Hospital",
+        src: tilesets.scenery.building.snow.hospital.image,
       },
       {
         key: tilesets.IDs.Scenery.Building.HOUSE,
@@ -67,60 +97,19 @@ const categories = [
         src: tilesets.scenery.building.school.image,
       },
       {
+        key: tilesets.IDs.Scenery.Building.Snow.SCHOOL,
+        title: "Snowy School",
+        src: tilesets.scenery.building.snow.school.image,
+      },
+      {
         key: tilesets.IDs.Scenery.Building.SHOP,
         title: "Shop",
         src: tilesets.scenery.building.shop.image,
       },
-    ],
-  },
-  {
-    key: "snow",
-    subheader: "Snow",
-    images: [
       {
-        key: tilesets.IDs.Scenery.Snow.Building.HOSPITAL,
-        title: "Hospital",
-        src: tilesets.scenery.snow.building.hospital.image,
-      },
-      {
-        key: tilesets.IDs.Scenery.Snow.Building.SCHOOL,
-        title: "School",
-        src: tilesets.scenery.snow.building.school.image,
-      },
-      {
-        key: tilesets.IDs.Scenery.Snow.Building.SHOP,
-        title: "Shop",
-        src: tilesets.scenery.snow.building.shop.image,
-      },
-      {
-        key: tilesets.IDs.Scenery.Snow.Nature.BUSH,
-        title: "Bush",
-        src: tilesets.scenery.snow.nature.bush.image,
-      },
-      {
-        key: tilesets.IDs.Scenery.Snow.Nature.CROPS,
-        title: "Crops",
-        src: tilesets.scenery.snow.nature.crops.image,
-      },
-      {
-        key: tilesets.IDs.Scenery.Snow.Nature.POND,
-        title: "Pond",
-        src: tilesets.scenery.snow.nature.pond.image,
-      },
-      {
-        key: tilesets.IDs.Scenery.Snow.Nature.Tree.OAK,
-        title: "Oak Tree",
-        src: tilesets.scenery.snow.nature.tree.oak.image,
-      },
-      {
-        key: tilesets.IDs.Scenery.Snow.Nature.Tree.PINE,
-        title: "Pine Tree",
-        src: tilesets.scenery.snow.nature.tree.pine.image,
-      },
-      {
-        key: tilesets.IDs.Scenery.Snow.Other.SOLAR_PANEL,
-        title: "Solar Panel",
-        src: tilesets.scenery.snow.other.solarPanel.image,
+        key: tilesets.IDs.Scenery.Building.Snow.SHOP,
+        title: "Snowy Shop",
+        src: tilesets.scenery.building.snow.shop.image,
       },
     ],
   },
@@ -132,6 +121,11 @@ const categories = [
         key: tilesets.IDs.Scenery.Other.SOLAR_PANEL,
         title: "Solar Panel",
         src: tilesets.scenery.other.solarPanel.image,
+      },
+      {
+        key: tilesets.IDs.Scenery.Other.Snow.SOLAR_PANEL,
+        title: "Snowy Solar Panel",
+        src: tilesets.scenery.other.snow.solarPanel.image,
       },
     ],
   },

@@ -35,3 +35,11 @@ export const warehouse = {
     firstgid: _IDs.Warehouse.SNOW,
   }),
 } as const
+
+export default [
+  barn.black,
+  barn.red,
+  barn.snow,
+  warehouse.default,
+  warehouse.snow,
+]

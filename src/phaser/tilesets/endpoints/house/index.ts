@@ -40,3 +40,12 @@ export const snow = {
     firstgid: _IDs.Snow.STRAW,
   }),
 } as const
+
+export default [
+  common.blue,
+  common.orange,
+  common.straw,
+  snow.blue,
+  snow.orange,
+  snow.straw,
+]

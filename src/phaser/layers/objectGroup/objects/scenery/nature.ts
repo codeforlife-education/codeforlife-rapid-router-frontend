@@ -47,3 +47,32 @@ export const tree = {
     depth: objects.Depths.ABOVE_GROUND,
   }),
 } as const
+
+export const snow = {
+  bush: factory({
+    gid: _IDs.Snow.BUSH,
+    name: _Names.Snow.BUSH,
+  }),
+  crops: factory({
+    gid: _IDs.Snow.CROPS,
+    name: _Names.Snow.CROPS,
+    depth: objects.Depths.BELOW_GROUND,
+  }),
+  pond: factory({
+    gid: _IDs.Snow.POND,
+    name: _Names.Snow.POND,
+    depth: objects.Depths.BELOW_GROUND,
+  }),
+  tree: {
+    oak: factory({
+      gid: _IDs.Snow.Tree.OAK,
+      name: _Names.Snow.Tree.OAK,
+      depth: objects.Depths.ABOVE_GROUND,
+    }),
+    pine: factory({
+      gid: _IDs.Snow.Tree.PINE,
+      name: _Names.Snow.Tree.PINE,
+      depth: objects.Depths.ABOVE_GROUND,
+    }),
+  },
+} as const

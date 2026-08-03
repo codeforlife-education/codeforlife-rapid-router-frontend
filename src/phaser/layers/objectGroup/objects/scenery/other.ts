@@ -17,3 +17,10 @@ export const solarPanel = factory({
   gid: _IDs.SOLAR_PANEL,
   name: _Names.SOLAR_PANEL,
 })
+
+export const snow = {
+  solarPanel: factory({
+    gid: _IDs.Snow.SOLAR_PANEL,
+    name: _Names.Snow.SOLAR_PANEL,
+  }),
+} as const
