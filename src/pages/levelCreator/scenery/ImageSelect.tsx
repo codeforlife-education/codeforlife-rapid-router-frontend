@@ -1,9 +1,9 @@
 import { type Dispatch, type FC, type SetStateAction } from "react"
 import { Portal } from "@mui/material"
 
-import * as tilesets from "../../phaser/tilesets"
-import SpeedImageSelect from "../../components/SpeedImageSelect"
-import { useBreakpoint } from "../../app/hooks"
+import * as tilesets from "../../../phaser/tilesets"
+import SpeedImageSelect from "../../../components/SpeedImageSelect"
+import { useBreakpoint } from "../../../app/hooks"
 
 const categories = [
   {
@@ -135,7 +135,7 @@ const categories = [
   images: { key: tilesets.scenery.ID; title: string; src: string }[]
 }[]
 
-export interface SceneryImageSelectProps {
+export interface ImageSelectProps {
   openState: [boolean, Dispatch<SetStateAction<boolean>>]
   selectedState: [
     tilesets.scenery.ID,
@@ -143,7 +143,7 @@ export interface SceneryImageSelectProps {
   ]
 }
 
-const SceneryImageSelect: FC<SceneryImageSelectProps> = ({
+const ImageSelect: FC<ImageSelectProps> = ({
   openState: [open, setOpen],
   selectedState: [selected, setSelected],
 }) => {
@@ -174,4 +174,4 @@ const SceneryImageSelect: FC<SceneryImageSelectProps> = ({
   )
 }
 
-export default SceneryImageSelect
+export default ImageSelect

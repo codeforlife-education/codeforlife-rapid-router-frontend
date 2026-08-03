@@ -7,7 +7,7 @@ import {
 } from "@mui/icons-material"
 import {
   Box,
-  SpeedDial,
+  SpeedDial as MuiSpeedDial,
   SpeedDialAction,
   Tooltip,
   speedDialClasses,
@@ -53,7 +53,7 @@ const actions = {
   { Icon: SvgIconComponent; title: string; backgroundColor: string }
 >
 
-export interface MapSpeedDialProps {
+export interface SpeedDialProps {
   openState: [boolean, Dispatch<SetStateAction<boolean>>]
   selectedState: [
     Phaser.Types.Scenes.Create.Toolbox.Map["tool"],
@@ -61,7 +61,7 @@ export interface MapSpeedDialProps {
   ]
 }
 
-const MapSpeedDial: FC<MapSpeedDialProps> = ({
+const SpeedDial: FC<SpeedDialProps> = ({
   openState: [open, setOpen],
   selectedState: [selected, setSelected],
 }) => {
@@ -93,7 +93,7 @@ const MapSpeedDial: FC<MapSpeedDialProps> = ({
         onOpen={() => setTooltipOpen(true)}
         onClose={() => setTooltipOpen(false)}
       >
-        <SpeedDial
+        <MuiSpeedDial
           ref={speedDialRef}
           ariaLabel="Map SpeedDial"
           FabProps={{
@@ -129,10 +129,10 @@ const MapSpeedDial: FC<MapSpeedDialProps> = ({
               />
             ),
           )}
-        </SpeedDial>
+        </MuiSpeedDial>
       </Tooltip>
     </Box>
   )
 }
 
-export default MapSpeedDial
+export default SpeedDial

@@ -16,10 +16,10 @@ import { type FC, useEffect, useState } from "react"
 import { Divider } from "@mui/material"
 import type Phaser from "phaser"
 
+import * as map from "./map"
 import * as miniDrawers from "../../components/miniDrawers"
+import * as scenery from "./scenery"
 import * as tilesets from "../../phaser/tilesets"
-import MapSpeedDial from "./MapSpeedDial"
-import SceneryImageSelect from "./SceneryImageSelect"
 import { ZoomControls } from "../../phaser"
 import { usePhaserGameContext } from "../../app/hooks"
 
@@ -84,16 +84,19 @@ const Controls: FC<ControlsProps> = () => {
         <>
           <ZoomControls />
           {selected === "map" && (
-            <MapSpeedDial
+            <map.SpeedDial
               openState={mapOpenState}
               selectedState={mapSelectedState}
             />
           )}
           {selected === "scenery" && (
-            <SceneryImageSelect
-              openState={sceneryOpenState}
-              selectedState={scenerySelectedState}
-            />
+            <>
+              <scenery.Counter />
+              <scenery.ImageSelect
+                openState={sceneryOpenState}
+                selectedState={scenerySelectedState}
+              />
+            </>
           )}
         </>
       )}

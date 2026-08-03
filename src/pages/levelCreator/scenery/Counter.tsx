@@ -1,22 +1,19 @@
 import { type FC, useEffect, useState } from "react"
 import { Typography } from "@mui/material"
 
-import { usePhaserGameContext } from "../../app/hooks"
+import { usePhaserGameContext } from "../../../app/hooks"
 
-export interface HudProps {}
+export interface CounterProps {}
 
-const Hud: FC<HudProps> = () => {
+const Counter: FC<CounterProps> = () => {
   const {
-    activeSceneKeys,
     ref: { current: phaserGame },
   } = usePhaserGameContext()
   const [sceneryObjectCount, setSceneryObjectCount] = useState(0)
   const [maxSceneryObjectCount, setMaxSceneryObjectCount] = useState<number>()
 
-  const isCreateLevelActive = activeSceneKeys.includes("Create.LEVEL")
-
   useEffect(() => {
-    if (!isCreateLevelActive || !phaserGame) return
+    if (!phaserGame) return
 
     const sceneryObjectCountCleanup = phaserGame.getVariable(
       "sceneryObjectCount",
@@ -32,9 +29,9 @@ const Hud: FC<HudProps> = () => {
       sceneryObjectCountCleanup()
       maxSceneryObjectCountCleanup()
     }
-  }, [isCreateLevelActive, phaserGame])
+  }, [phaserGame])
 
-  if (!isCreateLevelActive || !maxSceneryObjectCount) return <></>
+  if (!maxSceneryObjectCount) return <></>
 
   return (
     <Typography
@@ -54,4 +51,4 @@ const Hud: FC<HudProps> = () => {
   )
 }
 
-export default Hud
+export default Counter

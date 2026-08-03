@@ -8,7 +8,6 @@ import {
   type SceneKey,
 } from "../../phaser"
 import Controls from "./Controls"
-import Hud from "./Hud"
 
 export interface LevelCreatorProps {}
 
@@ -21,7 +20,6 @@ const LevelCreator: FC<LevelCreatorProps> = () => {
       <PhaserGameContext.Provider
         value={{ ref: phaserGameRef, activeSceneKeys, setActiveSceneKeys }}
       >
-        <Hud />
         <Controls />
         <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
           <PhaserGame mode="create" />
