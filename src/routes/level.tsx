@@ -210,6 +210,31 @@ const levels = [
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
+  {
+    id: 38,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 39,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 40,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 41,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 42,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
 ] as const satisfies LevelProps[]
 
 export default (
