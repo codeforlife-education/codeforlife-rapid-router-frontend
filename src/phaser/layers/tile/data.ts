@@ -307,5 +307,7 @@ export function fillManyRows<
   ROWS extends number = typeof ROWS,
 >(options: FillManyRowsOptions<DID, COLS, ROWS> = {}) {
   const { rows = ROWS as ROWS, ...fillRowOptions } = options
-  return Array(rows).fill(fillRow(fillRowOptions)) as ManyRows<DID, COLS, ROWS>
+  return Array.from({ length: rows }, () =>
+    fillRow(fillRowOptions),
+  ) as ManyRows<DID, COLS, ROWS>
 }
