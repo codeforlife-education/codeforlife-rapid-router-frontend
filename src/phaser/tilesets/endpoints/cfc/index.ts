@@ -19,6 +19,10 @@ export const barn = {
     image: "./barn/red.svg",
     firstgid: _IDs.Barn.RED,
   }),
+  snow: make({
+    image: "./barn/snow.svg",
+    firstgid: _IDs.Barn.SNOW,
+  }),
 } as const
 
 export const warehouse = {
@@ -31,3 +35,11 @@ export const warehouse = {
     firstgid: _IDs.Warehouse.SNOW,
   }),
 } as const
+
+export default [
+  barn.black,
+  barn.red,
+  barn.snow,
+  warehouse.default,
+  warehouse.snow,
+]

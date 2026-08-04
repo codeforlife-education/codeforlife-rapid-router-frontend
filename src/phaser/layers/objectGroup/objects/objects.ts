@@ -1,4 +1,8 @@
-import { type DeepStringsOf, createPathStrings } from "codeforlife/utils/object"
+import {
+  type DeepStringsOf,
+  createIdRegistry,
+  createPathStrings,
+} from "codeforlife/utils/object"
 import type { TiledObject as _Object } from "tiled-types"
 
 import type * as tilesets from "../../../tilesets"
@@ -10,20 +14,62 @@ export type ID = tilesets.endpoints.ID | tilesets.scenery.ID
 export const Names = createPathStrings({
   Endpoints: {
     CFC: {
-      Barn: ["BLACK", "RED"],
+      Barn: ["BLACK", "RED", "SNOW"],
       Warehouse: ["DEFAULT", "SNOW"],
     },
     House: {
       Snow: ["BLUE", "ORANGE", "STRAW"],
-      Common: ["BLUE", "ORANGE", "STRAW", "WOOD"],
+      Common: ["BLUE", "ORANGE", "STRAW"],
     },
   },
   Scenery: {
-    Snow: ["BUSH", "POND", "TREE1", "TREE2"],
-    Common: ["BUSH", "HAY", "POND", "TREE1", "TREE2"],
+    Nature: [
+      "BUSH",
+      "CROPS",
+      "HAY",
+      "POND",
+      { Tree: ["OAK", "PINE"] },
+      { Snow: ["BUSH", "CROPS", "POND", { Tree: ["OAK", "PINE"] }] },
+    ],
+    Building: [
+      "HOSPITAL",
+      "HOUSE",
+      "LOG_CABIN",
+      "SCHOOL",
+      "SHOP",
+      { Snow: ["HOSPITAL", "SCHOOL", "SHOP"] },
+    ],
+    Other: ["SOLAR_PANEL", { Snow: ["SOLAR_PANEL"] }],
   },
 } as const)
 export type Name = DeepStringsOf<typeof Names>
+
+// Enum of object depths.
+export const Depths = createIdRegistry({
+  0: "BELOW_GROUND", // below the ground layer (e.g., pond).
+  1: "GROUND", // on the ground layer (e.g., bush).
+  2: "ABOVE_GROUND", // above the ground layer (e.g., tree).
+} as const)
+export type Depth = (typeof Depths)[keyof typeof Depths]
+
+// Global registry of object depths.
+const DEPTHS: Partial<Record<ID | Name, Depth>> = {}
+
+// Getter for an object depth by its GID.
+export const getDepth = (id: ID | Name) => DEPTHS[id] ?? Depths.GROUND
+
+// Enum of object densities.
+export const Densities = createIdRegistry({
+  0: "PERMEABLE", // can overlap (e.g., bush).
+  1: "SOLID", // cannot overlap (e.g., house).
+} as const)
+export type Density = (typeof Densities)[keyof typeof Densities]
+
+// Global registry of object densities.
+const DENSITIES: Partial<Record<ID | Name, Density>> = {}
+
+// Getter for an object density by its GID.
+export const getDensity = (id: ID | Name) => DENSITIES[id] ?? Densities.SOLID
 
 export type Object<N extends Name, GID extends ID> = Omit<
   _Object,
@@ -31,7 +77,11 @@ export type Object<N extends Name, GID extends ID> = Omit<
 > & { type: N; name: N; gid: GID }
 export type FactoryObject<N extends Name, GID extends ID> = Omit<
   Object<N, GID>,
-  "id"
+  | "id"
+  // `width` and `height` are omitted because they will be determined in their
+  // tileset's `imagewidth` and `imageheight` properties.
+  | "width"
+  | "height"
 >
 
 type TileOffset = { col: number; row: number }
@@ -63,6 +113,8 @@ type FactoryVariants<
 export type FactoryKwArgs<N extends Name, GID extends ID> = {
   name: N
   gid: GID
+  depth?: Depth
+  density?: Density
 } & FactoryBaseKwArgs<N, GID>
 export type Factory<
   N extends Name,
@@ -70,19 +122,26 @@ export type Factory<
   V extends FactoryVariantSpecs<N, GID> = {},
 > = FactoryBase<N, GID> & FactoryVariants<N, GID, V>
 
+// Global registry of object factories.
+const FACTORIES: Partial<Record<ID | Name, FactoryBase<Name, ID>>> = {}
+
+// Getter for an object factory by its GID.
+export const getFactory = (id: ID | Name) => FACTORIES[id]
+
 export const factory = <
   N extends Name,
   GID extends ID,
   const V extends FactoryVariantSpecs<N, GID> = {},
 >(
   {
+    gid,
     name,
+    depth = Depths.GROUND,
+    density = Densities.SOLID,
     x: baseX = 0,
     y: baseY = 0,
     col: baseCol = 0,
     row: baseRow = 0,
-    width: baseWidth = TILE_WIDTH,
-    height: baseHeight = TILE_HEIGHT,
     properties: baseProperties = [],
     visible: baseVisible = true,
     rotation: baseRotation = 0,
@@ -90,6 +149,9 @@ export const factory = <
   }: FactoryKwArgs<N, GID>,
   variants: V = {} as V,
 ): Factory<N, GID, V> => {
+  DEPTHS[gid] = DEPTHS[name] = depth
+  DENSITIES[gid] = DENSITIES[name] = density
+
   baseX += baseCol * TILE_WIDTH
   baseY += baseRow * TILE_HEIGHT
 
@@ -98,19 +160,16 @@ export const factory = <
     y,
     col,
     row,
-    width,
-    height,
     properties,
     visible = baseVisible,
     rotation,
     ...obj
   }) => ({
+    gid,
     type: name,
     name,
     x: (x ? baseX + x : baseX) + (col ? col * TILE_WIDTH : 0),
     y: (y ? baseY + y : baseY) + (row ? row * TILE_HEIGHT : 0),
-    width: width ? baseWidth + width : baseWidth,
-    height: height ? baseHeight + height : baseHeight,
     properties: properties
       ? [...baseProperties, ...properties]
       : baseProperties,
@@ -119,6 +178,8 @@ export const factory = <
     ...objBase,
     ...obj,
   })
+
+  FACTORIES[gid] = FACTORIES[name] = base
 
   return (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
     (f, [variantName, variantKwArgs]) => {

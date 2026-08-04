@@ -7,8 +7,7 @@ import {
 import Phaser from "phaser"
 
 import * as layers from "../../../layers"
-import type { AddRoadEventData, DeleteRoadEventData } from "./RoadManager"
-import type { Direction, default as Level, Tile } from "."
+import type { Direction, default as Level } from "."
 import BaseManager from "./BaseManager"
 import { Events } from "../../../globals"
 
@@ -22,7 +21,11 @@ type Position =
   | "bottomLeft"
   | "bottomRight"
 
-type VariantBase<K extends string> = { key: K; crossoverTiles: Tile[] }
+// TODO: move to types phaser.d.ts
+type VariantBase<K extends string> = {
+  key: K
+  crossoverTiles: Phaser.Types.Tilemaps.Tile[]
+}
 type EndpointBase<T extends string, V extends VariantBase<string>> = {
   type: T
   obj: Phaser.GameObjects.Image
@@ -45,8 +48,14 @@ type VariantKey = HouseVariantKey | CfcVariantKey
 type Variant = HouseVariant | CfcVariant
 type Type = HouseType | CfcType
 type Endpoint = House | Cfc
-type Pointer<E extends Endpoint = Endpoint> = { main: Tile; endpoint: E }
-type Style = Tile & { style: "add" | "rotate" | "delete"; type: Type }
+type Pointer<E extends Endpoint = Endpoint> = {
+  main: Phaser.Types.Tilemaps.Tile
+  endpoint: E
+}
+type Style = Phaser.Types.Tilemaps.Tile & {
+  style: "add" | "rotate" | "delete"
+  type: Type
+}
 
 export default class extends BaseManager {
   /**
@@ -77,10 +86,10 @@ export default class extends BaseManager {
   )
 
   // CSS cursor strings, pre-computed once.
-  private readonly rotateCursor = this.level.muiIconToCursor(RotateRightIcon)
-  private readonly homeCursor = this.level.muiIconToCursor(HomeIcon)
-  private readonly deleteCursor = this.level.muiIconToCursor(DeleteIcon)
-  private readonly warehouseCursor = this.level.muiIconToCursor(WarehouseIcon)
+  private readonly rotateIconUrl = this.level.muiIconToUrl(RotateRightIcon)
+  private readonly homeIconUrl = this.level.muiIconToUrl(HomeIcon)
+  private readonly deleteIconUrl = this.level.muiIconToUrl(DeleteIcon)
+  private readonly warehouseIconUrl = this.level.muiIconToUrl(WarehouseIcon)
 
   /** The current style applied to the level. */
   private _style: Style | null = null
@@ -214,18 +223,20 @@ export default class extends BaseManager {
   constructor(level: Level) {
     super(level)
 
-    const onAddRoad = (data: AddRoadEventData) => this.onAddRoad(data)
+    const onAddRoad: Phaser.Events.AddRoad = (...args) =>
+      this.onAddRoad(...args)
     level.game.events.on(Events.ADD_ROAD, onAddRoad)
 
-    const onDeleteRoad = (data: DeleteRoadEventData) => this.onDeleteRoad(data)
+    const onDeleteRoad: Phaser.Events.DeleteRoad = (...args) =>
+      this.onDeleteRoad(...args)
     level.game.events.on(Events.DELETE_ROAD, onDeleteRoad)
 
-    const onPointerDown = (pointer: Phaser.Input.Pointer) =>
-      this.onPointerDown(pointer)
+    const onPointerDown: Phaser.Input.Events.PointerDown = (...args) =>
+      this.onPointerDown(...args)
     level.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
 
-    const onPointerMove = (pointer: Phaser.Input.Pointer) =>
-      this.onPointerMove(pointer)
+    const onPointerMove: Phaser.Input.Events.PointerMove = (...args) =>
+      this.onPointerMove(...args)
     level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
 
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -237,13 +248,19 @@ export default class extends BaseManager {
   }
 
   /** Get the endpoint whose main tile is at the given tile, or `null`. */
-  private endpoint(tile: Tile): Endpoint | null
+  private endpoint(tile: Phaser.Types.Tilemaps.Tile): Endpoint | null
   /**
    * Set the endpoint at the given tile.
    * If another endpoint already has its main tile here, it is cleared first.
    */
-  private endpoint(tile: Tile, endpoint: Endpoint | null): Endpoint | null
-  private endpoint({ row, col }: Tile, endpoint?: Endpoint | null) {
+  private endpoint(
+    tile: Phaser.Types.Tilemaps.Tile,
+    endpoint: Endpoint | null,
+  ): Endpoint | null
+  private endpoint(
+    { row, col }: Phaser.Types.Tilemaps.Tile,
+    endpoint?: Endpoint | null,
+  ) {
     const currentMain = this._main[row][col]
     if (endpoint === undefined) return currentMain
 
@@ -305,14 +322,14 @@ export default class extends BaseManager {
     const { style, type, ...tile } = value
     if (style === "rotate") {
       this.level.highlightTile(tile, 0xffff00)
-      this.level.input.setDefaultCursor(this.rotateCursor)
+      this.level.input.setDefaultCursor(this.rotateIconUrl)
     } else if (style === "delete") {
       this.level.highlightTile(tile, 0xff0000)
-      this.level.input.setDefaultCursor(this.deleteCursor)
+      this.level.input.setDefaultCursor(this.deleteIconUrl)
     } else {
       this.level.highlightTile(tile, 0x00ff00)
       this.level.input.setDefaultCursor(
-        type === "house" ? this.homeCursor : this.warehouseCursor,
+        type === "house" ? this.homeIconUrl : this.warehouseIconUrl,
       )
     }
   }
@@ -333,7 +350,7 @@ export default class extends BaseManager {
   }
 
   /** Adds an endpoint variant to the given tile. */
-  private add(tile: Tile, type: Type, variant: Variant) {
+  private add(tile: Phaser.Types.Tilemaps.Tile, type: Type, variant: Variant) {
     // Get the factory function for the specified type and variant.
     const factory =
       type === "house"
@@ -346,17 +363,28 @@ export default class extends BaseManager {
     // Occupy the tile and any crossover tiles for the endpoint variant.
     const endpoint = { type, obj, variant } as Endpoint
     this.endpoint(tile, endpoint)
+
+    // Emit an event to notify other systems that an endpoint has been added.
+    this.level.game.events.emit(Events.ADD_ENDPOINT, {
+      ...tile,
+      ...endpoint,
+    } as Phaser.Events.AddEndpointData)
+
     return endpoint
   }
 
   /** Delete an endpoint from the given tile. */
-  private delete(tile: Tile, { obj }: Endpoint) {
+  private delete(tile: Phaser.Types.Tilemaps.Tile, { obj }: Endpoint) {
     this.endpoint(tile, null)
     this.level.destroyObject("ObjectGroup.ENDPOINTS", obj)
   }
 
   /** Rotates the endpoint at the given tile to the next available variant. */
-  private rotate(tile: Tile, endpoint: Endpoint, variants: Variant[]) {
+  private rotate(
+    tile: Phaser.Types.Tilemaps.Tile,
+    endpoint: Endpoint,
+    variants: Variant[],
+  ) {
     this.delete(tile, endpoint)
 
     let variantIndex = variants.findIndex(v => v.key === endpoint.variant.key)
@@ -433,10 +461,10 @@ export default class extends BaseManager {
 
   /** Returns the tiles that a endpoint variant crosses over into. */
   private variantKeyToCrossoverTiles(
-    tile: Tile,
+    tile: Phaser.Types.Tilemaps.Tile,
     type: Type,
     variantKey: VariantKey,
-  ): Tile[] {
+  ): Phaser.Types.Tilemaps.Tile[] {
     const step = (dirs: Direction[]) => {
       const destination = this.level.moveFromTile(tile, dirs)
       return destination ? [destination] : []
@@ -481,7 +509,7 @@ export default class extends BaseManager {
    * by a colliding endpoint.
    */
   private variants(
-    tile: Tile,
+    tile: Phaser.Types.Tilemaps.Tile,
     type: Type,
     {
       roadId = this.level.road.dirsToId(this.level.road.dirs(tile)),
@@ -553,8 +581,14 @@ export default class extends BaseManager {
    * the colliding variants are determined accordingly.
    */
   private variantCollides(
-    from: Tile & { type: Type; variant: { key: VariantKey } },
-    to: Tile & { type: Type; variant: { key: VariantKey } },
+    from: Phaser.Types.Tilemaps.Tile & {
+      type: Type
+      variant: { key: VariantKey }
+    },
+    to: Phaser.Types.Tilemaps.Tile & {
+      type: Type
+      variant: { key: VariantKey }
+    },
   ): boolean {
     if (from.type === "cfc") {
       // 2 CFCs cannot collide as there is only ever 1 CFC on the map.
@@ -591,7 +625,7 @@ export default class extends BaseManager {
   }
 
   /** Handles the addition of a road on the map. */
-  private onAddRoad({ id, ...tile }: AddRoadEventData) {
+  private onAddRoad: Phaser.Events.AddRoad = ({ id, ...tile }) => {
     const endpoint = this.endpoint(tile)
     if (!endpoint) return
 
@@ -607,7 +641,7 @@ export default class extends BaseManager {
   }
 
   /** Handles the deletion of a road on the map. */
-  private onDeleteRoad = (tile: DeleteRoadEventData) => {
+  private onDeleteRoad: Phaser.Events.DeleteRoad = tile => {
     const endpoint = this.endpoint(tile)
     if (endpoint) this.delete(tile, endpoint)
   }
@@ -623,23 +657,28 @@ export default class extends BaseManager {
   private onPointer(
     pointer: Phaser.Input.Pointer,
     handle: (
-      tool: "add-house" | "delete-house" | "add-cfc",
-      tile: Tile,
+      tool: "add-house" | "delete-house" | "mark-start",
+      tile: Phaser.Types.Tilemaps.Tile,
       endpoint: Endpoint | null,
     ) => Style["style"] | undefined,
   ) {
-    const tool = this.level.toolbox?.activeTool
-    if (tool !== "add-house" && tool !== "delete-house" && tool !== "add-cfc")
+    const toolbox = this.level.toolbox
+    if (
+      toolbox?.box !== "map" ||
+      (toolbox.tool !== "add-house" &&
+        toolbox.tool !== "delete-house" &&
+        toolbox.tool !== "mark-start")
+    )
       return
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
     const endpoint = this.endpoint(tile)
-    const style = handle(tool, tile, endpoint)
-    const type = tool === "add-cfc" ? "cfc" : "house"
+    const style = handle(toolbox.tool, tile, endpoint)
+    const type = toolbox.tool === "mark-start" ? "cfc" : "house"
     this.style = style ? { ...tile, style, type } : null
   }
 
-  private onPointerDown = (pointer: Phaser.Input.Pointer) =>
+  private onPointerDown: Phaser.Input.Events.PointerDown = pointer =>
     this.onPointer(pointer, (tool, tile, endpoint) => {
       const add = (type: Type) => {
         const variants = this.variants(tile, type)
@@ -647,7 +686,7 @@ export default class extends BaseManager {
         return this.add(tile, type, variants[0])
       }
 
-      if (tool === "add-cfc") {
+      if (tool === "mark-start") {
         if (endpoint) return
         const prevCfc = this._cfc // previous CFC
         if (add("cfc") && prevCfc) this.delete(prevCfc.main, prevCfc.endpoint)
@@ -665,12 +704,12 @@ export default class extends BaseManager {
       } else if (endpoint?.type === "house") this.delete(tile, endpoint)
     })
 
-  private onPointerMove = (pointer: Phaser.Input.Pointer) =>
+  private onPointerMove: Phaser.Input.Events.PointerMove = pointer =>
     this.onPointer(pointer, (tool, tile, endpoint) => {
       const add = (type: Type) =>
         this.variants(tile, type).length > 0 ? "add" : undefined
 
-      if (tool === "add-cfc") {
+      if (tool === "mark-start") {
         if (!endpoint) return add("cfc")
       } else if (tool === "add-house") {
         if (!endpoint) return add("house")

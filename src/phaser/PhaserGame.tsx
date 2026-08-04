@@ -1,29 +1,108 @@
-import { type FC, useEffect, useRef, useState } from "react"
+import {
+  type Dispatch,
+  type FC,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react"
 import { CircularProgress } from "@mui/material"
 // NOTE: `import type` is a TypeScript feature that only imports type
 //  information for compile-time type checking. When our TypeScript code is
 //  compiled into JavaScript, these type-only imports are completely erased.
 //  They do not generate any JavaScript code that would cause the phaser module
 //  to be loaded at runtime.
-import type { Game, Scene } from "phaser"
+import type Phaser from "phaser"
 
-import { Events, Variables } from "./globals"
+import { Events, type Variable, Variables } from "./globals"
+import { useGameCommands, usePhaserGameContext } from "../app/hooks"
 import type { Level } from "../api/level"
-import { useGameCommands } from "../app/hooks"
+import type { PhaserGameRef } from "./PhaserGameContext"
 
 export type PhaserGameProps =
   | { mode: "play"; levelId: Level["id"] }
   | { mode: "create"; levelId?: never }
 
 const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
+  const phaserGameContext = usePhaserGameContext()
   const gameCommands = useGameCommands()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const gameRef = useRef<Game>(null)
+  const gameRef = useRef<Phaser.Game>(null)
+
+  if (!phaserGameContext)
+    throw ReferenceError("Phaser game context not provided.")
+  const { ref, setActiveSceneKeys } = phaserGameContext
+
+  const getVariable = useCallback(
+    (<T,>(
+      getKey: Variable,
+      set: Dispatch<SetStateAction<T | undefined>>,
+      defaultValue?: T,
+    ) => {
+      if (!gameIsInitialized || !gameRef.current) return () => {}
+      const { events, registry } = gameRef.current
+
+      // Listen for updates to the variable and update the state accordingly.
+      const onPhaserSetVariable: Phaser.Events.PhaserSetVariable = setKey => {
+        if (getKey !== setKey) return
+        set((registry.get(getKey) as T | undefined) ?? defaultValue)
+      }
+      // Immediately get the current value.
+      onPhaserSetVariable(getKey)
+      // Listen for future updates to the variable.
+      events.on(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
+      // Return a cleanup function to remove the event listener when the
+      // component unmounts or the dependencies change.
+      return () => events.off(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
+    }) as PhaserGameRef["getVariable"],
+    [gameIsInitialized],
+  )
+
+  const setVariable = useCallback(
+    ((key, value) => {
+      if (!gameIsInitialized || !gameRef.current) return
+      const { events, registry } = gameRef.current
+
+      registry.set(key, value)
+      events.emit(Events.REACT_SET_VARIABLE, key)
+    }) as PhaserGameRef["setVariable"],
+    [gameIsInitialized],
+  )
+
+  // Expose Phaser game methods to parent components.
+  useImperativeHandle(ref, () => {
+    const { events } = (gameIsInitialized ? gameRef.current : null) || {}
+
+    return {
+      zoomIn: () => events?.emit(Events.ZOOM_IN),
+      zoomOut: () => events?.emit(Events.ZOOM_OUT),
+      getVariable,
+      setVariable,
+    }
+  }, [gameIsInitialized, getVariable, setVariable])
 
   // Initialize Phaser when on mount and destroy it when it's unmounted.
   useEffect(() => {
     let active = true // Used to synchronously guard initialization logic.
+
+    // Each scene (see `BaseScene`) broadcasts its own active/inactive status
+    // onto the game's event emitter, along with its key. Use this to keep
+    // track of which scene keys are currently active.
+    const onSceneActivityChanged: Phaser.Events.SceneActivityChanged = (
+      key,
+      isActive,
+    ) =>
+      setActiveSceneKeys(prevActiveSceneKeys => {
+        const wasActive = prevActiveSceneKeys.includes(key)
+        if (isActive === wasActive) return prevActiveSceneKeys // No change.
+
+        return isActive
+          ? [...prevActiveSceneKeys, key]
+          : prevActiveSceneKeys.filter(activeKey => activeKey !== key)
+      })
 
     const initPhaser = async () => {
       // Check if the container ref is set and the component is still active.
@@ -34,7 +113,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       const Phaser = await import("phaser")
       const { default: scene } = (await import(
         `./scenes/${mode}/index.ts`
-      )) as { default: Scene[] }
+      )) as { default: Phaser.Scene[] }
 
       // Run the checks again to ensure that the component was not unmounted
       // and remounted while the imports were being asynchronously fetched.
@@ -66,6 +145,12 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       // reload the relevant parts of the game.
       gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
 
+      // Listen for scene activity changes broadcast by each scene.
+      gameRef.current.events.on(
+        Events.SCENE_ACTIVITY_CHANGED,
+        onSceneActivityChanged,
+      )
+
       setGameIsInitialized(true) // Used to asynchronously trigger a rerender.
     }
 
@@ -74,40 +159,20 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
     return () => {
       active = false
       if (gameRef.current) {
+        gameRef.current.events.off(
+          Events.SCENE_ACTIVITY_CHANGED,
+          onSceneActivityChanged,
+        )
         gameRef.current.destroy(true)
         gameRef.current = null
       }
     }
-  }, [mode, levelId])
+  }, [mode, levelId, setActiveSceneKeys])
 
   // Pass the current game commands to Phaser.
   useEffect(() => {
-    // Only set the commands if we're in play mode and the game has been
-    // initialized.
-    if (mode !== "play" || !gameRef.current) return
-
-    // Save the current commands into the registry.
-    gameRef.current.registry.set(Variables.COMMANDS, gameCommands)
-
-    // Tells any currently active scenes to fetch the new data.
-    const emitSetCommandsEvent = () => {
-      if (gameRef.current) gameRef.current.events.emit(Events.SET_COMMANDS)
-    }
-
-    // Immediately emit an event for any active scenes to get the new commands.
-    emitSetCommandsEvent()
-
-    // Re-emit the event when the gameplay scene is ready.
-    gameRef.current.events.on(Events.GAMEPLAY_SCENE_READY, emitSetCommandsEvent)
-
-    return () => {
-      if (!gameRef.current) return
-      gameRef.current.events.off(
-        Events.GAMEPLAY_SCENE_READY,
-        emitSetCommandsEvent,
-      )
-    }
-  }, [mode, gameCommands])
+    if (mode === "play") setVariable("commands", gameCommands)
+  }, [mode, gameCommands, setVariable])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

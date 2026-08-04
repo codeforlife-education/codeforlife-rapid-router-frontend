@@ -1,8 +1,11 @@
+import { Delete as DeleteIcon } from "@mui/icons-material"
+
 import * as layers from "../../layers"
 import * as tilemaps from "../../tilemaps"
-import * as tilesets from "../../tilesets"
+import { SceneKeys, TILE_HEIGHT, TILE_WIDTH } from "../../globals"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
+import { default as tilesets } from "../../tilesets"
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for
@@ -11,61 +14,12 @@ import Level from "./Level"
  * Preloader Scene transitions to the Level Scene.
  */
 export default class extends BasePreloader {
+  static readonly KEY = SceneKeys.Create.PRELOADER
+
   preload() {
     const tilemap = tilemaps.makeOrthogonal({
       properties: { background: "GRASS" },
-      tilesets: [
-        // Road
-        tilesets.road.asphalt.crossroads,
-        tilesets.road.asphalt.deadEnd,
-        tilesets.road.asphalt.straight,
-        tilesets.road.asphalt.tJunction,
-        tilesets.road.asphalt.turn,
-        tilesets.road.dirt.crossroads,
-        tilesets.road.dirt.deadEnd,
-        tilesets.road.dirt.straight,
-        tilesets.road.dirt.tJunction,
-        tilesets.road.dirt.turn,
-        // Environment
-        tilesets.environment.city.hospital,
-        tilesets.environment.city.school,
-        tilesets.environment.city.shop,
-        tilesets.environment.city.solarPanel,
-        tilesets.environment.common.trafficLight.red,
-        tilesets.environment.common.trafficLight.green,
-        tilesets.environment.common.pigeon,
-        tilesets.environment.farm.crops,
-        tilesets.environment.farm.solarPanel,
-        tilesets.environment.grass.solarPanel,
-        tilesets.environment.snow.barn,
-        tilesets.environment.snow.crops,
-        tilesets.environment.snow.hospital,
-        tilesets.environment.snow.school,
-        tilesets.environment.snow.shop,
-        tilesets.environment.snow.solarPanel,
-        // Endpoints
-        tilesets.endpoints.cfc.barn.black,
-        tilesets.endpoints.cfc.barn.red,
-        tilesets.endpoints.cfc.warehouse.default,
-        tilesets.endpoints.cfc.warehouse.snow,
-        tilesets.endpoints.house.common.blue,
-        tilesets.endpoints.house.common.orange,
-        tilesets.endpoints.house.common.straw,
-        tilesets.endpoints.house.common.wood,
-        tilesets.endpoints.house.snow.blue,
-        tilesets.endpoints.house.snow.orange,
-        tilesets.endpoints.house.snow.straw,
-        // Scenery
-        tilesets.scenery.common.bush,
-        tilesets.scenery.common.hay,
-        tilesets.scenery.common.pond,
-        tilesets.scenery.common.tree1,
-        tilesets.scenery.common.tree2,
-        tilesets.scenery.snow.bush,
-        tilesets.scenery.snow.pond,
-        tilesets.scenery.snow.tree1,
-        tilesets.scenery.snow.tree2,
-      ],
+      tilesets,
       layers: {
         tile: { road: { data: layers.tile.data.fillManyRows() } },
         objectGroup: { endpoints: { objects: [] } },
@@ -73,6 +27,11 @@ export default class extends BasePreloader {
     })
 
     this.loadTilemap(tilemap)
+
+    this.loadMuiIcon("delete-icon", DeleteIcon, {
+      width: TILE_WIDTH / 3,
+      height: TILE_HEIGHT / 3,
+    })
   }
 
   create() {

@@ -1,6 +1,7 @@
-export * as city from "./city"
-export * as common from "./common"
-export * as farm from "./farm"
-export * as grass from "./grass"
-export * as snow from "./snow"
+import * as animal from "./animal"
+import * as trafficLight from "./trafficLight"
+
 export { type ID, IDs } from "./environment"
+
+export default [...animal.default, ...trafficLight.default]
+export { animal, trafficLight }

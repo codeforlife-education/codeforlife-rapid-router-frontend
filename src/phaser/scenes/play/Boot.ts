@@ -1,5 +1,6 @@
 import BaseBoot from "../BaseBoot"
 import Preloader from "./Preloader"
+import { SceneKeys } from "../../globals"
 
 /**
  * The Boot Scene is the first scene that runs when the game starts. It is
@@ -9,6 +10,8 @@ import Preloader from "./Preloader"
  * small as possible to ensure a fast startup time.
  */
 export default class extends BaseBoot {
+  static readonly KEY = SceneKeys.Play.BOOT
+
   create() {
     // Start preloading the assets.
     this.scene.start(Preloader.KEY)
