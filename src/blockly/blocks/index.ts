@@ -8,7 +8,7 @@ export { type BooleanBlockType, BOOLEAN_BLOCK_TYPES } from "./booleans"
 export { type CommandBlockType, COMMAND_BLOCK_TYPES } from "./commands"
 export { type StartBlockType, START_BLOCK_TYPES } from "./starts"
 
-export const CUSTOM_BLOCKS: BlockDefinition<any>[] = [
+export const CUSTOM_BLOCKS = [
   // commands
   commands.MOVE_FORWARDS_BLOCK,
   commands.TURN_LEFT_BLOCK,
@@ -26,7 +26,7 @@ export const CUSTOM_BLOCKS: BlockDefinition<any>[] = [
   booleans.PIGEON_CROSSING_BLOCK,
   // starts
   starts.VAN_BLOCK,
-]
+] as const satisfies BlockDefinition<string>[]
 
 export type BlockType =
   | booleans.BooleanBlockType

@@ -14,13 +14,16 @@ import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 
 import BlockListItem, { type BlockCount } from "./BlockListItem"
-import { CUSTOM_BLOCKS, START_BLOCK_TYPES } from "../../blockly/blocks"
-import { type BlockDefinition } from "../../blockly/utils"
+import {
+  CUSTOM_BLOCKS,
+  START_BLOCK_TYPES,
+  type StartBlockType,
+} from "../../blockly/blocks"
 
 // The start block isn't an optional, player-selectable block like the others -
 // it's always present, so it's excluded from this list.
-const BLOCKS = (CUSTOM_BLOCKS as BlockDefinition<string>[]).filter(
-  block => !(START_BLOCK_TYPES as readonly string[]).includes(block.type),
+const BLOCKS = CUSTOM_BLOCKS.filter(
+  ({ type }) => !START_BLOCK_TYPES.includes(type as StartBlockType),
 )
 
 const LANGUAGE_OPTIONS: Record<string, string> = {
