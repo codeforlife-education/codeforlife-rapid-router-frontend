@@ -235,6 +235,196 @@ const levels = [
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
+  {
+    id: 43,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 44,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 45,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 46,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 47,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 48,
+    mode: "blockly",
+    blockly_toolbox_block_types: [
+      "move_forwards",
+      "turn_right",
+      "turn_left",
+      "deliver",
+    ],
+  },
+  {
+    id: 49,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 50,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 51,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 52,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 53,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 54,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 55,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 56,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 57,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 58,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 59,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 60,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 61,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 62,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 63,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 64,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 65,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 66,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 67,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 68,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 69,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 70,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 71,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 72,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 73,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 74,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 75,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 76,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 77,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 78,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
+  {
+    id: 79,
+    mode: "blockly",
+    blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
+  },
 ] as const satisfies LevelProps[]
 
 export default (
