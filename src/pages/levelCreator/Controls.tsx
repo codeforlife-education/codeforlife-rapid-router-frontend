@@ -18,6 +18,7 @@ import { Divider } from "@mui/material"
 import type Phaser from "phaser"
 
 import * as miniDrawers from "../../components/miniDrawers"
+import * as obstacles from "./obstacles"
 import * as route from "./route"
 import * as scenery from "./scenery"
 import * as tilesets from "../../phaser/tilesets"
@@ -52,27 +53,34 @@ const Controls: FC<ControlsProps> = () => {
     openState: useState(false),
     selectedState: useState(tilesets.IDs.Scenery.Nature.BUSH),
   } as scenery.ImageSelectProps
+  const obstaclesImageSelectProps = {
+    openState: useState(false),
+    selectedState: useState(tilesets.IDs.Obstacles.Animal.COW),
+  } as obstacles.ImageSelectProps
 
   // Update the Phaser game tool whenever the selected tool changes.
   useEffect(() => {
-    if (!phaserGame || (selected !== "route" && selected !== "scenery")) return
-    phaserGame.setVariable(
-      "toolbox",
-      selected === "route"
-        ? ({
-            box: selected,
-            tool: routeSpeedDialProps.selectedState[0],
-          } as Phaser.Types.Scenes.Create.Toolbox.Route)
-        : ({
-            box: selected,
-            tool: sceneryImageSelectProps.selectedState[0],
-          } as Phaser.Types.Scenes.Create.Toolbox.Scenery),
-    )
+    if (!phaserGame) return
+
+    let tool: Phaser.Types.Scenes.Create.Toolbox.Any["tool"]
+    if (selected === "route") {
+      tool = routeSpeedDialProps.selectedState[0]
+    } else if (selected === "scenery") {
+      tool = sceneryImageSelectProps.selectedState[0]
+    } else if (selected === "obstacles") {
+      tool = obstaclesImageSelectProps.selectedState[0]
+    } else return
+
+    phaserGame.setVariable("toolbox", {
+      box: selected,
+      tool,
+    } as Phaser.Types.Scenes.Create.Toolbox.Any)
   }, [
     phaserGame,
     selected,
     routeSpeedDialProps.selectedState,
     sceneryImageSelectProps.selectedState,
+    obstaclesImageSelectProps.selectedState,
   ])
 
   const makeSelectableButtonItemProps = (
@@ -98,6 +106,9 @@ const Controls: FC<ControlsProps> = () => {
               <scenery.Counter />
               <scenery.ImageSelect {...sceneryImageSelectProps} />
             </>
+          )}
+          {selected === "obstacles" && (
+            <obstacles.ImageSelect {...obstaclesImageSelectProps} />
           )}
         </>
       )}

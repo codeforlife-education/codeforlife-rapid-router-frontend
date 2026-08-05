@@ -6,8 +6,8 @@ import { COLS, ROWS } from "../globals"
 
 // Global registry of layer names.
 export const Names = createPathStrings({
-  Tile: ["ROAD", "ENVIRONMENT"],
-  ObjectGroup: ["ENDPOINTS", "SCENERY"],
+  Tile: ["ROAD"],
+  ObjectGroup: ["ENDPOINTS", "OBSTACLES", "SCENERY"],
 } as const)
 
 export type Name = tile.Name | objectGroup.Name

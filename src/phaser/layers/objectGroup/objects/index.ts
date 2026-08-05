@@ -1,4 +1,5 @@
 export * as endpoints from "./endpoints"
+export * as obstacles from "./obstacles"
 export * as scenery from "./scenery"
 export {
   type StraightRotationVariants,

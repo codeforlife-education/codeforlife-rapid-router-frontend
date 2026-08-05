@@ -8,7 +8,10 @@ import type { TiledObject as _Object } from "tiled-types"
 import type * as tilesets from "../../../tilesets"
 import { TILE_HEIGHT, TILE_WIDTH } from "../../../globals"
 
-export type ID = tilesets.endpoints.ID | tilesets.scenery.ID
+export type ID =
+  | tilesets.endpoints.ID
+  | tilesets.obstacles.ID
+  | tilesets.scenery.ID
 
 // Global registry of object names.
 export const Names = createPathStrings({
@@ -21,6 +24,10 @@ export const Names = createPathStrings({
       Snow: ["BLUE", "ORANGE", "STRAW"],
       Common: ["BLUE", "ORANGE", "STRAW"],
     },
+  },
+  Obstacles: {
+    Animal: ["COW", "PIGEON"],
+    TrafficLight: ["RED", "GREEN"],
   },
   Scenery: {
     Nature: [

@@ -14,7 +14,7 @@ export default class BasePreloader<
     background: images.URLs.Background.GRASS,
     tilesets: {
       "Tile.ROAD": [],
-      "Tile.ENVIRONMENT": [],
+      "ObjectGroup.OBSTACLES": [],
       "ObjectGroup.ENDPOINTS": [],
       "ObjectGroup.SCENERY": [],
     },
@@ -85,10 +85,8 @@ export default class BasePreloader<
       // Track each layer's tilesets.
       if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
         this.levelData.tilesets["Tile.ROAD"].push({ name })
-      } else if (
-        tilesets.environment.IDs.includes(id as tilesets.environment.ID)
-      ) {
-        this.levelData.tilesets["Tile.ENVIRONMENT"].push({ name })
+      } else if (tilesets.obstacles.IDs.includes(id as tilesets.obstacles.ID)) {
+        this.levelData.tilesets["ObjectGroup.OBSTACLES"].push({ name, gid: id })
       } else if (tilesets.endpoints.IDs.includes(id as tilesets.endpoints.ID)) {
         this.levelData.tilesets["ObjectGroup.ENDPOINTS"].push({ name, gid: id })
       } else if (tilesets.scenery.IDs.includes(id as tilesets.scenery.ID)) {

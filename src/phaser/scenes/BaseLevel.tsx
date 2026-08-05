@@ -26,7 +26,7 @@ export default class BaseLevel<
   backgroundTileSprite!: Phaser.GameObjects.TileSprite
   tilesets: Record<layers.Name, Phaser.Tilemaps.Tileset[]> = {
     "Tile.ROAD": [],
-    "Tile.ENVIRONMENT": [],
+    "ObjectGroup.OBSTACLES": [],
     "ObjectGroup.SCENERY": [],
     "ObjectGroup.ENDPOINTS": [],
   }
@@ -36,7 +36,7 @@ export default class BaseLevel<
   > &
     Record<layers.objectGroup.Name, Phaser.GameObjects.Image[]> = {
     "Tile.ROAD": null as unknown as Phaser.Tilemaps.TilemapLayer,
-    "Tile.ENVIRONMENT": null as unknown as Phaser.Tilemaps.TilemapLayer,
+    "ObjectGroup.OBSTACLES": null as unknown as Phaser.GameObjects.Image[],
     "ObjectGroup.SCENERY": null as unknown as Phaser.GameObjects.Image[],
     "ObjectGroup.ENDPOINTS": null as unknown as Phaser.GameObjects.Image[],
   }
@@ -135,10 +135,10 @@ export default class BaseLevel<
     // 3. The road layer is created, on top of the background layer.
     this.createTileLayer("Tile.ROAD")
 
-    // 4. The environment layer is created, on top of the road layer.
-    this.createTileLayer("Tile.ENVIRONMENT")
+    // 4. The obstacle objects are created, on top of the road layer.
+    this.createObjectGroupLayer("ObjectGroup.OBSTACLES")
 
-    // 5. The endpoint objects are created, on top of the environment layer.
+    // 5. The endpoint objects are created, on top of the obstacle objects.
     this.createObjectGroupLayer("ObjectGroup.ENDPOINTS")
 
     // 6. The scenery objects are created, on top of all layers.

@@ -155,7 +155,8 @@ declare module "phaser" {
             | "mark-start"
           >
           type Scenery = _Toolbox<"scenery", tilesets.scenery.ID>
-          type Any = Route | Scenery
+          type Obstacles = _Toolbox<"obstacles", tilesets.obstacles.ID>
+          type Any = Route | Scenery | Obstacles
         }
       }
       namespace Play {}
