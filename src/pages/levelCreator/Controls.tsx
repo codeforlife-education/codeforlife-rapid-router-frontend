@@ -2,7 +2,6 @@ import {
   Casino as CasinoIcon,
   Description as DescriptionIcon,
   DriveFolderUpload as DriveFolderUploadIcon,
-  EditRoad as EditRoadIcon,
   ExitToApp as ExitToAppIcon,
   Extension as ExtensionIcon,
   Lightbulb as LightbulbIcon,
@@ -10,21 +9,24 @@ import {
   People as PeopleIcon,
   Person as PersonIcon,
   QuestionMark as QuestionMarkIcon,
+  Route as RouteIcon,
   SaveOutlined as SaveOutlinedIcon,
+  Traffic as TrafficIcon,
 } from "@mui/icons-material"
 import { type FC, useEffect, useState } from "react"
 import { Divider } from "@mui/material"
 import type Phaser from "phaser"
 
-import * as map from "./map"
 import * as miniDrawers from "../../components/miniDrawers"
+import * as route from "./route"
 import * as scenery from "./scenery"
 import * as tilesets from "../../phaser/tilesets"
 import { ZoomControls } from "../../phaser"
 import { usePhaserGameContext } from "../../app/hooks"
 
 type SelectableButtonId =
-  | "map"
+  | "route"
+  | "obstacles"
   | "scenery"
   | "character"
   | "code"
@@ -36,35 +38,42 @@ export interface ControlsProps {}
 
 const Controls: FC<ControlsProps> = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [selected, setSelected] = useState<SelectableButtonId>("map")
-  const mapOpenState = useState(false)
-  const mapSelectedState =
-    useState<Phaser.Types.Scenes.Create.Toolbox.Map["tool"]>("add-road")
-  const sceneryOpenState = useState(false)
-  const scenerySelectedState = useState<tilesets.scenery.ID>(
-    tilesets.IDs.Scenery.Nature.BUSH,
-  )
+  const [selected, setSelected] = useState<SelectableButtonId>("route")
   const {
     ref: { current: phaserGame },
     activeSceneKeys,
   } = usePhaserGameContext()
 
+  const routeSpeedDialProps = {
+    openState: useState(false),
+    selectedState: useState("add-road"),
+  } as route.SpeedDialProps
+  const sceneryImageSelectProps = {
+    openState: useState(false),
+    selectedState: useState(tilesets.IDs.Scenery.Nature.BUSH),
+  } as scenery.ImageSelectProps
+
   // Update the Phaser game tool whenever the selected tool changes.
   useEffect(() => {
-    if (!phaserGame || (selected !== "map" && selected !== "scenery")) return
+    if (!phaserGame || (selected !== "route" && selected !== "scenery")) return
     phaserGame.setVariable(
       "toolbox",
-      selected === "map"
+      selected === "route"
         ? ({
             box: selected,
-            tool: mapSelectedState[0],
-          } as Phaser.Types.Scenes.Create.Toolbox.Map)
+            tool: routeSpeedDialProps.selectedState[0],
+          } as Phaser.Types.Scenes.Create.Toolbox.Route)
         : ({
             box: selected,
-            tool: scenerySelectedState[0],
+            tool: sceneryImageSelectProps.selectedState[0],
           } as Phaser.Types.Scenes.Create.Toolbox.Scenery),
     )
-  }, [phaserGame, selected, mapSelectedState, scenerySelectedState])
+  }, [
+    phaserGame,
+    selected,
+    routeSpeedDialProps.selectedState,
+    sceneryImageSelectProps.selectedState,
+  ])
 
   const makeSelectableButtonItemProps = (
     id: SelectableButtonId,
@@ -83,19 +92,11 @@ const Controls: FC<ControlsProps> = () => {
       {activeSceneKeys.includes("Create.LEVEL") && (
         <>
           <ZoomControls />
-          {selected === "map" && (
-            <map.SpeedDial
-              openState={mapOpenState}
-              selectedState={mapSelectedState}
-            />
-          )}
+          {selected === "route" && <route.SpeedDial {...routeSpeedDialProps} />}
           {selected === "scenery" && (
             <>
               <scenery.Counter />
-              <scenery.ImageSelect
-                openState={sceneryOpenState}
-                selectedState={scenerySelectedState}
-              />
+              <scenery.ImageSelect {...sceneryImageSelectProps} />
             </>
           )}
         </>
@@ -107,9 +108,14 @@ const Controls: FC<ControlsProps> = () => {
         }}
       >
         <miniDrawers.ButtonItem
-          {...makeSelectableButtonItemProps("map")}
-          text="Map"
-          icon={<EditRoadIcon />}
+          {...makeSelectableButtonItemProps("route")}
+          text="Route"
+          icon={<RouteIcon />}
+        />
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("obstacles")}
+          text="Obstacles"
+          icon={<TrafficIcon />}
         />
         <miniDrawers.ButtonItem
           {...makeSelectableButtonItemProps("scenery")}

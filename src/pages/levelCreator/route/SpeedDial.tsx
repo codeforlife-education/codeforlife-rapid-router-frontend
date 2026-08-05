@@ -49,15 +49,15 @@ const actions = {
     backgroundColor: "green",
   },
 } as const satisfies Record<
-  Phaser.Types.Scenes.Create.Toolbox.Map["tool"],
+  Phaser.Types.Scenes.Create.Toolbox.Route["tool"],
   { Icon: SvgIconComponent; title: string; backgroundColor: string }
 >
 
 export interface SpeedDialProps {
   openState: [boolean, Dispatch<SetStateAction<boolean>>]
   selectedState: [
-    Phaser.Types.Scenes.Create.Toolbox.Map["tool"],
-    Dispatch<SetStateAction<Phaser.Types.Scenes.Create.Toolbox.Map["tool"]>>,
+    Phaser.Types.Scenes.Create.Toolbox.Route["tool"],
+    Dispatch<SetStateAction<Phaser.Types.Scenes.Create.Toolbox.Route["tool"]>>,
   ]
 }
 
@@ -123,7 +123,7 @@ const SpeedDial: FC<SpeedDialProps> = ({
                 }}
                 onClick={() =>
                   setSelected(
-                    tool as Phaser.Types.Scenes.Create.Toolbox.Map["tool"],
+                    tool as Phaser.Types.Scenes.Create.Toolbox.Route["tool"],
                   )
                 }
               />

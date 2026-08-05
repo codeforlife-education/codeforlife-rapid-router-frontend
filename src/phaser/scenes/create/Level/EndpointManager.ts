@@ -664,7 +664,7 @@ export default class extends BaseManager {
   ) {
     const toolbox = this.level.toolbox
     if (
-      toolbox?.box !== "map" ||
+      toolbox?.box !== "route" ||
       (toolbox.tool !== "add-house" &&
         toolbox.tool !== "delete-house" &&
         toolbox.tool !== "mark-start")

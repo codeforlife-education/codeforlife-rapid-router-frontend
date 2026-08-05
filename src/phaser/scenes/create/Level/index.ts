@@ -67,7 +67,7 @@ export default class extends BaseLevel<LevelData> {
 
     // Initialize the managers.
     this.drag = new DragManager(this, {
-      map: {
+      route: {
         "add-road": { drawDirs: true, highlight: { color: 0x00ff00 } },
         "delete-road": { drawDirs: false, highlight: { color: 0xff0000 } },
       },

@@ -146,8 +146,8 @@ declare module "phaser" {
     namespace Scenes {
       namespace Create {
         namespace Toolbox {
-          type Map = _Toolbox<
-            "map",
+          type Route = _Toolbox<
+            "route",
             | "add-road"
             | "delete-road"
             | "add-house"
@@ -155,7 +155,7 @@ declare module "phaser" {
             | "mark-start"
           >
           type Scenery = _Toolbox<"scenery", tilesets.scenery.ID>
-          type Any = Map | Scenery
+          type Any = Route | Scenery
         }
       }
       namespace Play {}

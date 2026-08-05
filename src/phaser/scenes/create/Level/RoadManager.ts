@@ -170,7 +170,7 @@ export default class extends BaseManager {
     toolbox: { box, tool },
     ...drag
   }) => {
-    if (box !== "map") return
+    if (box !== "route") return
     if (tool === "add-road") this.finalizeAddDrag(drag)
     else if (tool === "delete-road") this.finalizeDeleteDrag(drag)
   }
@@ -178,7 +178,7 @@ export default class extends BaseManager {
   private onPointerMove: Phaser.Input.Events.PointerMove = pointer => {
     const toolbox = this.level.toolbox
     if (
-      toolbox?.box !== "map" ||
+      toolbox?.box !== "route" ||
       (toolbox.tool !== "add-road" && toolbox.tool !== "delete-road")
     )
       return
