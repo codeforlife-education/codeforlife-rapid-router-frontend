@@ -3,6 +3,7 @@ import Phaser from "phaser"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import DragManager from "./DragManager"
 import EndpointManager from "./EndpointManager"
+import ObstacleManager from "./ObstacleManager"
 import RoadManager from "./RoadManager"
 import { SceneKeys } from "../../../globals"
 import SceneryManager from "./SceneryManager"
@@ -32,6 +33,9 @@ export default class extends BaseLevel<LevelData> {
 
   /** Endpoint manager responsible for handling endpoint objects. */
   endpoint!: EndpointManager
+
+  /** Obstacle manager responsible for handling obstacle objects. */
+  obstacle!: ObstacleManager
 
   /** Scenery manager responsible for handling scenery objects. */
   scenery!: SceneryManager
@@ -74,6 +78,7 @@ export default class extends BaseLevel<LevelData> {
     })
     this.road = new RoadManager(this)
     this.endpoint = new EndpointManager(this)
+    this.obstacle = new ObstacleManager(this)
     this.scenery = new SceneryManager(this)
   }
 

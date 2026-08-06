@@ -247,6 +247,16 @@ export default class extends BaseManager {
     })
   }
 
+  /**
+   * Checks if the given tile is occupied by any endpoint, either as its main
+   * tile or one of its crossover tiles.
+   */
+  isOccupied({ row, col }: Phaser.Types.Tilemaps.Tile): boolean {
+    return (
+      this._main[row][col] !== null || this._crossovers[row][col].length > 0
+    )
+  }
+
   /** Get the endpoint whose main tile is at the given tile, or `null`. */
   private endpoint(tile: Phaser.Types.Tilemaps.Tile): Endpoint | null
   /**
