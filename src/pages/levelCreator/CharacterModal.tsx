@@ -6,7 +6,6 @@ import IconButton from "@mui/material/IconButton"
 import Modal from "@mui/material/Modal"
 import Radio from "@mui/material/Radio"
 import RadioGroup from "@mui/material/RadioGroup"
-import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
 import deeImage from "../../images/characters/front_view/Dee.svg"
@@ -38,20 +37,8 @@ export interface CharacterModalProps {
   onClose: () => void
 }
 
-const getMaxMovesLabel = (character: string): string => {
-  switch (character) {
-    case "van":
-      return "Max fuel"
-    case "electric_van":
-      return "Max battery"
-    default:
-      return "Max steps"
-  }
-}
-
 const CharacterModal: FC<CharacterModalProps> = ({ open, onClose }) => {
   const [character, setCharacter] = useState(CHARACTER_OPTIONS[0].value)
-  const [maxMoves, setMaxMoves] = useState(50)
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -83,19 +70,6 @@ const CharacterModal: FC<CharacterModalProps> = ({ open, onClose }) => {
         <Typography>
           Here you can choose your character. Who will you play as?
         </Typography>
-        <TextField
-          type="number"
-          label={getMaxMovesLabel(character)}
-          value={maxMoves}
-          onChange={event => {
-            const value = Number(event.target.value)
-            if (!Number.isNaN(value)) {
-              setMaxMoves(Math.min(100, Math.max(1, value)))
-            }
-          }}
-          slotProps={{ htmlInput: { min: 1, max: 100, size: 4 } }}
-          sx={{ mt: 2, width: "fit-content" }}
-        />
         <RadioGroup
           value={character}
           onChange={event => setCharacter(event.target.value)}
