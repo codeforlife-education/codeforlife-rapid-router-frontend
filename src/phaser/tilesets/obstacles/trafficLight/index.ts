@@ -9,7 +9,7 @@ export type ID = (typeof IDs)[number]
 
 const make = <GID extends ID, T extends boolean = false>(
   kwArgs: Omit<obstacles.MakeKwArgs<GID, T>, "tilescale">,
-) => obstacles.make(import.meta.url, { tilescale: 0.65, ...kwArgs })
+) => obstacles.make(import.meta.url, { tilescale: 0.625, ...kwArgs })
 
 export const red = make({
   image: "./red.svg",

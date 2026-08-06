@@ -109,24 +109,21 @@ declare module "phaser" {
     }
 
     interface Image {
+      /** The name is one of the defined in the registry. */
+      name: layers.objectGroup.objects.Name
+
       /** Returns the top-left corner this image would have if its origin were positioned at (x, y). */
       getRelativeTopLeft(x: number, y: number): Phaser.Types.Math.Vector2Like
 
       /** Returns the bounding rectangle this image would have if its origin were positioned at (x, y). */
       getRelativeBounds(x: number, y: number): Phaser.Geom.Rectangle
+
+      /** Sets the required properties for the image. */
+      setRequiredProperties(): this
     }
 
     interface GameObjectFactory {
-      button(
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        labelText: string,
-        labelStyle: Phaser.Types.GameObjects.Text.TextStyle,
-        bgStyle: Phaser.Types.GameObjects.Graphics.FillStyle,
-      ): Button
-
+      /** Creates a new floating action button. */
       fab(
         x: number,
         y: number,
@@ -134,7 +131,12 @@ declare module "phaser" {
         backgroundColorOut: number,
         backgroundColorOver: number,
         options?: Phaser.Types.GameObjects.FloatingActionButton.Options,
-      ): FloatingActionButton
+      ): Phaser.GameObjects.FloatingActionButton
+
+      /** Creates a new image from a tiled-object. */
+      imageFromTiledObject(
+        obj: layers.objectGroup.objects.FactoryObject,
+      ): Phaser.GameObjects.Image
     }
   }
 

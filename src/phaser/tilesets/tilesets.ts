@@ -91,6 +91,10 @@ export type Tileset<
   imagescale?: number
 }
 
+// Global registry of tilesets, keyed by their GID, and a getter.
+const TILESETS: Partial<Record<ID, Tileset<ID, Property[] | undefined>>> = {}
+export const getTileset = (id: ID) => TILESETS[id]
+
 type MakePartials =
   | "name"
   | "tilecount"
@@ -114,6 +118,7 @@ export const make = <
 >(
   importMetaUrl: string,
   {
+    firstgid,
     image,
     name,
     tilecount = 1,
@@ -125,12 +130,13 @@ export const make = <
     tileheight = imageheight ?? TILE_HEIGHT,
     tilewidth = imagewidth ?? TILE_WIDTH,
     properties,
-    ...tileset
+    ...kwArgs
   }: MakeKwArgs<GID, Props>,
 ): Tileset<GID, Props> => {
   image = new URL(image, importMetaUrl).href
 
-  return {
+  const tileset: Tileset<GID, Props> = {
+    firstgid,
     image,
     name: name ?? image, // Use the provided name or fallback to the image path.
     tilecount,
@@ -142,6 +148,9 @@ export const make = <
     tileheight,
     tilewidth,
     properties: properties as Props,
-    ...tileset,
+    ...kwArgs,
   }
+
+  TILESETS[firstgid] = tileset
+  return tileset
 }

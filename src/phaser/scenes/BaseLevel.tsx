@@ -93,25 +93,18 @@ export default class BaseLevel<
 
   /** Creates an object group layer for the specified layer name. */
   private createObjectGroupLayer(layer: layers.objectGroup.Name) {
-    this.layers[layer] = this.tilemap
-      .createFromObjects(
+    const classType = Phaser.GameObjects.Image
+
+    this.layers[layer] = (
+      this.tilemap.createFromObjects(
         layer,
         this.initData.tilesets[layer].map(({ name, gid }) => ({
           key: name,
           gid,
-          classType: Phaser.GameObjects.Image,
+          classType,
         })),
-      )
-      .map(obj => {
-        const image = obj as Phaser.GameObjects.Image
-        return image
-          .setDisplaySize(image.frame.realWidth, image.frame.realHeight)
-          .setDepth(
-            layers.objectGroup.objects.getDepth(
-              image.name as layers.objectGroup.objects.Name,
-            ),
-          )
-      })
+      ) as InstanceType<typeof classType>[]
+    ).map(image => image.setRequiredProperties())
   }
 
   /** Returns the center coordinates of the tilemap as [x, y]. */
@@ -169,30 +162,9 @@ export default class BaseLevel<
     GID extends layers.objectGroup.objects.ID,
   >(
     layerName: layers.objectGroup.Name,
-    obj: Omit<layers.objectGroup.objects.FactoryObject<N, GID>, "id">,
+    obj: layers.objectGroup.objects.FactoryObject<N, GID>,
   ): Phaser.GameObjects.Image {
-    const tileset = this.initData.tilesets[layerName].find(
-      ({ gid }) => gid === obj.gid,
-    )
-    if (!tileset) throw new Error(`No tileset found for GID ${obj.gid}`)
-
-    const frame = this.textures.get(tileset.name).get()
-
-    const image = this.add
-      .image(
-        // Tiled tile object x,y is the bottom-left corner; origin (0,1)
-        // matches createFromObjects so rotation pivots around the same point.
-        obj.x,
-        obj.y,
-        tileset.name,
-      )
-      .setName(obj.name)
-      .setOrigin(0, 1)
-      .setDisplaySize(frame.realWidth, frame.realHeight)
-      .setAngle(obj.rotation)
-      .setVisible(obj.visible)
-      .setDepth(layers.objectGroup.objects.getDepth(obj.gid))
-
+    const image = this.add.imageFromTiledObject(obj).setRequiredProperties()
     this.layers[layerName].push(image)
     return image
   }

@@ -3,7 +3,7 @@ import * as obstacles from "./obstacles"
 import * as road from "./road"
 import * as scenery from "./scenery"
 
-export { type ID, IDs, type Tileset } from "./tilesets"
+export { type ID, IDs, type Tileset, getTileset } from "./tilesets"
 
 export default [
   ...endpoints.default,

@@ -13,21 +13,7 @@ export type FactoryKwArgs<
 
 export type FactoryVariants = objects.MakeStraightRotationVariantsKwArgs
 
-export const factory = <
-  N extends Name,
-  GID extends tilesets.obstacles.ID,
-  const V extends FactoryVariants,
->(
+export const factory = <N extends Name, GID extends tilesets.obstacles.ID>(
   kwArgs: FactoryKwArgs<N, GID>,
-  { top, bottom, left, right, tileOffset, ...variants }: V,
-) =>
-  objects.factory(kwArgs, {
-    ...objects.makeStraightRotationVariants({
-      top,
-      bottom,
-      left,
-      right,
-      tileOffset,
-    }),
-    ...variants,
-  })
+  variants: FactoryVariants,
+) => objects.factory(kwArgs, objects.makeStraightRotationVariants(variants))
