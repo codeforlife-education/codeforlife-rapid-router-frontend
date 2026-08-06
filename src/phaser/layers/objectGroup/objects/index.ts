@@ -13,6 +13,8 @@ export {
   type ID,
   getFactory,
   getDepth,
+  getFlipX,
+  getFlipY,
   Depths,
   type Depth,
   type Density,

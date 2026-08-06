@@ -1,7 +1,7 @@
 import Phaser from "phaser"
 
-import type { FactoryObject, ID, Name } from "../layers/objectGroup/objects"
 import FloatingActionButton from "./FloatingActionButton"
+import type { ID } from "../layers/objectGroup/objects"
 import { getTileset } from "../tilesets"
 
 Phaser.GameObjects.GameObjectFactory.register(
@@ -30,22 +30,15 @@ Phaser.GameObjects.GameObjectFactory.register(
 )
 
 Phaser.GameObjects.GameObjectFactory.register(
-  "imageFromTiledObject",
+  "imageFromTileset",
   function (
     this: Phaser.GameObjects.GameObjectFactory,
-    obj: FactoryObject<Name, ID>,
+    x: number,
+    y: number,
+    tilesetId: ID,
   ): Phaser.GameObjects.Image {
-    const tileset = getTileset(obj.gid)
-    if (!tileset) throw new Error(`No tileset found for ID ${obj.gid}`)
-
-    return (
-      this.image(obj.x, obj.y, tileset.name)
-        // Set the below properties to match the default values for
-        // tile[map]-objects.
-        .setOrigin(0, 1)
-        .setName(obj.name)
-        .setAngle(obj.rotation)
-        .setVisible(obj.visible)
-    )
+    const tileset = getTileset(tilesetId)
+    if (!tileset) throw new Error(`No tileset found for ID ${tilesetId}`)
+    return this.image(x, y, tileset.name).setRequiredProperties(tilesetId)
   },
 )

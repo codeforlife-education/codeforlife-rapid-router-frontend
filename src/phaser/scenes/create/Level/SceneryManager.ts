@@ -147,10 +147,8 @@ export default class extends BaseManager {
     // A solid object can't overlap another object unless one is above ground
     // and the other is below ground.
     if (
-      (objects.getDensity(obj1.name as objects.Name) ===
-        objects.Densities.SOLID ||
-        objects.getDensity(obj2.name as objects.Name) ===
-          objects.Densities.SOLID) &&
+      (objects.getDensity(obj1.name) === objects.Densities.SOLID ||
+        objects.getDensity(obj2.name) === objects.Densities.SOLID) &&
       !(
         (obj1.depth === objects.Depths.BELOW_GROUND &&
           obj2.depth === objects.Depths.ABOVE_GROUND) ||
@@ -368,26 +366,12 @@ export default class extends BaseManager {
     if (this.ghost?.id === id) return
     this.destroyGhost()
 
-    const factory = objects.getFactory(id)
-    if (!factory) return
-
-    const obj = factory({ x: 0, y: 0 })
-    const tileset = this.level.initData.tilesets["ObjectGroup.SCENERY"].find(
-      ({ gid }) => gid === obj.gid,
-    )
-    if (!tileset) return
-
-    const frame = this.level.textures.get(tileset.name).get()
-
     this.ghost = {
       id,
       obj: this.level.add
-        .image(0, 0, tileset.name)
-        .setName(obj.name)
+        .imageFromTileset(0, 0, id)
         .setOrigin(0.5, 0.5)
-        .setDisplaySize(frame.realWidth, frame.realHeight)
         .setAlpha(0.5)
-        .setDepth(objects.getDepth(id))
         .setVisible(false),
     }
   }

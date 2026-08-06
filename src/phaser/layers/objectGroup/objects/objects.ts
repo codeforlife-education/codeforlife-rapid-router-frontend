@@ -59,12 +59,6 @@ export const Depths = createIdRegistry({
 } as const)
 export type Depth = (typeof Depths)[keyof typeof Depths]
 
-// Global registry of object depths.
-const DEPTHS: Partial<Record<ID | Name, Depth>> = {}
-
-// Getter for an object depth by its GID.
-export const getDepth = (id: ID | Name) => DEPTHS[id] ?? Depths.GROUND
-
 // Enum of object densities.
 export const Densities = createIdRegistry({
   0: "PERMEABLE", // can overlap (e.g., bush).
@@ -72,11 +66,31 @@ export const Densities = createIdRegistry({
 } as const)
 export type Density = (typeof Densities)[keyof typeof Densities]
 
-// Global registry of object densities.
-const DENSITIES: Partial<Record<ID | Name, Density>> = {}
+// Global registries.
+type Registry<T> = Partial<Record<ID | Name, T>>
+const DEPTHS: Registry<Depth> = {}
+const DENSITIES: Registry<Density> = {}
+const FLIP_X: Registry<boolean> = {}
+const FLIP_Y: Registry<boolean> = {}
+const FACTORIES: Registry<FactoryBase<Name, ID>> = {}
+const setInRegistry = <T>(
+  registry: Registry<T>,
+  id: ID,
+  name: Name,
+  value: T,
+) => (registry[id] = registry[name] = value)
 
-// Getter for an object density by its GID.
-export const getDensity = (id: ID | Name) => DENSITIES[id] ?? Densities.SOLID
+// Getters for global registries.
+type GetFromRegistry<T> = (id: ID | Name) => T
+export const getDepth: GetFromRegistry<Depth> = id =>
+  DEPTHS[id] ?? Depths.GROUND
+export const getDensity: GetFromRegistry<Density> = id =>
+  DENSITIES[id] ?? Densities.SOLID
+export const getFlipX: GetFromRegistry<boolean> = id => FLIP_X[id] ?? false
+export const getFlipY: GetFromRegistry<boolean> = id => FLIP_Y[id] ?? false
+export const getFactory: GetFromRegistry<
+  FactoryBase<Name, ID> | undefined
+> = id => FACTORIES[id]
 
 export type Object<N extends Name, GID extends ID> = Omit<
   _Object,
@@ -122,18 +136,14 @@ export type FactoryKwArgs<N extends Name, GID extends ID> = {
   gid: GID
   depth?: Depth
   density?: Density
+  flipX?: boolean
+  flipY?: boolean
 } & FactoryBaseKwArgs<N, GID>
 export type Factory<
   N extends Name,
   GID extends ID,
   V extends FactoryVariantSpecs<N, GID> = {},
 > = FactoryBase<N, GID> & FactoryVariants<N, GID, V>
-
-// Global registry of object factories.
-const FACTORIES: Partial<Record<ID | Name, FactoryBase<Name, ID>>> = {}
-
-// Getter for an object factory by its GID.
-export const getFactory = (id: ID | Name) => FACTORIES[id]
 
 export const factory = <
   N extends Name,
@@ -145,6 +155,8 @@ export const factory = <
     name,
     depth = Depths.GROUND,
     density = Densities.SOLID,
+    flipX = false,
+    flipY = false,
     x: baseX = 0,
     y: baseY = 0,
     col: baseCol = 0,
@@ -156,8 +168,11 @@ export const factory = <
   }: FactoryKwArgs<N, GID>,
   variants: V = {} as V,
 ): Factory<N, GID, V> => {
-  DEPTHS[gid] = DEPTHS[name] = depth
-  DENSITIES[gid] = DENSITIES[name] = density
+  // Register the object properties in the global registries.
+  setInRegistry(DEPTHS, gid, name, depth)
+  setInRegistry(DENSITIES, gid, name, density)
+  setInRegistry(FLIP_X, gid, name, flipX)
+  setInRegistry(FLIP_Y, gid, name, flipY)
 
   baseX += baseCol * TILE_WIDTH
   baseY += baseRow * TILE_HEIGHT
@@ -186,7 +201,7 @@ export const factory = <
     ...obj,
   })
 
-  FACTORIES[gid] = FACTORIES[name] = base
+  setInRegistry(FACTORIES, gid, name, base)
 
   return (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
     (f, [variantName, variantKwArgs]) => {

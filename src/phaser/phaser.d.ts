@@ -118,8 +118,13 @@ declare module "phaser" {
       /** Returns the bounding rectangle this image would have if its origin were positioned at (x, y). */
       getRelativeBounds(x: number, y: number): Phaser.Geom.Rectangle
 
+      /** Sets the properties of the image to match the given Tiled object. */
+      asTiledObject(obj: layers.objectGroup.objects.FactoryObject): this
+
       /** Sets the required properties for the image. */
-      setRequiredProperties(): this
+      setRequiredProperties(
+        id?: layers.objectGroup.objects.ID | layers.objectGroup.objects.Name,
+      ): this
     }
 
     interface GameObjectFactory {
@@ -133,9 +138,11 @@ declare module "phaser" {
         options?: Phaser.Types.GameObjects.FloatingActionButton.Options,
       ): Phaser.GameObjects.FloatingActionButton
 
-      /** Creates a new image from a tiled-object. */
-      imageFromTiledObject(
-        obj: layers.objectGroup.objects.FactoryObject,
+      /** Creates a new image from a tileset. */
+      imageFromTileset(
+        x: number,
+        y: number,
+        tilesetId: layers.objectGroup.objects.ID,
       ): Phaser.GameObjects.Image
     }
   }

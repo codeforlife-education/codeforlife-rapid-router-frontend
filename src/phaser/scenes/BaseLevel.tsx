@@ -164,7 +164,9 @@ export default class BaseLevel<
     layerName: layers.objectGroup.Name,
     obj: layers.objectGroup.objects.FactoryObject<N, GID>,
   ): Phaser.GameObjects.Image {
-    const image = this.add.imageFromTiledObject(obj).setRequiredProperties()
+    const image = this.add
+      .imageFromTileset(obj.x, obj.y, obj.gid)
+      .asTiledObject(obj)
     this.layers[layerName].push(image)
     return image
   }
