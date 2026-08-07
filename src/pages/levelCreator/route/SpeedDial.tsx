@@ -96,8 +96,12 @@ const SpeedDial: FC<SpeedDialProps> = ({
         <MuiSpeedDial
           ref={speedDialRef}
           ariaLabel="Map SpeedDial"
+          // Skip the Fab's mount-in zoom/grow transition.
+          transitionDuration={0}
           FabProps={{
             sx: {
+              width: 64,
+              height: 64,
               backgroundColor,
               animation: "fabPulse 1.5s ease-in-out infinite",
             },

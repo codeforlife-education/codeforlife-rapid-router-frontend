@@ -27,11 +27,11 @@ export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   padding?: number
   cols: number
   gap?: number
-  fab: { margin: number; size: number }
+  fab?: { margin: number; size: number }
   categories: Categories
   lineHeight?: number
   titleScrollSpeed?: number
-  image: { size: number; padding?: number }
+  image?: { size: number; padding?: number }
 }
 
 const Img: FC<{ height: number; src: string; alt: string }> = ({
@@ -54,8 +54,8 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   padding = 2,
   gap = 8,
   cols,
-  fab,
-  image,
+  fab = { size: 64, margin: 2 },
+  image = { size: 64 },
   categories,
   open,
   onClose,

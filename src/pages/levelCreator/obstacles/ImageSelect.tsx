@@ -65,8 +65,6 @@ const ImageSelect: FC<ImageSelectProps> = ({
         }
         selected={selected}
         onChange={setSelected}
-        fab={{ size: 56, margin: 2 }}
-        image={{ size: 64 }}
       />
     </Portal>
   )
