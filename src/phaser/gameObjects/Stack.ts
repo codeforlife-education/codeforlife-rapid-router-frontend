@@ -88,11 +88,16 @@ export default class extends Phaser.GameObjects.Container {
   private layout(): this {
     const isRow = this.direction === "row"
     let offset = 0
+    let crossSize = 0
 
     for (const child of this.list as StackChild[]) {
       if (!child.visible) continue
 
       const size = isRow ? child.displayWidth : child.displayHeight
+      crossSize = Math.max(
+        crossSize,
+        isRow ? child.displayHeight : child.displayWidth,
+      )
 
       child.setPosition(
         isRow ? offset + size / 2 : 0,
@@ -101,6 +106,11 @@ export default class extends Phaser.GameObjects.Container {
 
       offset += size + this.gap
     }
+
+    // Report the total laid-out size so callers can position/center this
+    // Stack as a whole.
+    const mainSize = Math.max(offset - this.gap, 0)
+    this.setSize(isRow ? mainSize : crossSize, isRow ? crossSize : mainSize)
 
     return this
   }
