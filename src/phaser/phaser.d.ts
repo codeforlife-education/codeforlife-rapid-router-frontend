@@ -108,6 +108,11 @@ declare module "phaser" {
       ): this
     }
 
+    interface Stack extends Phaser.GameObjects.Container {
+      direction: Phaser.Types.GameObjects.Stack.Direction
+      gap: number
+    }
+
     interface Image {
       /** The name is one of the defined in the registry. */
       name: layers.objectGroup.objects.Name
@@ -144,6 +149,14 @@ declare module "phaser" {
         y: number,
         tilesetId: layers.objectGroup.objects.ID,
       ): Phaser.GameObjects.Image
+
+      /** Creates a new stack that lays out its children in a row or column. */
+      stack(
+        x: number,
+        y: number,
+        children: Phaser.GameObjects.GameObject[],
+        options?: Phaser.Types.GameObjects.Stack.Options,
+      ): Phaser.GameObjects.Stack
     }
   }
 
@@ -183,6 +196,11 @@ declare module "phaser" {
 
       namespace FloatingActionButton {
         type Options = { depth?: number; iconMargin?: number }
+      }
+
+      namespace Stack {
+        type Direction = "row" | "column"
+        type Options = { direction?: Direction; gap?: number }
       }
     }
 

@@ -32,6 +32,7 @@ export default class extends Phaser.GameObjects.Container {
 
     this.setInteractive()
       .setDepth(depth)
+      .setSize(radius * 2, radius * 2)
       .on(Phaser.Input.Events.POINTER_OVER, this.onPointerOver)
       .on(Phaser.Input.Events.POINTER_OUT, this.onPointerOut)
   }
