@@ -72,7 +72,7 @@ const DEPTHS: Registry<Depth> = {}
 const DENSITIES: Registry<Density> = {}
 const FLIP_X: Registry<boolean> = {}
 const FLIP_Y: Registry<boolean> = {}
-const FACTORIES: Registry<FactoryBase<Name, ID>> = {}
+const FACTORIES: Registry<Factory<Name, ID>> = {}
 const setInRegistry = <T>(
   registry: Registry<T>,
   id: ID,
@@ -88,9 +88,12 @@ export const getDensity: GetFromRegistry<Density> = id =>
   DENSITIES[id] ?? Densities.SOLID
 export const getFlipX: GetFromRegistry<boolean> = id => FLIP_X[id] ?? false
 export const getFlipY: GetFromRegistry<boolean> = id => FLIP_Y[id] ?? false
-export const getFactory: GetFromRegistry<
-  FactoryBase<Name, ID> | undefined
-> = id => FACTORIES[id]
+export const getFactory = <N extends Name, GID extends ID, V extends string>(
+  id: GID | N,
+) =>
+  FACTORIES[id] as
+    | Factory<N, GID, { [K in V]: FactoryBaseKwArgs<N, GID> }>
+    | undefined
 
 export type Object<N extends Name, GID extends ID> = Omit<
   _Object,
@@ -201,9 +204,7 @@ export const factory = <
     ...obj,
   })
 
-  setInRegistry(FACTORIES, gid, name, base)
-
-  return (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
+  const factory = (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
     (f, [variantName, variantKwArgs]) => {
       ;(f as unknown as FactoryVariants<N, GID, V>)[variantName] = kwArgs =>
         f({ ...variantKwArgs, ...kwArgs }) as FactoryObject<N, GID> & V[keyof V]
@@ -212,6 +213,9 @@ export const factory = <
     },
     base,
   ) as Factory<N, GID, V>
+
+  setInRegistry(FACTORIES, gid, name, factory)
+  return factory
 }
 
 type BaseRotationVariant<R extends number> = { rotation: R }

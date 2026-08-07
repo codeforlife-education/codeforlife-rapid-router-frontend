@@ -2,7 +2,7 @@ import Phaser from "phaser"
 
 import * as layers from "../../../layers"
 import * as objects from "../../../layers/objectGroup/objects"
-import type * as sceneryTilesets from "../../../tilesets/scenery"
+import type * as tilesets from "../../../tilesets"
 import { Events, Variables } from "../../../globals"
 import BaseManager from "./BaseManager"
 import type { default as Level } from "."
@@ -26,7 +26,7 @@ export default class extends BaseManager {
   /** The semi-transparent preview image. */
   private ghost: {
     obj: Phaser.GameObjects.Image
-    id: sceneryTilesets.ID
+    id: tilesets.scenery.ID
   } | null = null
 
   /** The delete button shown next to the active object. */
@@ -206,14 +206,22 @@ export default class extends BaseManager {
     return !!tiles && tiles.length > 0
   }
 
+  private getFactory(id: tilesets.scenery.ID) {
+    return objects.getFactory<
+      objects.scenery.Name,
+      tilesets.scenery.ID,
+      "" // TODO: support rotating scenery objects by adding variants.
+    >(id)
+  }
+
   private add(
     worldX: number,
     worldY: number,
-    id: sceneryTilesets.ID,
+    id: tilesets.scenery.ID,
   ): Phaser.GameObjects.Image | null {
     if (this.scenery.length >= this.maxLength) return null
 
-    const factory = objects.getFactory(id)
+    const factory = this.getFactory(id)
     if (!factory) return null
 
     let obj = this.level
@@ -362,7 +370,7 @@ export default class extends BaseManager {
     this.deleteButton.setVisible(false)
   }
 
-  private createGhost(id: sceneryTilesets.ID) {
+  private createGhost(id: tilesets.scenery.ID) {
     if (this.ghost?.id === id) return
     this.destroyGhost()
 
