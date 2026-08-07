@@ -1,9 +1,23 @@
 import Phaser from "phaser"
 
-/** A child must report its own size and position to be laid out. */
+/** A child must report its own size, position, and visibility to be laid out. */
 type StackChild = Phaser.GameObjects.GameObject &
   Phaser.GameObjects.Components.ComputedSize &
-  Phaser.GameObjects.Components.Transform
+  Phaser.GameObjects.Components.Transform &
+  Phaser.GameObjects.Components.Visible
+
+/** Finds the property descriptor for `prop` anywhere up `obj`'s prototype chain. */
+function getPropertyDescriptor(obj: object, prop: string) {
+  for (
+    let proto: object | null = obj;
+    proto;
+    proto = Object.getPrototypeOf(proto) as object | null
+  ) {
+    const descriptor = Object.getOwnPropertyDescriptor(proto, prop)
+    if (descriptor) return descriptor
+  }
+  return undefined
+}
 
 /**
  * Lays out its children in a single row or column, evenly spaced by `gap`.
@@ -28,6 +42,8 @@ export default class extends Phaser.GameObjects.Container {
     this._direction = direction
     this._gap = gap
 
+    for (const child of this.list as StackChild[]) this.observeVisibility(child)
+
     this.layout()
   }
 
@@ -49,15 +65,33 @@ export default class extends Phaser.GameObjects.Container {
     this.layout()
   }
 
+  /** Re-lays out whenever the child's `visible` property is changed. */
+  private observeVisibility(child: StackChild) {
+    const descriptor = getPropertyDescriptor(child, "visible")
+    if (!descriptor?.get || !descriptor?.set) return
+
+    Object.defineProperty(child, "visible", {
+      configurable: true,
+      enumerable: descriptor.enumerable,
+      get: (): boolean => descriptor.get!.call(child) as boolean,
+      set: (value: boolean) => {
+        descriptor.set!.call(child, value)
+        this.layout()
+      },
+    })
+  }
+
   /**
-   * Re-positions all children in a single line along `direction`, spaced by
-   * `gap`.
+   * Re-positions all visible children in a single line along `direction`,
+   * spaced by `gap`. Invisible children are skipped entirely.
    */
   private layout(): this {
     const isRow = this.direction === "row"
     let offset = 0
 
     for (const child of this.list as StackChild[]) {
+      if (!child.visible) continue
+
       const size = isRow ? child.displayWidth : child.displayHeight
 
       child.setPosition(
