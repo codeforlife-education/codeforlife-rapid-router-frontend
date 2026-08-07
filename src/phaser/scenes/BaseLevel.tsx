@@ -7,8 +7,8 @@ import BaseScene from "./BaseScene"
 import { Events } from "../globals"
 
 const ZOOM_STEP = 0.125
-const MIN_ZOOM = 1 - ZOOM_STEP * 2
-const MAX_ZOOM = 1 + ZOOM_STEP * 8
+const MIN_VISIBLE_TILES = 4
+const MIN_ZOOM_MARGIN = 1.5
 
 export interface BaseLevelData {
   background: (typeof images.URLs.Background)[keyof typeof images.URLs.Background]
@@ -44,10 +44,12 @@ export default class BaseLevel<
   create() {
     this.createTilemap()
 
-    const zoomIn = () => this.zoom(ZOOM_STEP)
+    const zoomIn = () =>
+      this.setZoomInBounds(this.cameras.main.zoom + ZOOM_STEP)
     this.game.events.on(Events.ZOOM_IN, zoomIn)
 
-    const zoomOut = () => this.zoom(-ZOOM_STEP)
+    const zoomOut = () =>
+      this.setZoomInBounds(this.cameras.main.zoom - ZOOM_STEP)
     this.game.events.on(Events.ZOOM_OUT, zoomOut)
 
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -60,8 +62,8 @@ export default class BaseLevel<
   private createBackgroundTileSprite() {
     this.backgroundTileSprite = this.add.tileSprite(
       ...this.tilemapCenter,
-      this.scale.width * 1.5,
-      this.scale.height * 1.5,
+      this.scale.width * (this.tilemap.tileWidth / 50),
+      this.scale.height * (this.tilemap.tileHeight / 50),
       this.initData.background,
     )
     this.backgroundTileSprite
@@ -139,6 +141,9 @@ export default class BaseLevel<
 
     // 7. Center the camera on the tilemap.
     this.cameras.main.centerOn(...this.tilemapCenter)
+
+    // 8. Default the zoom so the entire tilemap is visible.
+    this.setZoomInBounds()
   }
 
   putTileAt(
@@ -182,11 +187,55 @@ export default class BaseLevel<
     obj.destroy()
   }
 
-  zoom(step = ZOOM_STEP) {
-    this.cameras.main.zoom = Phaser.Math.Clamp(
-      this.cameras.main.zoom + step,
-      MIN_ZOOM,
-      MAX_ZOOM,
+  /**
+   * Returns the zoom level that fits the specified width and height within the
+   * camera view. The zoom level is calculated based on the camera's dimensions
+   * and the specified width and height. If no width and height are provided, it
+   * defaults to the tilemap's size, ensuring that the entire tilemap is visible
+   * within the camera view. The returned zoom level is rounded down to the
+   * nearest multiple of ZOOM_STEP, and it will never be less than ZOOM_STEP.
+   */
+  private getZoom(
+    width = this.tilemap.widthInPixels,
+    height = this.tilemap.heightInPixels,
+  ) {
+    const camera = this.cameras.main
+    const zoom = Math.min(camera.width / width, camera.height / height)
+    // Rounds down to the nearest multiple of ZOOM_STEP, never going below it.
+    return Math.max(Math.floor(zoom / ZOOM_STEP) * ZOOM_STEP, ZOOM_STEP)
+  }
+
+  /** Returns the min/max zoom levels, each a multiple of ZOOM_STEP. */
+  private getZoomBounds() {
+    // Min zoom ensures the entire tilemap fits within the camera view. The
+    // margin ensures that the tilemap isn't flush against the edge of the
+    // camera view, which can be visually unappealing and make it harder to
+    // interact with the tilemap.
+    const min = this.getZoom(
+      this.tilemap.widthInPixels * MIN_ZOOM_MARGIN,
+      this.tilemap.heightInPixels * MIN_ZOOM_MARGIN,
     )
+
+    // Max zoom ensures that at least MIN_VISIBLE_TILES are visible in the
+    // camera view. This prevents the user from zooming in so much that they can
+    // only see a small portion of the tilemap, which can be disorienting and
+    // make it difficult to navigate the level.
+    const visibleTiles = this.getZoom(
+      this.tilemap.tileWidth * MIN_VISIBLE_TILES,
+      this.tilemap.tileHeight * MIN_VISIBLE_TILES,
+    )
+
+    // The max zoom is the larger of the two zoom levels, ensuring that the user
+    // can zoom in enough to see at least MIN_VISIBLE_TILES, but not so much
+    // that they can't see the entire tilemap.
+    const max = Math.max(visibleTiles, min)
+
+    return { min, max }
+  }
+
+  /** Sets the camera zoom level within the bounds defined by getZoomBounds. */
+  setZoomInBounds(zoom = this.getZoom()) {
+    const { min, max } = this.getZoomBounds()
+    this.cameras.main.zoom = Phaser.Math.Clamp(zoom, min, max)
   }
 }
