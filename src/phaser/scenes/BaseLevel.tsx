@@ -62,7 +62,7 @@ export default class BaseLevel<
   private createBackgroundTileSprite() {
     // Size the background to exactly cover the camera's viewport once zoomed
     // all the way out, so no black borders appear around it.
-    const { min: minZoom } = this.getZoomBounds()
+    const { min: minZoom } = this.zoomBounds
     const width = this.cameras.main.width / minZoom
     const height = this.cameras.main.height / minZoom
 
@@ -212,7 +212,7 @@ export default class BaseLevel<
   }
 
   /** Returns the min/max zoom levels, each a multiple of ZOOM_STEP. */
-  private getZoomBounds() {
+  private get zoomBounds() {
     // Min zoom ensures the entire tilemap fits within the camera view. The
     // margin ensures that the tilemap isn't flush against the edge of the
     // camera view, which can be visually unappealing and make it harder to
@@ -241,7 +241,7 @@ export default class BaseLevel<
 
   /** Sets the camera zoom level within the bounds defined by getZoomBounds. */
   setZoomInBounds(zoom = this.getZoom()) {
-    const { min, max } = this.getZoomBounds()
+    const { min, max } = this.zoomBounds
     this.cameras.main.zoom = Phaser.Math.Clamp(zoom, min, max)
   }
 }
