@@ -60,10 +60,16 @@ export default class BaseLevel<
 
   /** Creates the background tile sprite. */
   private createBackgroundTileSprite() {
+    // Size the background to exactly cover the camera's viewport once zoomed
+    // all the way out, so no black borders appear around it.
+    const { min: minZoom } = this.getZoomBounds()
+    const width = this.cameras.main.width / minZoom
+    const height = this.cameras.main.height / minZoom
+
     this.backgroundTileSprite = this.add.tileSprite(
       ...this.tilemapCenter,
-      this.scale.width * (this.tilemap.tileWidth / 50),
-      this.scale.height * (this.tilemap.tileHeight / 50),
+      width,
+      height,
       this.initData.background,
     )
     this.backgroundTileSprite

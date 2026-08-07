@@ -17,7 +17,7 @@ const factory = <N extends Name, GID extends tilesets.obstacles.animal.ID>(
 export const cow = factory(
   { gid: _IDs.COW, name: _Names.COW },
   {
-    tileOffset: { col: 0.25, row: 0.125 },
+    tileOffset: { col: 0.125, row: 0.125 },
     top: { rotation: 0 },
     right: { rotation: 90 },
     bottom: { rotation: 180 },
@@ -28,7 +28,7 @@ export const cow = factory(
 export const pigeon = factory(
   { gid: _IDs.PIGEON, name: _Names.PIGEON },
   {
-    tileOffset: { col: 0.5, row: 0.75 },
+    tileOffset: { col: 0.25, row: 0.75 },
     right: { rotation: 0 },
     bottom: { rotation: 90 },
     left: { rotation: 180 },
