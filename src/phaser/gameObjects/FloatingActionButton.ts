@@ -15,7 +15,7 @@ export default class extends Phaser.GameObjects.Container {
     backgroundColorOut: number,
     backgroundColorOver: number,
     {
-      // Place above all scenery objects.
+      // Place above all objects.
       depth = Math.max(...Object.values(objects.Depths)) + 1,
       iconMargin = 4,
     }: Phaser.Types.GameObjects.FloatingActionButton.Options = {},

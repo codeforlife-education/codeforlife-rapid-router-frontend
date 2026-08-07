@@ -1,5 +1,7 @@
 import Phaser from "phaser"
 
+import * as objects from "../layers/objectGroup/objects"
+
 /** A child must report its own size, position, and visibility to be laid out. */
 type StackChild = Phaser.GameObjects.GameObject &
   Phaser.GameObjects.Components.ComputedSize &
@@ -35,6 +37,8 @@ export default class extends Phaser.GameObjects.Container {
     {
       direction = "column",
       gap = 0,
+      // Place above all objects.
+      depth = Math.max(...Object.values(objects.Depths)) + 1,
     }: Phaser.Types.GameObjects.Stack.Options = {},
   ) {
     super(scene, x, y, children)
@@ -44,7 +48,7 @@ export default class extends Phaser.GameObjects.Container {
 
     for (const child of this.list as StackChild[]) this.observeVisibility(child)
 
-    this.layout()
+    this.setDepth(depth).layout()
   }
 
   get direction() {

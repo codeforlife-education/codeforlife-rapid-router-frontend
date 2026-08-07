@@ -200,7 +200,7 @@ declare module "phaser" {
 
       namespace Stack {
         type Direction = "row" | "column"
-        type Options = { direction?: Direction; gap?: number }
+        type Options = { direction?: Direction; gap?: number; depth?: number }
       }
     }
 
