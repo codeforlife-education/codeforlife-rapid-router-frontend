@@ -170,16 +170,16 @@ export default class extends BaseManager {
     toolbox: { box, tool },
     ...drag
   }) => {
-    if (box !== "route") return
-    if (tool === "add-road") this.finalizeAddDrag(drag)
-    else if (tool === "delete-road") this.finalizeDeleteDrag(drag)
+    if (box !== "road") return
+    if (tool === "add") this.finalizeAddDrag(drag)
+    else if (tool === "delete") this.finalizeDeleteDrag(drag)
   }
 
   private onPointerMove: Phaser.Input.Events.PointerMove = pointer => {
     const toolbox = this.level.toolbox
     if (
-      toolbox?.box !== "route" ||
-      (toolbox.tool !== "add-road" && toolbox.tool !== "delete-road")
+      toolbox?.box !== "road" ||
+      (toolbox.tool !== "add" && toolbox.tool !== "delete")
     )
       return
 
@@ -187,7 +187,7 @@ export default class extends BaseManager {
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (tile) {
       const dirs = this.dirs(tile)
-      if (toolbox.tool === "add-road") {
+      if (toolbox.tool === "add") {
         if (dirs.size < 4) cursor = this.addRoadIconUrl
       } else if (dirs.size > 0) cursor = this.removeRoadIconUrl
     }

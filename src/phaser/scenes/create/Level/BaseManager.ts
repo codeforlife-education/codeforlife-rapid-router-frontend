@@ -1,6 +1,6 @@
 import type Level from "."
 
-export default class {
+export default abstract class {
   /** The level this manager belongs to. */
   protected readonly level: Level
 

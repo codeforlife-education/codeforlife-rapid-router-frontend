@@ -124,7 +124,12 @@ declare module "phaser" {
       getRelativeBounds(x: number, y: number): Phaser.Geom.Rectangle
 
       /** Sets the properties of the image to match the given Tiled object. */
-      asTiledObject(obj: layers.objectGroup.objects.FactoryObject): this
+      asTiledObject<
+        Name extends layers.objectGroup.objects.Name,
+        ID extends layers.objectGroup.objects.ID,
+      >(
+        obj: layers.objectGroup.objects.FactoryObject<Name, ID>,
+      ): this
 
       /** Sets the required properties for the image. */
       setRequiredProperties(
@@ -168,17 +173,11 @@ declare module "phaser" {
     namespace Scenes {
       namespace Create {
         namespace Toolbox {
-          type Route = _Toolbox<
-            "route",
-            | "add-road"
-            | "delete-road"
-            | "add-house"
-            | "delete-house"
-            | "mark-start"
-          >
+          type Road = _Toolbox<"road", "add" | "delete">
+          type Endpoints = _Toolbox<"endpoints", tilesets.endpoints.ID>
           type Scenery = _Toolbox<"scenery", tilesets.scenery.ID>
           type Obstacles = _Toolbox<"obstacles", tilesets.obstacles.ID>
-          type Any = Route | Scenery | Obstacles
+          type Any = Road | Endpoints | Scenery | Obstacles
         }
       }
       namespace Play {}

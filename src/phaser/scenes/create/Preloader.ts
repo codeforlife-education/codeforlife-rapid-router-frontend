@@ -1,4 +1,7 @@
-import { Delete as DeleteIcon } from "@mui/icons-material"
+import {
+  Delete as DeleteIcon,
+  RotateRight as RotateRightIcon,
+} from "@mui/icons-material"
 
 import * as layers from "../../layers"
 import * as tilemaps from "../../tilemaps"
@@ -29,6 +32,10 @@ export default class extends BasePreloader {
     this.loadTilemap(tilemap)
 
     this.loadMuiIcon("delete-icon", DeleteIcon, {
+      width: TILE_WIDTH / 3,
+      height: TILE_HEIGHT / 3,
+    })
+    this.loadMuiIcon("rotate-right-icon", RotateRightIcon, {
       width: TILE_WIDTH / 3,
       height: TILE_HEIGHT / 3,
     })

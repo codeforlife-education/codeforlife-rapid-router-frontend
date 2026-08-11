@@ -4,12 +4,14 @@ import {
   ImageListItem,
   ImageListItemBar,
   ListSubheader,
+  Portal,
   Tooltip,
   imageListItemBarClasses,
 } from "@mui/material"
 import { type FC, Fragment, type JSX, useEffect, useState } from "react"
 
 import MarqueeTitle from "./MarqueeTitle"
+import { useBreakpoint } from "../app/hooks"
 
 type Image = { key: string | number; title: string; src: string }
 type Category = { key: string; subheader: string; images: readonly Image[] }
@@ -25,7 +27,6 @@ export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   onChange: (key: ImageKey<Categories>) => void
   ease?: string
   padding?: number
-  cols: number
   gap?: number
   fab?: { margin: number; size: number }
   categories: Categories
@@ -53,7 +54,6 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   titleScrollSpeed,
   padding = 2,
   gap = 8,
-  cols,
   fab = { size: 64, margin: 2 },
   image = { size: 64 },
   categories,
@@ -65,6 +65,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
 }: SpeedImageSelectProps<Categories>): JSX.Element => {
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const [scrollable, setScrollable] = useState(false)
+  const breakpoint = useBreakpoint()
 
   // Reset whenever the catalogue closes so the next open starts fresh.
   useEffect(() => {
@@ -76,6 +77,13 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
     (max, category) => Math.max(max, category.images.length),
     0,
   )
+  let cols = {
+    xs: 3,
+    sm: 4,
+    md: 5,
+    lg: 6,
+    xl: 7,
+  }[breakpoint]
   cols = cols <= maxImagesLength ? cols : maxImagesLength
   const rows = categories.reduce(
     (sum, category) => sum + Math.ceil(category.images.length / cols),
@@ -187,7 +195,9 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   }
 
   return (
-    <>
+    // Portal is used to render the catalogue outside of the normal DOM
+    // hierarchy, allowing it to overlay other content.
+    <Portal>
       {/* Click-away backdrop */}
       {open && (
         <Box
@@ -292,7 +302,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
           )}
         </Box>
       </Tooltip>
-    </>
+    </Portal>
   )
 }
 

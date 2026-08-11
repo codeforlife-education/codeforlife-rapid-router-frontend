@@ -2,14 +2,15 @@ import {
   Casino as CasinoIcon,
   Description as DescriptionIcon,
   DriveFolderUpload as DriveFolderUploadIcon,
+  EditRoad as EditRoadIcon,
   ExitToApp as ExitToAppIcon,
   Extension as ExtensionIcon,
+  Home as HomeIcon,
   Lightbulb as LightbulbIcon,
   Park as ParkIcon,
   People as PeopleIcon,
   Person as PersonIcon,
   QuestionMark as QuestionMarkIcon,
-  Route as RouteIcon,
   SaveOutlined as SaveOutlinedIcon,
   Traffic as TrafficIcon,
 } from "@mui/icons-material"
@@ -17,16 +18,18 @@ import { type FC, useEffect, useState } from "react"
 import { Divider } from "@mui/material"
 import type Phaser from "phaser"
 
+import * as endpoints from "./endpoints"
 import * as miniDrawers from "../../components/miniDrawers"
 import * as obstacles from "./obstacles"
-import * as route from "./route"
+import * as road from "./road"
 import * as scenery from "./scenery"
 import * as tilesets from "../../phaser/tilesets"
 import { ZoomControls } from "../../phaser"
 import { usePhaserGameContext } from "../../app/hooks"
 
 type SelectableButtonId =
-  | "route"
+  | "road"
+  | "endpoints"
   | "obstacles"
   | "scenery"
   | "character"
@@ -39,16 +42,20 @@ export interface ControlsProps {}
 
 const Controls: FC<ControlsProps> = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [selected, setSelected] = useState<SelectableButtonId>("route")
+  const [selected, setSelected] = useState<SelectableButtonId>("road")
   const {
     ref: { current: phaserGame },
     activeSceneKeys,
   } = usePhaserGameContext()
 
-  const routeSpeedDialProps = {
+  // States of sub controls for each tool in the toolbox.
+  const roadToggleButtonGroupProps = {
+    valueState: useState<"add" | "delete">("add"),
+  } as road.ToggleButtonGroupProps
+  const endpointsImageSelectProps = {
     openState: useState(false),
-    selectedState: useState("add-road"),
-  } as route.SpeedDialProps
+    selectedState: useState(tilesets.IDs.Endpoints.CFC.Warehouse.DEFAULT),
+  } as endpoints.ImageSelectProps
   const sceneryImageSelectProps = {
     openState: useState(false),
     selectedState: useState(tilesets.IDs.Scenery.Nature.BUSH),
@@ -63,8 +70,10 @@ const Controls: FC<ControlsProps> = () => {
     if (!phaserGame) return
 
     let tool: Phaser.Types.Scenes.Create.Toolbox.Any["tool"]
-    if (selected === "route") {
-      tool = routeSpeedDialProps.selectedState[0]
+    if (selected === "road") {
+      tool = roadToggleButtonGroupProps.valueState[0]
+    } else if (selected === "endpoints") {
+      tool = endpointsImageSelectProps.selectedState[0]
     } else if (selected === "scenery") {
       tool = sceneryImageSelectProps.selectedState[0]
     } else if (selected === "obstacles") {
@@ -78,7 +87,8 @@ const Controls: FC<ControlsProps> = () => {
   }, [
     phaserGame,
     selected,
-    routeSpeedDialProps.selectedState,
+    roadToggleButtonGroupProps.valueState,
+    endpointsImageSelectProps.selectedState,
     sceneryImageSelectProps.selectedState,
     obstaclesImageSelectProps.selectedState,
   ])
@@ -100,7 +110,12 @@ const Controls: FC<ControlsProps> = () => {
       {activeSceneKeys.includes("Create.LEVEL") && (
         <>
           <ZoomControls />
-          {selected === "route" && <route.SpeedDial {...routeSpeedDialProps} />}
+          {selected === "road" && (
+            <road.ToggleButtonGroup {...roadToggleButtonGroupProps} />
+          )}
+          {selected === "endpoints" && (
+            <endpoints.ImageSelect {...endpointsImageSelectProps} />
+          )}
           {selected === "scenery" && (
             <>
               <scenery.Counter />
@@ -119,9 +134,14 @@ const Controls: FC<ControlsProps> = () => {
         }}
       >
         <miniDrawers.ButtonItem
-          {...makeSelectableButtonItemProps("route")}
-          text="Route"
-          icon={<RouteIcon />}
+          {...makeSelectableButtonItemProps("road")}
+          text="Road"
+          icon={<EditRoadIcon />}
+        />
+        <miniDrawers.ButtonItem
+          {...makeSelectableButtonItemProps("endpoints")}
+          text="Start & End Points"
+          icon={<HomeIcon />}
         />
         <miniDrawers.ButtonItem
           {...makeSelectableButtonItemProps("obstacles")}

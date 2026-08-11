@@ -6,22 +6,31 @@ import { TILE_HEIGHT, TILE_WIDTH } from "../../globals"
 export const IDs = flattenNumberValues(tilesets.IDs.Obstacles)
 export type ID = (typeof IDs)[number]
 
-type Properties<T extends boolean> = [
-  { name: "canDriveThrough"; value: T; type: "bool" },
+export type PropertyValues<CanDriveThrough extends boolean = boolean> = {
+  canDriveThrough: CanDriveThrough
+}
+export type Properties<Values extends PropertyValues> = [
+  { name: "canDriveThrough"; value: Values["canDriveThrough"]; type: "bool" },
 ]
 
-export type MakeKwArgs<GID extends ID, T extends boolean = false> = Omit<
-  tilesets.MakeKwArgs<GID, Properties<T>>,
-  "properties"
-> & { properties?: Partial<{ canDriveThrough: T }>; tilescale?: number }
+export type MakeKwArgs<
+  GID extends ID,
+  Props extends PropertyValues = PropertyValues<false>,
+> = Omit<tilesets.MakeKwArgs<GID, Properties<Props>>, "properties"> & {
+  properties?: Partial<Props>
+  tilescale?: number
+}
 
-export const make = <GID extends ID, T extends boolean = false>(
+export const make = <
+  GID extends ID,
+  Props extends PropertyValues = PropertyValues<false>,
+>(
   importMetaUrl: string,
   {
-    properties: { canDriveThrough = false as T } = {},
+    properties: { canDriveThrough = false } = {},
     tilescale = 1,
     ...kwArgs
-  }: MakeKwArgs<GID, T>,
+  }: MakeKwArgs<GID, Props>,
 ) =>
   tilesets.make(importMetaUrl, {
     imagewidth: TILE_WIDTH * tilescale,
@@ -32,6 +41,6 @@ export const make = <GID extends ID, T extends boolean = false>(
         value: canDriveThrough,
         type: "bool",
       },
-    ] as Properties<T>,
+    ] as Properties<Props>,
     ...kwArgs,
   })

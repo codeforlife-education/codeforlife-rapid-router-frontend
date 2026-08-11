@@ -7,8 +7,11 @@ const _IDs = tilesets.IDs.Obstacles.Animal
 export const IDs = flattenNumberValues(_IDs)
 export type ID = (typeof IDs)[number]
 
-const make = <GID extends ID, T extends boolean = false>(
-  kwArgs: obstacles.MakeKwArgs<GID, T>,
+const make = <
+  GID extends ID,
+  Props extends obstacles.PropertyValues = obstacles.PropertyValues<false>,
+>(
+  kwArgs: obstacles.MakeKwArgs<GID, Props>,
 ) => obstacles.make(import.meta.url, kwArgs)
 
 export const cow = make({
