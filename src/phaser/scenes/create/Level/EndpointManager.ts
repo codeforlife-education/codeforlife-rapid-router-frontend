@@ -2,7 +2,7 @@ import Phaser from "phaser"
 
 import * as layers from "../../../layers"
 import * as tilesets from "../../../tilesets"
-import BasePlaceableManager, { type Placed } from "./BasePlaceableManager"
+import BaseRoadObjectManager, { type Placed } from "./BaseRoadObjectManager"
 import type { Direction, default as Level } from "."
 import { Events } from "../../../globals"
 
@@ -55,7 +55,7 @@ type Pointer<E extends Endpoint = Endpoint> = {
   endpoint: E
 }
 
-export default class extends BasePlaceableManager<
+export default class extends BaseRoadObjectManager<
   layers.objectGroup.objects.endpoints.Name,
   tilesets.endpoints.ID,
   VariantKey
@@ -310,7 +310,10 @@ export default class extends BasePlaceableManager<
     tile: Phaser.Types.Tilemaps.Tile,
     id: tilesets.endpoints.ID,
   ): boolean {
-    return this.variants(tile, isHouseId(id) ? "house" : "cfc").length > 0
+    return (
+      this._main[tile.row][tile.col] === null &&
+      this.variants(tile, isHouseId(id) ? "house" : "cfc").length > 0
+    )
   }
 
   protected validVariantKeys(

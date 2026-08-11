@@ -22,7 +22,7 @@ export type Placed<ID extends number, VariantKey extends string> = {
  * tile-to-tile drag, selection, and a delete/rotate button stack. Subclasses
  * plug in their own placement/collision rules via the abstract hooks below.
  */
-export default abstract class BasePlaceableManager<
+export default abstract class BaseRoadObjectManager<
   Name extends objects.Name,
   ID extends objects.ID,
   VariantKey extends string,

@@ -2,13 +2,13 @@ import Phaser from "phaser"
 
 import * as layers from "../../../layers"
 import type * as tilesets from "../../../tilesets"
-import BasePlaceableManager, { type Placed } from "./BasePlaceableManager"
+import BaseRoadObjectManager, { type Placed } from "./BaseRoadObjectManager"
 import { Events } from "../../../globals"
 import type { default as Level } from "."
 
 type VariantKey = keyof layers.objectGroup.objects.StraightRotationVariants
 
-export default class extends BasePlaceableManager<
+export default class extends BaseRoadObjectManager<
   layers.objectGroup.objects.obstacles.Name,
   tilesets.obstacles.ID,
   VariantKey
