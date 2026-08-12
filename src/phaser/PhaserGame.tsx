@@ -16,7 +16,7 @@ import { CircularProgress } from "@mui/material"
 //  to be loaded at runtime.
 import type Phaser from "phaser"
 
-import { Events, type Variable, Variables } from "./globals"
+import { Events, type Variable } from "./globals"
 import { useGameCommands, usePhaserGameContext } from "../app/hooks"
 import type { Level } from "../api/level"
 import type { PhaserGameRef } from "./PhaserGameContext"
@@ -139,11 +139,6 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
         parent: containerRef.current,
         scene,
       })
-      // TODO: Determine if we need to set the level ID here. As is, this will
-      // destroy and reinitialize the entire Phaser game instance whenever the
-      // level ID changes, which is not ideal. We should look into ways to only
-      // reload the relevant parts of the game.
-      gameRef.current.registry.set(Variables.LEVEL_ID, levelId)
 
       // Listen for scene activity changes broadcast by each scene.
       gameRef.current.events.on(
@@ -169,7 +164,12 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
     }
   }, [mode, levelId, setActiveSceneKeys])
 
-  // Pass the current game commands to Phaser.
+  // Pass the current level ID to Phaser when in play mode.
+  useEffect(() => {
+    if (mode === "play") setVariable("levelId", levelId)
+  }, [mode, levelId, setVariable])
+
+  // Pass the current game commands to Phaser when in play mode.
   useEffect(() => {
     if (mode === "play") setVariable("commands", gameCommands)
   }, [mode, gameCommands, setVariable])

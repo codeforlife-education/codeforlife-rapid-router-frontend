@@ -2,27 +2,27 @@ import {
   AddRoad as AddRoadIcon,
   RemoveRoad as RemoveRoadIcon,
 } from "@mui/icons-material"
-import { type Dispatch, type FC, type SetStateAction } from "react"
 import {
   ToggleButtonGroup as MuiToggleButtonGroup,
   ToggleButton,
   Tooltip,
 } from "@mui/material"
+import { type FC } from "react"
+import type Phaser from "phaser"
 
-type Value = "add" | "delete"
+type Tool = Phaser.Types.Scenes.Create.Toolbox.Road["tool"]
 
 export interface ToggleButtonGroupProps {
-  valueState: [Value, Dispatch<SetStateAction<Value>>]
+  tool: Tool
+  setTool: (tool: Tool) => void
 }
 
-const ToggleButtonGroup: FC<ToggleButtonGroupProps> = ({
-  valueState: [value, setValue],
-}) => (
+const ToggleButtonGroup: FC<ToggleButtonGroupProps> = ({ tool, setTool }) => (
   <MuiToggleButtonGroup
-    value={value}
+    value={tool}
     exclusive
     onChange={(_, newValue) => {
-      if (newValue !== null) setValue(newValue as Value)
+      if (newValue !== null) setTool(newValue as Tool)
     }}
     sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1 }}
   >

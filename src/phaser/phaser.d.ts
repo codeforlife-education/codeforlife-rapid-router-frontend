@@ -176,7 +176,18 @@ declare module "phaser" {
           type Road = _Toolbox<"road", "add" | "delete">
           type Endpoints = _Toolbox<"endpoints", tilesets.endpoints.ID>
           type Scenery = _Toolbox<"scenery", tilesets.scenery.ID>
-          type Obstacles = _Toolbox<"obstacles", tilesets.obstacles.ID>
+          type Obstacles = _Toolbox<
+            "obstacles",
+            // Get the IDs of the obstacles that cannot be driven through.
+            Extract<
+              (typeof tilesets.obstacles.default)[number],
+              {
+                properties: tilesets.obstacles.Properties<{
+                  canDriveThrough: false
+                }>
+              }
+            >["firstgid"]
+          >
           type Any = Road | Endpoints | Scenery | Obstacles
         }
       }
