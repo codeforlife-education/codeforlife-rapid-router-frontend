@@ -18,12 +18,12 @@ import { type FC, useEffect, useState } from "react"
 import { Divider } from "@mui/material"
 import type Phaser from "phaser"
 
-import * as endpoints from "./endpoints"
 import * as miniDrawers from "../../components/miniDrawers"
-import * as obstacles from "./obstacles"
-import * as road from "./road"
-import * as scenery from "./scenery"
 import * as tilesets from "../../phaser/tilesets"
+import EndpointsControls from "./endpoints/Controls"
+import ObstaclesControls from "./obstacles/Controls"
+import RoadControls from "./road/Controls"
+import SceneryControls from "./scenery/Controls"
 import { ZoomControls } from "../../phaser"
 import { usePhaserGameContext } from "../../app/hooks"
 
@@ -98,35 +98,25 @@ const Controls: FC<ControlsProps> = () => {
     onClick: () => setToolbox(tb),
   })
 
+  const toolboxControls = {
+    road: <RoadControls tool={roadTool} setTool={setTool("road")} />,
+    endpoints: (
+      <EndpointsControls tool={endpointsTool} setTool={setTool("endpoints")} />
+    ),
+    scenery: (
+      <SceneryControls tool={sceneryTool} setTool={setTool("scenery")} />
+    ),
+    obstacles: (
+      <ObstaclesControls tool={obstaclesTool} setTool={setTool("obstacles")} />
+    ),
+  }[toolbox.box]
+
   return (
     <>
       {activeSceneKeys.includes("Create.LEVEL") && (
         <>
           <ZoomControls />
-          {toolbox.box === "road" && (
-            <road.ToggleButtonGroup tool={roadTool} setTool={setTool("road")} />
-          )}
-          {toolbox.box === "endpoints" && (
-            <endpoints.ImageSelect
-              tool={endpointsTool}
-              setTool={setTool("endpoints")}
-            />
-          )}
-          {toolbox.box === "scenery" && (
-            <>
-              <scenery.Counter />
-              <scenery.ImageSelect
-                tool={sceneryTool}
-                setTool={setTool("scenery")}
-              />
-            </>
-          )}
-          {toolbox.box === "obstacles" && (
-            <obstacles.ImageSelect
-              tool={obstaclesTool}
-              setTool={setTool("obstacles")}
-            />
-          )}
+          {toolboxControls}
         </>
       )}
       <miniDrawers.MiniDrawer
