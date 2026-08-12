@@ -113,6 +113,8 @@ declare module "phaser" {
       gap: number
     }
 
+    interface Tooltip extends Phaser.GameObjects.Text {}
+
     interface Image {
       /** The name is one of the defined in the registry. */
       name: layers.objectGroup.objects.Name
@@ -162,6 +164,13 @@ declare module "phaser" {
         children: Phaser.GameObjects.GameObject[],
         options?: Phaser.Types.GameObjects.Stack.Options,
       ): Phaser.GameObjects.Stack
+
+      /** Creates a new tooltip that shows next to a target while it's hovered. */
+      tooltip(
+        title: string,
+        target: Phaser.GameObjects.GameObject | Phaser.GameObjects.GameObject[],
+        options?: Phaser.Types.GameObjects.Tooltip.Options,
+      ): Phaser.GameObjects.Tooltip
     }
   }
 
@@ -211,6 +220,11 @@ declare module "phaser" {
       namespace Stack {
         type Direction = "row" | "column"
         type Options = { direction?: Direction; gap?: number; depth?: number }
+      }
+
+      namespace Tooltip {
+        type Placement = "top" | "bottom" | "left" | "right"
+        type Options = { placement?: Placement; gap?: number; depth?: number }
       }
     }
 
