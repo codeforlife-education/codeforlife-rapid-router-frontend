@@ -11,13 +11,6 @@ declare module "phaser" {
     type ReactSetVariable = (key: Variable) => void
     type PhaserSetVariable = (key: Variable) => void
 
-    type DragEndData = {
-      toolbox: Phaser.Types.Scenes.Create.Toolbox.Any
-      sequence: Phaser.Types.Tilemaps.Tile[]
-      set: Set<string>
-    }
-    type DragEnd = (data: DragEndData) => void
-
     type AddRoadData = Phaser.Types.Tilemaps.Tile & {
       id: layers.tile.data.RoadID
     }

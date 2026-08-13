@@ -4,7 +4,7 @@ import * as layers from "../../../layers"
 import * as objects from "../../../layers/objectGroup/objects"
 import type * as tilesets from "../../../tilesets"
 import { Events, Variables } from "../../../globals"
-import BaseManager from "./BaseManager"
+import BaseToolboxManager from "./BaseToolboxManager"
 import type { default as Level } from "."
 
 type Drag = {
@@ -13,7 +13,7 @@ type Drag = {
   listeners: { on: () => void; off: () => void }
 }
 
-export default class extends BaseManager {
+export default class extends BaseToolboxManager {
   /** The maximum number of scenery objects that can be added to the level. */
   private readonly maxLength = 50
 
@@ -31,6 +31,12 @@ export default class extends BaseManager {
 
   /** The delete button shown next to the active object. */
   private deleteButton: Phaser.GameObjects.FloatingActionButton
+
+  /** Maps each placed scenery object to the tileset id it was created from. */
+  private readonly objectIds = new WeakMap<
+    Phaser.GameObjects.Image,
+    tilesets.scenery.ID
+  >()
 
   constructor(level: Level) {
     super(level)
@@ -106,6 +112,15 @@ export default class extends BaseManager {
     return this.level.toolbox?.box === "scenery"
       ? this.level.toolbox.tool
       : null
+  }
+
+  /**
+   * Switches the active toolbox to scenery (if it isn't already), so React
+   * mirrors the change and other managers deactivate.
+   */
+  private claimToolbox(id: tilesets.scenery.ID) {
+    if (!this.tool)
+      this.level.setVariable("toolbox", { box: "scenery", tool: id })
   }
 
   /** Check if a scenery object is overlapping an endpoint. */
@@ -230,9 +245,11 @@ export default class extends BaseManager {
       .setOrigin(0.5, 0.5)
       .setPosition(worldX, worldY)
 
+    this.objectIds.set(obj, id)
     this.level.setVariable("sceneryObjectCount", this.scenery.length)
 
-    const onDragStart: Phaser.Input.Events.GameObjectDragStart = () =>
+    const onDragStart: Phaser.Input.Events.GameObjectDragStart = () => {
+      this.claimToolbox(id)
       this.startDrag(obj, {
         on: () => {
           obj
@@ -245,6 +262,7 @@ export default class extends BaseManager {
             .off(Phaser.Input.Events.DRAG_END, onDragEnd)
         },
       })
+    }
 
     const onDrag: Phaser.Input.Events.GameObjectDrag = (_, dragX, dragY) =>
       this.dragTo(obj, dragX, dragY)
@@ -253,17 +271,17 @@ export default class extends BaseManager {
       this.endDrag(obj)
 
     const onPointerOver: Phaser.Input.Events.GameObjectPointerOver = () => {
-      if (!this.tool || this.drag) return
+      if (this.level.isDragging) return
       this.level.input.setDefaultCursor("grab")
     }
 
     const onPointerOut: Phaser.Input.Events.GameObjectPointerOut = () => {
-      if (!this.tool || this.drag) return
+      if (this.level.isDragging) return
       this.level.input.setDefaultCursor("default")
     }
 
     const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = () => {
-      if (!this.tool) return
+      this.claimToolbox(id)
       this.select(obj)
     }
 
@@ -290,6 +308,7 @@ export default class extends BaseManager {
     listeners: Drag["listeners"],
   ) {
     this.drag = { obj, start: { x: obj.x, y: obj.y }, listeners }
+    this.setIsDragging(true)
     this.level.input.setDefaultCursor("grabbing")
     obj.setScale(1.1)
     this.deselect()
@@ -319,6 +338,7 @@ export default class extends BaseManager {
 
     this.drag.listeners.off()
     this.drag = null
+    this.setIsDragging(false)
     this.level.input.setDefaultCursor("grab")
     obj.setScale(1)
   }
@@ -398,6 +418,17 @@ export default class extends BaseManager {
       return
     }
 
+    // Defer to whichever manager owns this tile (it independently shows its
+    // own "grab" cursor) rather than clobbering it with "not-allowed".
+    const nearestTile = this.level.worldToNearestTile(
+      pointer.worldX,
+      pointer.worldY,
+    )
+    if (nearestTile && this.level.isTileOccupied(nearestTile)) {
+      this.ghost.obj.setVisible(false)
+      return
+    }
+
     // Indirectly over an existing object or road tile.
     if (
       this.scenery.length >= this.maxLength ||
@@ -431,6 +462,9 @@ export default class extends BaseManager {
       const tool = this.tool
       if (!tool) return
 
+      // Don't interfere while another manager is mid-drag.
+      if (this.level.isDragging) return
+
       // Clicking on any existing interactive object (scenery, delete button, …):
       // let the individual object's events handle it.
       if (currentlyOver.length > 0) return
@@ -447,13 +481,12 @@ export default class extends BaseManager {
 
   private onPointerMove: Phaser.Input.Events.PointerMove<Phaser.GameObjects.Image> =
     (pointer, currentlyOver) => {
-      if (!this.tool) return
+      if (!this.tool || this.level.isDragging) return
       this.handleGhost(pointer, currentlyOver)
     }
 
   /** Handle the pointer leaving the game canvas. */
   private onGameOut: Phaser.Input.Events.GameOut = () => {
-    if (!this.tool) return
     if (this.ghost) this.handleGhost()
     if (this.selectedObject) this.deselect()
     if (this.drag) this.endDrag(this.drag.obj)
@@ -478,17 +511,11 @@ export default class extends BaseManager {
   private onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
     if (key !== Variables.TOOLBOX) return
 
-    let draggable = true
-
     const tool = this.tool
     if (tool) this.createGhost(tool)
     else {
       this.deselect()
       this.destroyGhost()
-      draggable = false
     }
-
-    // Enable or disable dragging for all scenery objects.
-    this.level.input.setDraggable(this.scenery, draggable)
   }
 }

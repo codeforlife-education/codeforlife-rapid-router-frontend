@@ -45,10 +45,8 @@ export default class extends BaseRoadObjectManager<
     })
   }
 
-  protected get tool() {
-    return this.level.toolbox?.box === "obstacles"
-      ? this.level.toolbox.tool
-      : null
+  protected get box() {
+    return "obstacles" as const
   }
 
   protected getFactory(id: tilesets.obstacles.ID, variantKey: VariantKey) {

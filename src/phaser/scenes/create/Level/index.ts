@@ -1,7 +1,6 @@
 import Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
-import DragManager from "./DragManager"
 import EndpointManager from "./EndpointManager"
 import ObstacleManager from "./ObstacleManager"
 import RoadManager from "./RoadManager"
@@ -24,9 +23,6 @@ export interface LevelData extends BaseLevelData {}
  */
 export default class extends BaseLevel<LevelData> {
   static readonly KEY = SceneKeys.Create.LEVEL
-
-  /** Drag manager responsible for handling drag operations. */
-  drag!: DragManager
 
   /** Road manager responsible for handling road tiles. */
   road!: RoadManager
@@ -70,12 +66,6 @@ export default class extends BaseLevel<LevelData> {
     this.graphics = this.add.graphics().setDepth(1)
 
     // Initialize the managers.
-    this.drag = new DragManager(this, {
-      road: {
-        add: { drawDirs: true, highlight: { color: 0x00ff00 } },
-        delete: { drawDirs: false, highlight: { color: 0xff0000 } },
-      },
-    })
     this.road = new RoadManager(this)
     this.endpoint = new EndpointManager(this)
     this.obstacle = new ObstacleManager(this)
@@ -85,6 +75,20 @@ export default class extends BaseLevel<LevelData> {
   /** The currently active tool selected by the player. */
   get toolbox() {
     return this.getVariable<Phaser.Types.Scenes.Create.Toolbox.Any>("toolbox")
+  }
+
+  /** Whether any placeable manager currently has an active drag in progress. */
+  get isDragging() {
+    return (
+      this.endpoint.isDragging ||
+      this.obstacle.isDragging ||
+      this.scenery.isDragging
+    )
+  }
+
+  /** Checks if the given tile is occupied by an endpoint or an obstacle. */
+  isTileOccupied(tile: Phaser.Types.Tilemaps.Tile) {
+    return this.endpoint.isOccupied(tile) || this.obstacle.isOccupied(tile)
   }
 
   /**

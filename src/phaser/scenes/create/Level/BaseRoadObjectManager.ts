@@ -1,7 +1,7 @@
 import Phaser from "phaser"
 
 import { Events, Variables } from "../../../globals"
-import BaseManager from "./BaseManager"
+import BaseToolboxManager from "./BaseToolboxManager"
 import type { default as Level } from "."
 import type { objects } from "../../../layers/objectGroup"
 
@@ -26,7 +26,7 @@ export default abstract class BaseRoadObjectManager<
   Name extends objects.Name,
   ID extends objects.ID,
   VariantKey extends string,
-> extends BaseManager {
+> extends BaseToolboxManager {
   /** The tile of the currently selected placed object. */
   protected selected: Phaser.Types.Tilemaps.Tile | null = null
 
@@ -75,6 +75,11 @@ export default abstract class BaseRoadObjectManager<
         .setVisible(false),
     }
 
+    // WARN: The tooltips must be created after the buttons are added to the
+    // stack so that the tooltips can observe the stack's visibility.
+    level.add.tooltip("Rotate", rotateButton)
+    level.add.tooltip("Delete", deleteButton)
+
     const onReactSetVariable: Phaser.Events.ReactSetVariable = (...args) =>
       this.onReactSetVariable(...args)
     level.game.events.on(Events.REACT_SET_VARIABLE, onReactSetVariable)
@@ -113,8 +118,29 @@ export default abstract class BaseRoadObjectManager<
     })
   }
 
+  /** The box (toolbox category) this manager owns, e.g. `"obstacles"`. */
+  protected abstract get box(): Phaser.Types.Scenes.Create.Toolbox.Any["box"]
+
   /** The id currently selected in this manager's toolbox, or `null`. */
-  protected abstract get tool(): ID | null
+  protected get tool(): ID | null {
+    return this.level.toolbox?.box === this.box
+      ? (this.level.toolbox.tool as ID)
+      : null
+  }
+
+  /** Checks if this manager has a placed object on the given tile. */
+  isOccupied(tile: Phaser.Types.Tilemaps.Tile): boolean {
+    return this.getPlaced(tile) !== null
+  }
+
+  /**
+   * Switches the active toolbox to this manager's own box (if it isn't
+   * already), so React mirrors the change and other managers deactivate.
+   */
+  private claimToolbox(id: ID) {
+    if (this.tool === null)
+      this.level.setVariable("toolbox", { box: this.box, tool: id })
+  }
 
   /** Checks if the given id can be placed on the given tile. */
   protected abstract canPlace(tile: Phaser.Types.Tilemaps.Tile, id: ID): boolean
@@ -287,12 +313,11 @@ export default abstract class BaseRoadObjectManager<
       this.ghost.obj.setVisible(false)
       this.ghost.tile = undefined
       this.ghost.variantKey = undefined
-      if (pointer) {
-        // An existing placed object under the pointer can still be dragged.
-        const draggable = !!tile && this.getPlaced(tile) !== null
-        this.level.input.setDefaultCursor(
-          draggable ? "grab" : tile ? "not-allowed" : "default",
-        )
+      // Defer to whichever manager owns this tile (it independently shows its
+      // own "grab" cursor for its own placed objects) rather than clobbering
+      // it with "not-allowed".
+      if (pointer && !(tile && this.level.isTileOccupied(tile))) {
+        this.level.input.setDefaultCursor(tile ? "not-allowed" : "default")
       }
       return
     }
@@ -318,6 +343,7 @@ export default abstract class BaseRoadObjectManager<
 
     this.deselect()
     this.drag = { tile, id, originalVariantKey }
+    this.setIsDragging(true)
     // Only a not-yet-placed object should look ghost-like while dragging.
     this.createGhost(id, existing ? 1 : 0.5)
     this.positionGhost(tile, originalVariantKey)
@@ -335,6 +361,7 @@ export default abstract class BaseRoadObjectManager<
     this.place(finalTile, id, this.ghost?.variantKey ?? originalVariantKey)
 
     this.drag = null
+    this.setIsDragging(false)
     this.ghost!.tile = undefined
     this.ghost!.variantKey = undefined
     this.ghost!.obj.setVisible(false)
@@ -349,25 +376,31 @@ export default abstract class BaseRoadObjectManager<
 
   private onPointerDown: Phaser.Input.Events.PointerDown<Phaser.GameObjects.Image> =
     (pointer, currentlyOver) => {
-      const tool = this.tool
-      if (tool === null) return
-
       // Clicking on any existing interactive object (e.g. the delete button):
       // let the individual object's events handle it.
       if (currentlyOver.length > 0) return
 
+      // Don't interfere while another manager is mid-drag.
+      if (this.level.isDragging && !this.drag) return
+
       const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
       if (!tile) return
 
+      // My own placed object is always selectable, regardless of whether my
+      // box is the active tool - switch the toolbox to it first.
       const existing = this.getPlaced(tile)
-      if (existing) this.startDrag(tile, existing.id)
-      else if (this.ghost?.obj.visible) this.startDrag(tile, tool)
+      if (existing) {
+        this.claimToolbox(existing.id)
+        this.startDrag(tile, existing.id)
+        return
+      }
+
+      const tool = this.tool
+      if (tool !== null && this.ghost?.obj.visible) this.startDrag(tile, tool)
     }
 
   private onPointerMove: Phaser.Input.Events.PointerMove<Phaser.GameObjects.Image> =
     (pointer, currentlyOver) => {
-      if (this.tool === null) return
-
       if (this.drag) {
         const nearest = this.level.worldToNearestTile(
           pointer.worldX,
@@ -382,18 +415,30 @@ export default abstract class BaseRoadObjectManager<
         return
       }
 
+      // Don't interfere while another manager is mid-drag.
+      if (this.level.isDragging) return
+
       // Directly over an existing interactive object (e.g. the delete button).
       if (currentlyOver.length > 0) {
         this.ghost?.obj.setVisible(false)
         return
       }
 
+      const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
+      if (tile && this.getPlaced(tile)) {
+        // My own placed object is always selectable/draggable, regardless of
+        // whether my box is the active tool.
+        this.ghost?.obj.setVisible(false)
+        this.level.input.setDefaultCursor("grab")
+        return
+      }
+
+      if (this.tool === null) return
       this.handleGhost(pointer)
     }
 
   /** Handle the pointer leaving the game canvas. */
   private onGameOut: Phaser.Input.Events.GameOut = () => {
-    if (this.tool === null) return
     if (this.ghost) this.handleGhost()
     if (this.drag) this.endDrag()
     if (this.selected) this.deselect()

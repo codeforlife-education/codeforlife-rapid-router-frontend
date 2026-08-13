@@ -291,10 +291,8 @@ export default class extends BaseRoadObjectManager<
     return currentMain
   }
 
-  protected get tool() {
-    return this.level.toolbox?.box === "endpoints"
-      ? this.level.toolbox.tool
-      : null
+  protected get box() {
+    return "endpoints" as const
   }
 
   protected getFactory(id: tilesets.endpoints.ID, variantKey: VariantKey) {
