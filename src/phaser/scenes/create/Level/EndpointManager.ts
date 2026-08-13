@@ -240,6 +240,11 @@ export default class extends BaseRoadObjectManager<
     )
   }
 
+  /** Checks if the given tile is an endpoint's main tile. */
+  isMainOccupied({ row, col }: Phaser.Types.Tilemaps.Tile): boolean {
+    return this._main[row][col] !== null
+  }
+
   /** Get the endpoint whose main tile is at the given tile, or `null`. */
   private endpoint(tile: Phaser.Types.Tilemaps.Tile): Endpoint | null
   /**
@@ -310,6 +315,7 @@ export default class extends BaseRoadObjectManager<
   ): boolean {
     return (
       this._main[tile.row][tile.col] === null &&
+      !this.level.obstacle.isOccupied(tile) &&
       this.variants(tile, isHouseId(id) ? "house" : "cfc").length > 0
     )
   }
@@ -522,6 +528,9 @@ export default class extends BaseRoadObjectManager<
           const variant = { ...tile, type, variant: { key } }
 
           return [tile, ...crossoverTiles].every(t => {
+            // An obstacle occupies the whole tile, so it always blocks.
+            if (this.level.obstacle.isOccupied(t)) return false
+
             const main = this._main[t.row][t.col]
             const crossovers = this._crossovers[t.row][t.col]
 

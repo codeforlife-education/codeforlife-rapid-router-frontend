@@ -401,13 +401,16 @@ export default abstract class BaseFreeObjectManager<
       return
     }
 
-    // Defer to whichever manager owns this tile (it independently shows its
-    // own "grab" cursor) rather than clobbering it with "not-allowed".
+    // Defer to whichever manager owns this tile's grabbable object (it
+    // independently shows its own "grab" cursor) rather than clobbering it
+    // with "not-allowed". This doesn't apply to a tile that's merely one of
+    // an endpoint's crossover tiles, since those aren't grabbable themselves
+    // - overlapping the endpoint there is still checked below.
     const nearestTile = this.level.worldToNearestTile(
       pointer.worldX,
       pointer.worldY,
     )
-    if (nearestTile && this.level.isTileOccupied(nearestTile)) {
+    if (nearestTile && this.level.isTileGrabbable(nearestTile)) {
       this.ghost.obj.setVisible(false)
       return
     }

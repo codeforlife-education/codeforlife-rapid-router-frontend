@@ -35,6 +35,8 @@ export default abstract class BaseObjectGroupLayerManager<
     delete: Phaser.GameObjects.FloatingActionButton
     /** The rotate button shown in the button stack. */
     rotate: Phaser.GameObjects.FloatingActionButton
+    /** The cancel button shown in the button stack. */
+    cancel: Phaser.GameObjects.FloatingActionButton
   }
 
   constructor(level: Level) {
@@ -42,11 +44,13 @@ export default abstract class BaseObjectGroupLayerManager<
 
     const deleteButton = this.createDeleteButton(level)
     const rotateButton = this.createRotateButton(level)
+    const cancelButton = this.createCancelButton(level)
     this.button = {
       rotate: rotateButton,
       delete: deleteButton,
+      cancel: cancelButton,
       stack: level.add
-        .stack(0, 0, [rotateButton, deleteButton], {
+        .stack(0, 0, [cancelButton, rotateButton, deleteButton], {
           direction: "row",
           gap: BUTTON_GAP,
         })
@@ -57,6 +61,7 @@ export default abstract class BaseObjectGroupLayerManager<
     // so that the tooltips can observe the stack's visibility.
     level.add.tooltip("Rotate", rotateButton)
     level.add.tooltip("Delete", deleteButton)
+    level.add.tooltip("Cancel", cancelButton)
   }
 
   /** Checks if this manager has a placed object identified by `key`. */
@@ -108,6 +113,16 @@ export default abstract class BaseObjectGroupLayerManager<
 
     return add
       .fab(0, 0, "rotate-right-icon", 0x2196f3, 0x1565c0)
+      .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
+  }
+
+  private createCancelButton({ add }: Level) {
+    const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = () => {
+      this.deselect()
+    }
+
+    return add
+      .fab(0, 0, "clear-icon", 0x8d8d8d, 0x717171)
       .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
   }
 

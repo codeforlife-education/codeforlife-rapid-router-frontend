@@ -188,6 +188,7 @@ export default abstract class BaseTileLayerManager<
     this._set.clear()
     this._set.add(this.level.tileToKey(tile))
     this._travelDirs.clear()
+    this.setIsDragging(true)
 
     // Highlight the starting tile.
     this.highlightTile(tile, toolConfig.highlight)
@@ -230,6 +231,7 @@ export default abstract class BaseTileLayerManager<
     this._set.clear()
     this._travelDirs.clear()
     this.level.graphics.clear()
+    this.setIsDragging(false)
   }
 
   /** Called when a drag ends having visited more than one tile. */

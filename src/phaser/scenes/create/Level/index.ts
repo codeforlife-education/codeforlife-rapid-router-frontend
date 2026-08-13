@@ -77,9 +77,10 @@ export default class extends BaseLevel<LevelData> {
     return this.getVariable<Phaser.Types.Scenes.Create.Toolbox.Any>("toolbox")
   }
 
-  /** Whether any placeable manager currently has an active drag in progress. */
+  /** Whether any manager currently has an active drag in progress. */
   get isDragging() {
     return (
+      this.road.isDragging ||
       this.endpoint.isDragging ||
       this.obstacle.isDragging ||
       this.scenery.isDragging
@@ -89,6 +90,15 @@ export default class extends BaseLevel<LevelData> {
   /** Checks if the given tile is occupied by an endpoint or an obstacle. */
   isTileOccupied(tile: Phaser.Types.Tilemaps.Tile) {
     return this.endpoint.isOccupied(tile) || this.obstacle.isOccupied(tile)
+  }
+
+  /**
+   * Checks if the given tile has its own grabbable placed object (an obstacle,
+   * or an endpoint's main tile) - as opposed to merely being reserved as one
+   * of an endpoint's crossover tiles.
+   */
+  isTileGrabbable(tile: Phaser.Types.Tilemaps.Tile) {
+    return this.endpoint.isMainOccupied(tile) || this.obstacle.isOccupied(tile)
   }
 
   /**
