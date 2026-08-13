@@ -87,11 +87,6 @@ export default class extends BaseLevel<LevelData> {
     )
   }
 
-  /** Checks if the given tile is occupied by an endpoint or an obstacle. */
-  isTileOccupied(tile: Phaser.Types.Tilemaps.Tile) {
-    return this.endpoint.isOccupied(tile) || this.obstacle.isOccupied(tile)
-  }
-
   /**
    * Checks if the given tile has its own grabbable placed object (an obstacle,
    * or an endpoint's main tile) - as opposed to merely being reserved as one

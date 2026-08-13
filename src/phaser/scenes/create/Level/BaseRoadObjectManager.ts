@@ -194,10 +194,11 @@ export default abstract class BaseRoadObjectManager<
       this.ghost.obj.setVisible(false)
       this.ghost.tile = undefined
       this.ghost.variantKey = undefined
-      // Defer to whichever manager owns this tile (it independently shows its
-      // own "grab" cursor for its own placed objects) rather than clobbering
-      // it with "not-allowed".
-      if (pointer && !(tile && this.level.isTileOccupied(tile))) {
+      // Defer to whichever manager owns this tile's grabbable object (it
+      // independently shows its own "grab" cursor) rather than clobbering it
+      // with "not-allowed". This doesn't apply to a tile that's merely one of
+      // an endpoint's crossover tiles, since those aren't grabbable themselves.
+      if (pointer && !(tile && this.level.isTileGrabbable(tile))) {
         this.level.input.setDefaultCursor(tile ? "not-allowed" : "default")
       }
       return
