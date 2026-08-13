@@ -9,7 +9,7 @@ import BaseTileLayerManager, { type DragEndData } from "./BaseTileLayerManager"
 import type { DirectionSet, default as Level } from "."
 import { Events } from "../../../globals"
 
-export default class extends BaseTileLayerManager {
+export default class extends BaseTileLayerManager<"add" | "delete"> {
   /**
    * Persistent 2D array [row][col] of all placed road tiles.
    * An empty set means no road tile has been placed at that position.
@@ -34,12 +34,10 @@ export default class extends BaseTileLayerManager {
 
   constructor(level: Level) {
     super(level, {
-      road: {
-        // A direction between 2 tiles is needed to classify a road, so at
-        // least 2 tiles must be visited before a road can be added.
-        add: { drawDirs: true, highlight: { color: 0x00ff00 }, minTiles: 2 },
-        delete: { drawDirs: false, highlight: { color: 0xff0000 } },
-      },
+      // A direction between 2 tiles is needed to classify a road, so at
+      // least 2 tiles must be visited before a road can be added.
+      add: { drawDirs: true, highlight: { color: 0x00ff00 }, minTiles: 2 },
+      delete: { drawDirs: false, highlight: { color: 0xff0000 } },
     })
 
     const onHoverMove: Phaser.Input.Events.PointerMove = (...args) =>
@@ -49,6 +47,10 @@ export default class extends BaseTileLayerManager {
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.input.off(Phaser.Input.Events.POINTER_MOVE, onHoverMove)
     })
+  }
+
+  protected get box() {
+    return "road" as const
   }
 
   dirs = (tile: Phaser.Types.Tilemaps.Tile) => this._dirs[tile.row][tile.col]
@@ -85,7 +87,7 @@ export default class extends BaseTileLayerManager {
    * crossroads turns the four previously-connected straights into dead ends
    * pointing away from where the crossroads was.
    */
-  private finalizeDeleteDrag(drag: Pick<DragEndData, "set">) {
+  private finalizeDeleteDrag(drag: Pick<DragEndData<"add" | "delete">, "set">) {
     // Collect every tile that needs to be redrawn (deleted tiles + affected
     // neighbours) so we only touch the minimum set.
     const toRedraw = new Set(drag.set)
@@ -128,7 +130,9 @@ export default class extends BaseTileLayerManager {
    * it. This means two adjacent tiles never force a shared connection on each
    * other.
    */
-  private finalizeAddDrag(drag: Pick<DragEndData, "sequence">) {
+  private finalizeAddDrag(
+    drag: Pick<DragEndData<"add" | "delete">, "sequence">,
+  ) {
     const pending = new Map<
       string,
       Phaser.Types.Tilemaps.Tile & { dirs: DirectionSet }
@@ -168,25 +172,20 @@ export default class extends BaseTileLayerManager {
     }
   }
 
-  protected onDragEnd({ toolbox: { box, tool }, ...drag }: DragEndData) {
-    if (box !== "road") return
+  protected onDragEnd({ tool, ...drag }: DragEndData<"add" | "delete">) {
     if (tool === "add") this.finalizeAddDrag(drag)
     else if (tool === "delete") this.finalizeDeleteDrag(drag)
   }
 
   private updateCursor: Phaser.Input.Events.PointerMove = pointer => {
-    const toolbox = this.level.toolbox
-    if (
-      toolbox?.box !== "road" ||
-      (toolbox.tool !== "add" && toolbox.tool !== "delete")
-    )
-      return
+    const tool = this.tool
+    if (!tool) return
 
     let cursor = "pointer"
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (tile) {
       const dirs = this.dirs(tile)
-      if (toolbox.tool === "add") {
+      if (tool === "add") {
         if (dirs.size < 4) cursor = this.addRoadIconUrl
       } else if (dirs.size > 0) cursor = this.removeRoadIconUrl
     }

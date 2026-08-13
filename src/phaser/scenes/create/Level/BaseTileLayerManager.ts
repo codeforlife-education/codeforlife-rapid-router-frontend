@@ -10,15 +10,9 @@ export type ToolConfig = {
   /** Minimum number of tiles that must be visited to trigger `onDragEnd`. */
   minTiles?: number
 }
-export type ToolConfigs = Partial<
-  Record<
-    Phaser.Types.Scenes.Create.Toolbox.Any["box"],
-    Partial<Record<Phaser.Types.Scenes.Create.Toolbox.Any["tool"], ToolConfig>>
-  >
->
 
-export type DragEndData = {
-  toolbox: Phaser.Types.Scenes.Create.Toolbox.Any
+export type DragEndData<Tool extends string> = {
+  tool: Tool
   sequence: Phaser.Types.Tilemaps.Tile[]
   set: Set<string>
 }
@@ -29,12 +23,14 @@ export type DragEndData = {
  * accumulated directions, highlights tiles as they're visited, then hands the
  * result to `onDragEnd` once the drag finishes.
  */
-export default abstract class BaseTileLayerManager extends BaseToolboxManager {
+export default abstract class BaseTileLayerManager<
+  Tool extends string,
+> extends BaseToolboxManager<Tool> {
   /** Configuration for each tool that will use tile-drag tracking. */
-  private readonly toolConfigs: ToolConfigs
+  private readonly toolConfigs: Partial<Record<Tool, ToolConfig>>
 
   /** The tool that was active when the current drag started. */
-  private _toolbox?: Phaser.Types.Scenes.Create.Toolbox.Any
+  private _tool?: Tool
 
   /**
    * Full ordered sequence of tiles visited during the current drag, including
@@ -57,7 +53,7 @@ export default abstract class BaseTileLayerManager extends BaseToolboxManager {
    */
   private readonly _travelDirs = new Map<string, DirectionSet>()
 
-  constructor(level: Level, toolConfigs: ToolConfigs) {
+  constructor(level: Level, toolConfigs: Partial<Record<Tool, ToolConfig>>) {
     super(level)
 
     this.toolConfigs = toolConfigs
@@ -88,15 +84,8 @@ export default abstract class BaseTileLayerManager extends BaseToolboxManager {
     })
   }
 
-  private toolConfig(
-    toolbox: Phaser.Types.Scenes.Create.Toolbox.Any | undefined = this._toolbox,
-  ) {
-    if (!toolbox) return null
-    const { box, tool } = toolbox
-
-    return box in this.toolConfigs && tool in this.toolConfigs[box]!
-      ? this.toolConfigs[box]![tool]!
-      : null
+  private toolConfig(tool: Tool | undefined = this._tool) {
+    return tool ? (this.toolConfigs[tool] ?? null) : null
   }
 
   private get lastTile() {
@@ -187,14 +176,14 @@ export default abstract class BaseTileLayerManager extends BaseToolboxManager {
 
   /** Start a drag operation at the nearest tile to the pointer. */
   private startDrag: Phaser.Input.Events.PointerDown = pointer => {
-    const toolbox = this.level.toolbox
-    const toolConfig = this.toolConfig(toolbox)
-    if (!toolConfig) return
+    const tool = this.tool
+    const toolConfig = this.toolConfig(tool ?? undefined)
+    if (!tool || !toolConfig) return
 
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
     if (!tile) return
 
-    this._toolbox = toolbox
+    this._tool = tool
     this._sequence = [tile]
     this._set.clear()
     this._set.add(this.level.tileToKey(tile))
@@ -225,18 +214,18 @@ export default abstract class BaseTileLayerManager extends BaseToolboxManager {
 
   /** End a drag operation. */
   private endDrag() {
-    if (!this._toolbox) return
+    if (!this._tool) return
 
     const minTiles = this.toolConfig()?.minTiles ?? 1
     if (this._sequence.length >= minTiles) {
       this.onDragEnd({
-        toolbox: this._toolbox,
+        tool: this._tool,
         sequence: this._sequence,
         set: new Set(this._set),
       })
     }
 
-    this._toolbox = undefined
+    this._tool = undefined
     this._sequence = []
     this._set.clear()
     this._travelDirs.clear()
@@ -244,5 +233,5 @@ export default abstract class BaseTileLayerManager extends BaseToolboxManager {
   }
 
   /** Called when a drag ends having visited more than one tile. */
-  protected abstract onDragEnd(data: DragEndData): void
+  protected abstract onDragEnd(data: DragEndData<Tool>): void
 }

@@ -71,7 +71,11 @@ export default class extends Phaser.GameObjects.Text {
    */
   private ancestors(obj: Phaser.GameObjects.GameObject) {
     const chain = [obj]
-    for (let parent = obj.parentContainer; parent; parent = parent.parentContainer)
+    for (
+      let parent = obj.parentContainer;
+      parent;
+      parent = parent.parentContainer
+    )
       chain.push(parent)
     return chain
   }

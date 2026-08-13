@@ -357,7 +357,7 @@ export default class extends BaseRoadObjectManager<
     const endpoint = { id, type, obj, variant } as Endpoint
     this.endpoint(tile, endpoint)
 
-    if (prevCfc && !this.sameTile(prevCfc.main, tile)) this.remove(prevCfc.main)
+    if (prevCfc && !this.sameKey(prevCfc.main, tile)) this.remove(prevCfc.main)
 
     // Emit an event to notify other systems that an endpoint has been added.
     this.level.game.events.emit(Events.ADD_ENDPOINT, {
@@ -371,7 +371,7 @@ export default class extends BaseRoadObjectManager<
     const endpoint = this._main[tile.row][tile.col]
     if (!endpoint) return
 
-    if (this.selected && this.sameTile(this.selected, tile)) this.deselect()
+    if (this.selected && this.sameKey(this.selected, tile)) this.deselect()
     this.endpoint(tile, null)
     this.level.destroyObject("ObjectGroup.ENDPOINTS", endpoint.obj)
   }

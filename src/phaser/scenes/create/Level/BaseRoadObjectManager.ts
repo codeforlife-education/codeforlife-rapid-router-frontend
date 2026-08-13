@@ -1,35 +1,28 @@
 import Phaser from "phaser"
 
+import BaseObjectGroupLayerManager, {
+  type Placed,
+} from "./BaseObjectGroupLayerManager"
 import { Events, Variables } from "../../../globals"
-import BaseToolboxManager from "./BaseToolboxManager"
 import type { default as Level } from "."
 import type { objects } from "../../../layers/objectGroup"
 
-/** Gap, in pixels, between the rotate and delete buttons. */
-const BUTTON_GAP = 16
-
-/** Margin, in pixels, between the placed object and the button stack. */
-const BUTTON_STACK_MARGIN = 8
-
-export type Placed<ID extends number, VariantKey extends string> = {
-  id: ID
-  variantKey: VariantKey
-  obj: Phaser.GameObjects.Image
-}
+export type { Placed }
 
 /**
- * Shared logic for tools that place a single object per tile: ghost preview,
- * tile-to-tile drag, selection, and a delete/rotate button stack. Subclasses
- * plug in their own placement/collision rules via the abstract hooks below.
+ * Shared logic for tools that place a single object per tile: ghost preview
+ * and tile-to-tile drag. Subclasses plug in their own placement/collision
+ * rules via the abstract hooks below.
  */
 export default abstract class BaseRoadObjectManager<
   Name extends objects.Name,
   ID extends objects.ID,
   VariantKey extends string,
-> extends BaseToolboxManager {
-  /** The tile of the currently selected placed object. */
-  protected selected: Phaser.Types.Tilemaps.Tile | null = null
-
+> extends BaseObjectGroupLayerManager<
+  ID,
+  VariantKey,
+  Phaser.Types.Tilemaps.Tile
+> {
   private drag: {
     /** The tile the object is currently being dragged from. */
     tile: Phaser.Types.Tilemaps.Tile
@@ -50,35 +43,8 @@ export default abstract class BaseRoadObjectManager<
     variantKey?: VariantKey
   } | null = null
 
-  private readonly button: {
-    /** The row of buttons shown below the selected object. */
-    stack: Phaser.GameObjects.Stack
-    /** The delete button shown in the button stack. */
-    delete: Phaser.GameObjects.FloatingActionButton
-    /** The rotate button shown in the button stack. */
-    rotate: Phaser.GameObjects.FloatingActionButton
-  }
-
   constructor(level: Level) {
     super(level)
-
-    const deleteButton = this.createDeleteButton(level)
-    const rotateButton = this.createRotateButton(level)
-    this.button = {
-      rotate: rotateButton,
-      delete: deleteButton,
-      stack: this.level.add
-        .stack(0, 0, [rotateButton, deleteButton], {
-          direction: "row",
-          gap: BUTTON_GAP,
-        })
-        .setVisible(false),
-    }
-
-    // WARN: The tooltips must be created after the buttons are added to the
-    // stack so that the tooltips can observe the stack's visibility.
-    level.add.tooltip("Rotate", rotateButton)
-    level.add.tooltip("Delete", deleteButton)
 
     const onReactSetVariable: Phaser.Events.ReactSetVariable = (...args) =>
       this.onReactSetVariable(...args)
@@ -118,30 +84,6 @@ export default abstract class BaseRoadObjectManager<
     })
   }
 
-  /** The box (toolbox category) this manager owns, e.g. `"obstacles"`. */
-  protected abstract get box(): Phaser.Types.Scenes.Create.Toolbox.Any["box"]
-
-  /** The id currently selected in this manager's toolbox, or `null`. */
-  protected get tool(): ID | null {
-    return this.level.toolbox?.box === this.box
-      ? (this.level.toolbox.tool as ID)
-      : null
-  }
-
-  /** Checks if this manager has a placed object on the given tile. */
-  isOccupied(tile: Phaser.Types.Tilemaps.Tile): boolean {
-    return this.getPlaced(tile) !== null
-  }
-
-  /**
-   * Switches the active toolbox to this manager's own box (if it isn't
-   * already), so React mirrors the change and other managers deactivate.
-   */
-  private claimToolbox(id: ID) {
-    if (this.tool === null)
-      this.level.setVariable("toolbox", { box: this.box, tool: id })
-  }
-
   /** Checks if the given id can be placed on the given tile. */
   protected abstract canPlace(tile: Phaser.Types.Tilemaps.Tile, id: ID): boolean
 
@@ -155,12 +97,6 @@ export default abstract class BaseRoadObjectManager<
       >[VariantKey]
     | undefined
 
-  /** Returns the valid variant keys for the given tile and id. */
-  protected abstract validVariantKeys(
-    tile: Phaser.Types.Tilemaps.Tile,
-    id: ID,
-  ): VariantKey[]
-
   /** Places an object with the given id and variant onto the tile. */
   protected abstract place(
     tile: Phaser.Types.Tilemaps.Tile,
@@ -168,79 +104,24 @@ export default abstract class BaseRoadObjectManager<
     variantKey: VariantKey,
   ): void
 
-  /** Removes the placed object from the given tile, if any. */
-  protected abstract remove(tile: Phaser.Types.Tilemaps.Tile): void
-
-  /** Returns the object placed at the given tile, if any. */
-  protected abstract getPlaced(
-    tile: Phaser.Types.Tilemaps.Tile,
-  ): Placed<ID, VariantKey> | null
-
-  private createDeleteButton({ add }: Level) {
-    const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = pointer => {
-      if (this.selected) this.remove(this.selected)
-      this.handleGhost(pointer)
-    }
-
-    return add
-      .fab(0, 0, "delete-icon", 0xff0000, 0xc0392b)
-      .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
-  }
-
-  private createRotateButton({ add }: Level) {
-    const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = () => {
-      if (this.selected) this.rotate(this.selected)
-    }
-
-    return add
-      .fab(0, 0, "rotate-right-icon", 0x2196f3, 0x1565c0)
-      .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
-  }
-
-  protected sameTile(
+  protected sameKey(
     a: Phaser.Types.Tilemaps.Tile,
     b: Phaser.Types.Tilemaps.Tile,
   ) {
     return a.row === b.row && a.col === b.col
   }
 
-  protected select(tile: Phaser.Types.Tilemaps.Tile) {
-    if (this.selected && this.sameTile(this.selected, tile)) return
-    this.deselect()
-    this.selected = tile
-
+  protected highlightSelection(tile: Phaser.Types.Tilemaps.Tile) {
     this.level.graphics.clear()
     this.level.highlightTile(tile, 0xaaddff)
-
-    const placed = this.getPlaced(tile)
-    if (!placed) return
-
-    // Use the axis-aligned world bounds so the buttons don't rotate with
-    // the placed object.
-    const bounds = placed.obj.getBounds()
-
-    const validKeys = this.validVariantKeys(tile, placed.id)
-    this.button.rotate.setVisible(validKeys.length > 1)
-
-    this.button.stack
-      .setPosition(
-        bounds.centerX - this.button.stack.displayWidth / 2,
-        bounds.bottom +
-          BUTTON_STACK_MARGIN +
-          this.button.stack.displayHeight / 2,
-      )
-      .setVisible(true)
   }
 
-  protected deselect() {
-    if (!this.selected) return
-    this.selected = null
+  protected clearSelectionHighlight() {
     this.level.graphics.clear()
-    this.button.stack.setVisible(false)
   }
 
   /** Rotates the placed object on the given tile to its next valid facing. */
-  private rotate(tile: Phaser.Types.Tilemaps.Tile) {
+  protected rotate(tile: Phaser.Types.Tilemaps.Tile) {
     const placed = this.getPlaced(tile)
     if (!placed) return
 
@@ -302,7 +183,7 @@ export default abstract class BaseRoadObjectManager<
   }
 
   /** Show/hide and position the ghost based on the tile under the pointer. */
-  private handleGhost(pointer?: Phaser.Input.Pointer) {
+  protected handleGhost(pointer?: Phaser.Input.Pointer) {
     if (!this.ghost) return
 
     const tile = pointer

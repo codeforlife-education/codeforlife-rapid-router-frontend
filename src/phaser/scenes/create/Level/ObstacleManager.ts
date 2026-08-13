@@ -144,7 +144,7 @@ export default class extends BaseRoadObjectManager<
     const obstacle = this._obstacles[tile.row][tile.col]
     if (!obstacle) return
 
-    if (this.selected && this.sameTile(this.selected, tile)) this.deselect()
+    if (this.selected && this.sameKey(this.selected, tile)) this.deselect()
     this._obstacles[tile.row][tile.col] = null
     this.level.destroyObject("ObjectGroup.OBSTACLES", obstacle.obj)
   }
