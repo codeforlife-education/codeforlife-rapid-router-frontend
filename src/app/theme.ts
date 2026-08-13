@@ -15,10 +15,18 @@ export const themeOptions: ThemeOptions = {
       styleOverrides: {
         ...(cflThemeOptions.components?.MuiCssBaseline
           ?.styleOverrides as object),
-        "@keyframes fabPulse": {
-          "0%": { boxShadow: "0 0 0 0 rgba(255, 235, 59, 1)" },
-          "70%": { boxShadow: "0 0 0 14px rgba(255, 235, 59, 0)" },
-          "100%": { boxShadow: "0 0 0 0 rgba(255, 235, 59, 0)" },
+        "@keyframes pulse": {
+          "0%": {
+            boxShadow:
+              "0 0 0 0 var(--pulse-color-start, rgba(255, 235, 59, 1))",
+          },
+          "70%": {
+            boxShadow:
+              "0 0 0 14px var(--pulse-color-end, rgba(255, 235, 59, 0))",
+          },
+          "100%": {
+            boxShadow: "0 0 0 0 var(--pulse-color-end, rgba(255, 235, 59, 0))",
+          },
         },
       },
     },

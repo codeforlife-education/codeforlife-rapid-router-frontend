@@ -1,4 +1,5 @@
 import {
+  Box,
   type CSSObject,
   Divider,
   Drawer,
@@ -72,29 +73,27 @@ const MiniDrawer: FC<MiniDrawerProps> = ({
         : { ...base, ...closed, "& .MuiDrawer-paper": closed }
     }}
   >
-    <Tooltip
-      placement="right"
-      title={open ? "Close" : "Open"}
-      {...tooltipProps}
-    >
-      <IconButton
-        sx={theme => ({
-          my: 0,
-          ml: "auto",
-          mr: open ? 0 : 1,
-          [theme.breakpoints.up("sm")]: {
-            mr: open ? 0 : 1.5,
-          },
-          transition: theme.transitions.create("margin-right", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
-        })}
-        onClick={onToggle}
+    <Box sx={theme => ({ width: "100%", ...theme.mixins.toolbar })}>
+      <Tooltip
+        placement="right"
+        title={open ? "Close" : "Open"}
+        {...tooltipProps}
       >
-        {open ? <ChevronLeftIcon /> : <MenuIcon />}
-      </IconButton>
-    </Tooltip>
+        <IconButton sx={{ width: "100%", height: "100%" }} onClick={onToggle}>
+          {open ? (
+            <ChevronLeftIcon />
+          ) : (
+            <MenuIcon
+              sx={{
+                "--pulse-color-start": "rgba(192, 192, 192, 1)",
+                "--pulse-color-end": "rgba(192, 192, 192, 0)",
+                animation: open ? "none" : "pulse 1.5s ease-in-out infinite",
+              }}
+            />
+          )}
+        </IconButton>
+      </Tooltip>
+    </Box>
     <Divider />
     <List>{children}</List>
   </Drawer>

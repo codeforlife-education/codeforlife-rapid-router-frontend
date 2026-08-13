@@ -1,17 +1,17 @@
 import {
   Casino as CasinoIcon,
+  CloudDownload as CloudDownloadIcon,
   Description as DescriptionIcon,
-  DriveFolderUpload as DriveFolderUploadIcon,
   EditRoad as EditRoadIcon,
   ExitToApp as ExitToAppIcon,
   Extension as ExtensionIcon,
+  Help as HelpIcon,
   Home as HomeIcon,
   Lightbulb as LightbulbIcon,
   Park as ParkIcon,
   People as PeopleIcon,
   Person as PersonIcon,
-  QuestionMark as QuestionMarkIcon,
-  SaveOutlined as SaveOutlinedIcon,
+  Save as SaveIcon,
   Traffic as TrafficIcon,
 } from "@mui/icons-material"
 import { type FC, useEffect, useState } from "react"
@@ -184,12 +184,12 @@ const Controls: FC<ControlsProps> = () => {
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Load"
-          icon={<DriveFolderUploadIcon />}
+          icon={<CloudDownloadIcon />}
         />
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Save"
-          icon={<SaveOutlinedIcon />}
+          icon={<SaveIcon />}
         />
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
@@ -200,7 +200,7 @@ const Controls: FC<ControlsProps> = () => {
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Help"
-          icon={<QuestionMarkIcon />}
+          icon={<HelpIcon />}
         />
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}

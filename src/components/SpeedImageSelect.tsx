@@ -243,7 +243,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               `background-color 0.3s ${ease}`,
               `padding 0.3s ${ease}`,
             ].join(", "),
-            animation: open ? "none" : "fabPulse 1.5s ease-in-out infinite",
+            animation: open ? "none" : "pulse 1.5s ease-in-out infinite",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
