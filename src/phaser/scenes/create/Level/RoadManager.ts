@@ -167,8 +167,19 @@ export default class extends BaseTileLayerManager<"add" | "delete"> {
     else if (tool === "delete") this.finalizeDeleteDrag(drag)
   }
 
-  private updateCursor: Phaser.Input.Events.PointerMove = () => {
-    if (this.tool) this.level.input.setDefaultCursor("all-scroll")
+  private updateCursor: Phaser.Input.Events.PointerMove = pointer => {
+    const tool = this.tool
+    if (!tool) return
+
+    const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
+    const canAct =
+      !!tile &&
+      (tool === "add"
+        ? this.dirs(tile).size <
+          Object.values(this.level.validTileDirs(tile)).filter(Boolean).length
+        : this.dirs(tile).size > 0)
+
+    this.level.input.setDefaultCursor(canAct ? "all-scroll" : "default")
   }
 
   dirsToId(dirs: DirectionSet): layers.tile.data.RoadID {
