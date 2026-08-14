@@ -316,9 +316,10 @@ export default abstract class BaseRoadObjectManager<
       }
 
       const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
-      if (tile && this.getPlaced(tile)) {
+      if (tile && this.getPlaced(tile) && this.level.toolbox?.box !== "road") {
         // My own placed object is always selectable/draggable, regardless of
-        // whether my box is the active tool.
+        // whether my box is the active tool - but the road tool takes
+        // priority over showing a "grab" cursor for an endpoint on the tile.
         this.ghost?.obj.setVisible(false)
         this.level.input.setDefaultCursor("grab")
         return

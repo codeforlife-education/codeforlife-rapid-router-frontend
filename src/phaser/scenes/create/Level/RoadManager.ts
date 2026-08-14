@@ -1,7 +1,3 @@
-import {
-  AddRoad as AddRoadIcon,
-  RemoveRoad as RemoveRoadIcon,
-} from "@mui/icons-material"
 import Phaser from "phaser"
 
 import * as layers from "../../../layers"
@@ -25,12 +21,6 @@ export default class extends BaseTileLayerManager<"add" | "delete"> {
 
   /** The type of road currently being placed. */
   private type: keyof typeof layers.tile.data.IDs.Road = "Asphalt"
-
-  /** CSS cursor string for the add-road icon, pre-computed once. */
-  private readonly addRoadIconUrl = this.level.muiIconToUrl(AddRoadIcon)
-
-  /** CSS cursor string for the delete-road icon, pre-computed once. */
-  private readonly removeRoadIconUrl = this.level.muiIconToUrl(RemoveRoadIcon)
 
   constructor(level: Level) {
     super(level, {
@@ -177,19 +167,8 @@ export default class extends BaseTileLayerManager<"add" | "delete"> {
     else if (tool === "delete") this.finalizeDeleteDrag(drag)
   }
 
-  private updateCursor: Phaser.Input.Events.PointerMove = pointer => {
-    const tool = this.tool
-    if (!tool) return
-
-    let cursor = "pointer"
-    const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
-    if (tile) {
-      const dirs = this.dirs(tile)
-      if (tool === "add") {
-        if (dirs.size < 4) cursor = this.addRoadIconUrl
-      } else if (dirs.size > 0) cursor = this.removeRoadIconUrl
-    }
-    this.level.input.setDefaultCursor(cursor)
+  private updateCursor: Phaser.Input.Events.PointerMove = () => {
+    if (this.tool) this.level.input.setDefaultCursor("all-scroll")
   }
 
   dirsToId(dirs: DirectionSet): layers.tile.data.RoadID {
