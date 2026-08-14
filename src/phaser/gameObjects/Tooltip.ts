@@ -39,7 +39,8 @@ export default class extends Phaser.GameObjects.Text {
     }: Phaser.Types.GameObjects.Tooltip.Options = {},
   ) {
     super(scene, 0, 0, title, {
-      fontSize: "18px",
+      fontFamily: '"SpaceGrotesk"',
+      fontSize: "21px",
       color: "#ffffff",
       backgroundColor: "#000000cc",
       padding: { x: 8, y: 4 },
