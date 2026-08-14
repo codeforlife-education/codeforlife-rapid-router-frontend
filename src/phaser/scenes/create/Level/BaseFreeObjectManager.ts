@@ -43,6 +43,9 @@ export default abstract class BaseFreeObjectManager<
   /** Non-null while an object is being rotated via a free-rotate drag. */
   private freeRotateDrag: FreeRotateDrag | null = null
 
+  /** Objects currently tinted red to show what a drag/rotate is colliding with. */
+  private highlightedOverlaps: Phaser.GameObjects.Image[] = []
+
   /** The semi-transparent preview image. */
   private ghost: { obj: Phaser.GameObjects.Image; id: ID } | null = null
 
@@ -191,16 +194,22 @@ export default abstract class BaseFreeObjectManager<
 
       obj.rotateAboutCenter(candidateAngleDeg)
 
+      const overlappingObjects = this.getOverlappingPlacedObjects(obj)
+      const overlappingTiles = this.getOverlappingRoadTiles(obj, obj.x, obj.y)
+      const isOverlapping =
+        overlappingObjects.length > 0 || overlappingTiles.length > 0
+
       // Snap back to the drag's start angle, as dragging a placed object to
       // an invalid position does, rather than the last valid angle.
-      const [angleDeg, cursor] =
-        this.isOverlappingPlacedObject(obj) ||
-        this.isOverlappingRoad(obj, obj.x, obj.y)
-          ? [startAngleDeg, "not-allowed"]
-          : [candidateAngleDeg, "grabbing"]
+      if (isOverlapping) obj.rotateAboutCenter(startAngleDeg)
 
-      if (angleDeg !== candidateAngleDeg) obj.rotateAboutCenter(angleDeg)
-      this.level.input.setDefaultCursor(cursor)
+      this.level.input.setDefaultCursor(
+        isOverlapping ? "not-allowed" : "grabbing",
+      )
+      this.setOverlapHighlight(
+        isOverlapping ? overlappingObjects : [],
+        isOverlapping ? overlappingTiles : [],
+      )
     }
 
   /** Tears down an in-progress free-rotate drag's state and listeners. */
@@ -210,6 +219,7 @@ export default abstract class BaseFreeObjectManager<
     this.freeRotateDrag = null
     this.setIsDragging(false)
     this.level.input.setDefaultCursor("default")
+    this.clearOverlapHighlight()
     this.level.input.off(
       Phaser.Input.Events.POINTER_MOVE,
       this.onFreeRotatePointerMove,
@@ -308,16 +318,23 @@ export default abstract class BaseFreeObjectManager<
     x = obj.x,
     y = obj.y,
   ) {
+    return this.getOverlappingPlacedObjects(obj, x, y).length > 0
+  }
+
+  /** The other placed objects and endpoints overlapping `obj` at (x, y). */
+  private getOverlappingPlacedObjects(
+    obj: Phaser.GameObjects.Image,
+    x = obj.x,
+    y = obj.y,
+  ) {
     const bounds = obj.getRelativeBounds(x, y)
 
-    return (
-      // Check if the object overlaps any other placed object.
-      this.placedObjects.some(
+    return [
+      ...this.placedObjects.filter(
         o => !this.canOverlapPlacedObject(obj, o, bounds),
-      ) ||
-      // Check if the object overlaps any endpoint object.
-      this.endpoints.some(e => this.isOverlappingEndpoint(obj, e, bounds))
-    )
+      ),
+      ...this.endpoints.filter(e => this.isOverlappingEndpoint(obj, e, bounds)),
+    ]
   }
 
   /** Check if `obj` is overlapping a road tile. */
@@ -326,6 +343,15 @@ export default abstract class BaseFreeObjectManager<
     x: number,
     y: number,
   ) {
+    return this.getOverlappingRoadTiles(obj, x, y).length > 0
+  }
+
+  /** The road tiles overlapping `obj` at (x, y). */
+  private getOverlappingRoadTiles(
+    obj: Phaser.GameObjects.Image,
+    x: number,
+    y: number,
+  ): Phaser.Types.Tilemaps.Tile[] {
     const bounds = obj.getRelativeBounds(x, y)
 
     const tiles = this.level.tilemap.getTilesWithinWorldXY(
@@ -338,7 +364,25 @@ export default abstract class BaseFreeObjectManager<
       layers.Names.Tile.ROAD,
     )
 
-    return !!tiles && tiles.length > 0
+    return (tiles ?? []).map(tile => ({ col: tile.x, row: tile.y }))
+  }
+
+  /** Highlights the given overlapping objects/tiles in red, replacing any previous highlight. */
+  private setOverlapHighlight(
+    objectsList: Phaser.GameObjects.Image[],
+    tiles: Phaser.Types.Tilemaps.Tile[],
+  ) {
+    for (const obj of this.highlightedOverlaps) obj.clearTint()
+    this.highlightedOverlaps = objectsList
+    for (const obj of objectsList) obj.setTint(0xff0000)
+
+    this.level.graphics.clear()
+    for (const tile of tiles) this.level.highlightTile(tile, 0xff0000)
+  }
+
+  /** Clears any overlap highlight left by `setOverlapHighlight`. */
+  private clearOverlapHighlight() {
+    this.setOverlapHighlight([], [])
   }
 
   private add(
@@ -434,20 +478,32 @@ export default abstract class BaseFreeObjectManager<
   private dragTo(obj: Phaser.GameObjects.Image, dragX: number, dragY: number) {
     if (!this.drag) return
 
-    const [x, y, cursor] =
-      this.isOverlappingPlacedObject(obj, dragX, dragY) ||
-      this.isOverlappingRoad(obj, dragX, dragY)
-        ? [this.drag.start.x, this.drag.start.y, "not-allowed"]
-        : [dragX, dragY, "grabbing"]
+    const overlappingObjects = this.getOverlappingPlacedObjects(
+      obj,
+      dragX,
+      dragY,
+    )
+    const overlappingTiles = this.getOverlappingRoadTiles(obj, dragX, dragY)
+    const isOverlapping =
+      overlappingObjects.length > 0 || overlappingTiles.length > 0
+
+    const [x, y, cursor] = isOverlapping
+      ? [this.drag.start.x, this.drag.start.y, "not-allowed"]
+      : [dragX, dragY, "grabbing"]
 
     obj.setPosition(x, y)
     this.level.input.setDefaultCursor(cursor)
+    this.setOverlapHighlight(
+      isOverlapping ? overlappingObjects : [],
+      isOverlapping ? overlappingTiles : [],
+    )
   }
 
   /** Stop dragging the given object. */
   private endDrag(obj: Phaser.GameObjects.Image) {
     if (!this.drag) return
 
+    this.clearOverlapHighlight()
     this.drag.listeners.off()
     this.drag = null
     this.setIsDragging(false)
