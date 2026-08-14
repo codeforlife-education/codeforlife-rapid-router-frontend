@@ -32,7 +32,7 @@ export default class extends BaseFreeObjectManager<
     return objects.getFactory<
       objects.scenery.Name,
       tilesets.scenery.ID,
-      "" // Scenery has a single discrete variant; angle is free-rotated instead.
+      never // No variants - only the base factory.
     >(id)
   }
 

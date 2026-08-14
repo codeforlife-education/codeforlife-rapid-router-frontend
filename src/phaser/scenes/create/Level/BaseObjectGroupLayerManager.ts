@@ -45,38 +45,34 @@ export default abstract class BaseObjectGroupLayerManager<
     delete: Phaser.GameObjects.FloatingActionButton
     /** The rotate button shown in the button stack. */
     rotate: Phaser.GameObjects.FloatingActionButton
-    /** The free (hold-and-drag) rotate button shown in the button stack. */
-    freeRotate: Phaser.GameObjects.FloatingActionButton
     /** The cancel button shown in the button stack. */
     cancel: Phaser.GameObjects.FloatingActionButton
   }
+
+  /** The rotate button's tooltip, whose title depends on the rotation mode. */
+  private readonly rotateTooltip: Phaser.GameObjects.Tooltip
 
   constructor(level: Level) {
     super(level)
 
     const deleteButton = this.createDeleteButton(level)
     const rotateButton = this.createRotateButton(level)
-    const freeRotateButton = this.createFreeRotateButton(level)
     const cancelButton = this.createCancelButton(level)
     this.button = {
       rotate: rotateButton,
-      freeRotate: freeRotateButton,
       delete: deleteButton,
       cancel: cancelButton,
       stack: level.add
-        .stack(
-          0,
-          0,
-          [cancelButton, rotateButton, freeRotateButton, deleteButton],
-          { direction: "row", gap: BUTTON_GAP },
-        )
+        .stack(0, 0, [cancelButton, rotateButton, deleteButton], {
+          direction: "row",
+          gap: BUTTON_GAP,
+        })
         .setVisible(false),
     }
 
     // The tooltips must be created after the buttons are added to the stack
     // so that the tooltips can observe the stack's visibility.
-    level.add.tooltip("Rotate", rotateButton)
-    level.add.tooltip("Rotate freely", freeRotateButton)
+    this.rotateTooltip = level.add.tooltip("Rotate", rotateButton)
     level.add.tooltip("Delete", deleteButton)
     level.add.tooltip("Cancel", cancelButton)
   }
@@ -98,7 +94,7 @@ export default abstract class BaseObjectGroupLayerManager<
   /** Rotates the placed object identified by `key` to its next valid variant. */
   protected abstract rotate(key: Key): void
 
-  /** Whether `key` can be rotated to any angle via the free-rotate handle. */
+  /** Whether `key` rotates to any angle (dragged) rather than between discrete variants (clicked). */
   protected abstract supportsFreeRotation(key: Key, id: ID): boolean
 
   /** Sets the free (continuous) rotation angle, in degrees, of `key`. */
@@ -129,17 +125,54 @@ export default abstract class BaseObjectGroupLayerManager<
       .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
   }
 
-  private createRotateButton({ add }: Level) {
+  /** Whether `key` currently rotates freely rather than between discrete variants. */
+  private isFreeRotating(key: Key) {
+    const placed = this.getPlaced(key)
+    return placed !== null && this.supportsFreeRotation(key, placed.id)
+  }
+
+  private createRotateButton({ add, input }: Level) {
+    const button = add.fab(0, 0, "rotate-right-icon", 0x2196f3, 0x1565c0)
+
+    const onPointerDown: Phaser.Input.Events.GameObjectPointerDown =
+      pointer => {
+        if (this.selected === null || !this.isFreeRotating(this.selected))
+          return
+        const placed = this.getPlaced(this.selected)
+        if (!placed) return
+
+        const bounds = placed.obj.getBounds()
+        const pivot = { x: bounds.centerX, y: bounds.centerY }
+        this.freeRotateDrag = {
+          pivot,
+          startAngleDeg: placed.obj.angle,
+          startPointerAngleDeg: Phaser.Math.RadToDeg(
+            Phaser.Math.Angle.Between(
+              pivot.x,
+              pivot.y,
+              pointer.worldX,
+              pointer.worldY,
+            ),
+          ),
+        }
+        this.setIsDragging(true)
+        input.on(Phaser.Input.Events.POINTER_MOVE, this.onFreeRotatePointerMove)
+        input.on(Phaser.Input.Events.POINTER_UP, this.endFreeRotateDrag)
+        input.on(Phaser.Input.Events.GAME_OUT, this.endFreeRotateDrag)
+      }
+
     const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = () => {
-      if (this.selected !== null) this.rotate(this.selected)
+      // A free-rotating object is rotated by dragging (above), not clicking.
+      if (this.selected !== null && !this.isFreeRotating(this.selected))
+        this.rotate(this.selected)
     }
 
-    return add
-      .fab(0, 0, "rotate-right-icon", 0x2196f3, 0x1565c0)
+    return button
+      .on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
       .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
   }
 
-  /** Updates the rotation while the free-rotate handle is held and dragged. */
+  /** Updates the rotation while the rotate handle is held and dragged. */
   private onFreeRotatePointerMove: Phaser.Input.Events.PointerMove =
     pointer => {
       if (!this.freeRotateDrag || this.selected === null) return
@@ -176,38 +209,6 @@ export default abstract class BaseObjectGroupLayerManager<
     this.level.input.off(Phaser.Input.Events.GAME_OUT, this.endFreeRotateDrag)
   }
 
-  private createFreeRotateButton({ add, input }: Level) {
-    const onPointerDown: Phaser.Input.Events.GameObjectPointerDown =
-      pointer => {
-        if (this.selected === null) return
-        const placed = this.getPlaced(this.selected)
-        if (!placed) return
-
-        const bounds = placed.obj.getBounds()
-        const pivot = { x: bounds.centerX, y: bounds.centerY }
-        this.freeRotateDrag = {
-          pivot,
-          startAngleDeg: placed.obj.angle,
-          startPointerAngleDeg: Phaser.Math.RadToDeg(
-            Phaser.Math.Angle.Between(
-              pivot.x,
-              pivot.y,
-              pointer.worldX,
-              pointer.worldY,
-            ),
-          ),
-        }
-        this.setIsDragging(true)
-        input.on(Phaser.Input.Events.POINTER_MOVE, this.onFreeRotatePointerMove)
-        input.on(Phaser.Input.Events.POINTER_UP, this.endFreeRotateDrag)
-        input.on(Phaser.Input.Events.GAME_OUT, this.endFreeRotateDrag)
-      }
-
-    return add
-      .fab(0, 0, "three-sixty-icon", 0x2196f3, 0x1565c0)
-      .on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
-  }
-
   private createCancelButton({ add }: Level) {
     const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = () => {
       this.deselect()
@@ -239,9 +240,13 @@ export default abstract class BaseObjectGroupLayerManager<
     const placed = this.getPlaced(key)
     if (!placed) return
 
+    const isFree = this.supportsFreeRotation(key, placed.id)
     const validKeys = this.validVariantKeys(key, placed.id)
-    this.button.rotate.setVisible(validKeys.length > 1)
-    this.button.freeRotate.setVisible(this.supportsFreeRotation(key, placed.id))
+    this.button.rotate.setVisible(isFree || validKeys.length > 1)
+    this.button.rotate.icon.setTexture(
+      isFree ? "three-sixty-icon" : "rotate-right-icon",
+    )
+    this.rotateTooltip.setText(isFree ? "Rotate freely" : "Rotate")
 
     this.positionButtonStack(placed)
     this.button.stack.setVisible(true)

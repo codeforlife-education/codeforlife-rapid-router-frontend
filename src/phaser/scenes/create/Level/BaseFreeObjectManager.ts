@@ -126,7 +126,7 @@ export default abstract class BaseFreeObjectManager<
   /** There's nothing to rotate to while there's only 1 variant per id. */
   protected rotate() {}
 
-  /** Free objects can always be rotated to any angle via the free-rotate handle. */
+  /** Free objects can always be rotated to any angle via the rotate button. */
   protected override supportsFreeRotation() {
     return true
   }
