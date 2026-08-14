@@ -169,6 +169,11 @@ export default abstract class BaseObjectGroupLayerManager<
     )
   }
 
+  /** Shows/hides the button stack, e.g. while a free-rotate drag is in progress. */
+  protected setButtonStackVisible(visible: boolean) {
+    this.button.stack.setVisible(visible)
+  }
+
   protected select(key: Key) {
     if (this.selected !== null && this.sameKey(this.selected, key)) return
     this.deselect()
@@ -187,7 +192,7 @@ export default abstract class BaseObjectGroupLayerManager<
     this.rotateTooltip.setText(isFree ? "Rotate freely" : "Rotate")
 
     this.positionButtonStack(placed)
-    this.button.stack.setVisible(true)
+    this.setButtonStackVisible(true)
   }
 
   protected deselect() {
@@ -196,6 +201,6 @@ export default abstract class BaseObjectGroupLayerManager<
     const key = this.selected
     this.selected = null
     this.clearSelectionHighlight(key)
-    this.button.stack.setVisible(false)
+    this.setButtonStackVisible(false)
   }
 }

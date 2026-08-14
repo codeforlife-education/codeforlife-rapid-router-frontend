@@ -162,15 +162,13 @@ export default abstract class BaseFreeObjectManager<
       ),
     }
     this.setIsDragging(true)
+    this.setButtonStackVisible(false)
     this.level.input.on(
       Phaser.Input.Events.POINTER_MOVE,
       this.onFreeRotatePointerMove,
     )
-    this.level.input.on(
-      Phaser.Input.Events.POINTER_UP,
-      this.cancelFreeRotateDrag,
-    )
-    this.level.input.on(Phaser.Input.Events.GAME_OUT, this.cancelFreeRotateDrag)
+    this.level.input.on(Phaser.Input.Events.POINTER_UP, this.endFreeRotateDrag)
+    this.level.input.on(Phaser.Input.Events.GAME_OUT, this.endFreeRotateDrag)
   }
 
   /** Updates the rotation while the rotate button is held and dragged. */
@@ -191,29 +189,37 @@ export default abstract class BaseFreeObjectManager<
       obj.rotateAboutCenter(
         startAngleDeg + (pointerAngleDeg - startPointerAngleDeg),
       )
-
-      if (this.selected && this.sameKey(this.selected, obj)) {
-        const placed = this.getPlaced(this.selected)
-        if (placed) this.positionButtonStack(placed)
-      }
     }
 
-  protected override cancelFreeRotateDrag = () => {
-    if (!this.freeRotateDrag) return
+  /** Tears down an in-progress free-rotate drag's state and listeners. */
+  private stopFreeRotateDrag() {
+    if (!this.freeRotateDrag) return null
+    const { obj } = this.freeRotateDrag
     this.freeRotateDrag = null
     this.setIsDragging(false)
     this.level.input.off(
       Phaser.Input.Events.POINTER_MOVE,
       this.onFreeRotatePointerMove,
     )
-    this.level.input.off(
-      Phaser.Input.Events.POINTER_UP,
-      this.cancelFreeRotateDrag,
-    )
-    this.level.input.off(
-      Phaser.Input.Events.GAME_OUT,
-      this.cancelFreeRotateDrag,
-    )
+    this.level.input.off(Phaser.Input.Events.POINTER_UP, this.endFreeRotateDrag)
+    this.level.input.off(Phaser.Input.Events.GAME_OUT, this.endFreeRotateDrag)
+    return obj
+  }
+
+  /** Ends a free-rotate drag normally, restoring the button stack. */
+  private endFreeRotateDrag = () => {
+    const obj = this.stopFreeRotateDrag()
+    if (!obj || !this.selected || !this.sameKey(this.selected, obj)) return
+
+    const placed = this.getPlaced(this.selected)
+    if (!placed) return
+    this.positionButtonStack(placed)
+    this.setButtonStackVisible(true)
+  }
+
+  /** Cancels an in-progress free-rotate drag without restoring the stack. */
+  protected override cancelFreeRotateDrag = () => {
+    this.stopFreeRotateDrag()
   }
 
   protected highlightSelection(obj: Phaser.GameObjects.Image) {
