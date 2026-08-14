@@ -127,12 +127,11 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
     onClose()
   }
 
-  const ImageItem: FC<{ key: string; image: Image }> = ({ key, image }) => {
+  const ImageItem: FC<{ image: Image }> = ({ image }) => {
     const [tooltipOpen, setTooltipOpen] = useState(false)
 
     return (
       <Tooltip
-        key={key}
         title={image.title}
         placement="bottom"
         slotProps={{
@@ -246,8 +245,12 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             animation: open ? "none" : "pulse 1.5s ease-in-out infinite",
             cursor: "pointer",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            // flex-start avoids the classic centering bug where overflowing
+            // content is clipped equally above/below and the top becomes
+            // unreachable when scrolling; margin:auto on the child instead
+            // provides "safe centering" when the content actually fits.
+            alignItems: open ? "flex-start" : "center",
+            justifyContent: open ? "flex-start" : "center",
           }}
           onClick={() => {
             if (open) return
@@ -264,7 +267,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               gap={gap}
               sx={{
                 width: `${imageListWidth}px`,
-                m: 0,
+                m: "auto",
                 p: 0,
                 userSelect: "none",
               }}

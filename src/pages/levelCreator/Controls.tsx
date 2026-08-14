@@ -8,9 +8,9 @@ import {
   Help as HelpIcon,
   Home as HomeIcon,
   Lightbulb as LightbulbIcon,
+  LocalShipping as LocalShippingIcon,
   Park as ParkIcon,
   People as PeopleIcon,
-  Person as PersonIcon,
   Save as SaveIcon,
   Traffic as TrafficIcon,
 } from "@mui/icons-material"
@@ -158,7 +158,7 @@ const Controls: FC<ControlsProps> = () => {
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Character"
-          icon={<PersonIcon />}
+          icon={<LocalShippingIcon />}
         />
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
