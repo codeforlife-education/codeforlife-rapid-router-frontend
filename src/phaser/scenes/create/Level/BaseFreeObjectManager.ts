@@ -14,6 +14,14 @@ type Drag = {
   listeners: { on: () => void; off: () => void }
 }
 
+/** In-progress state for a free-rotate drag, keyed to a pivot in world space. */
+type FreeRotateDrag = {
+  obj: Phaser.GameObjects.Image
+  pivot: { x: number; y: number }
+  startAngleDeg: number
+  startPointerAngleDeg: number
+}
+
 /**
  * Shared logic for tools that place objects freely (not snapped to a tile),
  * dragged via Phaser's native object dragging, that must not overlap roads,
@@ -31,6 +39,9 @@ export default abstract class BaseFreeObjectManager<
 > {
   /** The currently dragged object. */
   private drag: Drag | null = null
+
+  /** Non-null while an object is being rotated via a free-rotate drag. */
+  private freeRotateDrag: FreeRotateDrag | null = null
 
   /** The semi-transparent preview image. */
   private ghost: { obj: Phaser.GameObjects.Image; id: ID } | null = null
@@ -131,11 +142,78 @@ export default abstract class BaseFreeObjectManager<
     return true
   }
 
-  protected override setFreeRotation(
+  protected override startFreeRotateDrag(
     obj: Phaser.GameObjects.Image,
-    angleDeg: number,
+    pointer: Phaser.Input.Pointer,
   ) {
-    obj.rotateAboutCenter(angleDeg)
+    const bounds = obj.getBounds()
+    const pivot = { x: bounds.centerX, y: bounds.centerY }
+    this.freeRotateDrag = {
+      obj,
+      pivot,
+      startAngleDeg: obj.angle,
+      startPointerAngleDeg: Phaser.Math.RadToDeg(
+        Phaser.Math.Angle.Between(
+          pivot.x,
+          pivot.y,
+          pointer.worldX,
+          pointer.worldY,
+        ),
+      ),
+    }
+    this.setIsDragging(true)
+    this.level.input.on(
+      Phaser.Input.Events.POINTER_MOVE,
+      this.onFreeRotatePointerMove,
+    )
+    this.level.input.on(
+      Phaser.Input.Events.POINTER_UP,
+      this.cancelFreeRotateDrag,
+    )
+    this.level.input.on(Phaser.Input.Events.GAME_OUT, this.cancelFreeRotateDrag)
+  }
+
+  /** Updates the rotation while the rotate button is held and dragged. */
+  private onFreeRotatePointerMove: Phaser.Input.Events.PointerMove =
+    pointer => {
+      if (!this.freeRotateDrag) return
+      const { obj, pivot, startAngleDeg, startPointerAngleDeg } =
+        this.freeRotateDrag
+      const pointerAngleDeg = Phaser.Math.RadToDeg(
+        Phaser.Math.Angle.Between(
+          pivot.x,
+          pivot.y,
+          pointer.worldX,
+          pointer.worldY,
+        ),
+      )
+
+      obj.rotateAboutCenter(
+        startAngleDeg + (pointerAngleDeg - startPointerAngleDeg),
+      )
+
+      if (this.selected && this.sameKey(this.selected, obj)) {
+        const placed = this.getPlaced(this.selected)
+        if (placed) this.positionButtonStack(placed)
+      }
+    }
+
+  protected override cancelFreeRotateDrag = () => {
+    if (!this.freeRotateDrag) return
+    this.freeRotateDrag = null
+    this.setIsDragging(false)
+    this.level.input.off(
+      Phaser.Input.Events.POINTER_MOVE,
+      this.onFreeRotatePointerMove,
+    )
+    this.level.input.off(
+      Phaser.Input.Events.POINTER_UP,
+      this.cancelFreeRotateDrag,
+    )
+    this.level.input.off(
+      Phaser.Input.Events.GAME_OUT,
+      this.cancelFreeRotateDrag,
+    )
   }
 
   protected highlightSelection(obj: Phaser.GameObjects.Image) {

@@ -139,7 +139,9 @@ export default abstract class BaseRoadObjectManager<
     return false
   }
 
-  protected setFreeRotation() {}
+  protected startFreeRotateDrag() {}
+
+  protected cancelFreeRotateDrag() {}
 
   private createGhost(id: ID, alpha = 0.5) {
     if (this.ghost?.id === id) {

@@ -15,13 +15,6 @@ export type Placed<ID extends number, VariantKey extends string> = {
   obj: Phaser.GameObjects.Image
 }
 
-/** In-progress state for a free-rotate drag, keyed to a pivot in world space. */
-type FreeRotateDrag = {
-  pivot: { x: number; y: number }
-  startAngleDeg: number
-  startPointerAngleDeg: number
-}
-
 /**
  * Shared logic for tools that place objects and let the player select one to
  * rotate or delete it via a floating button stack. `Key` identifies a placed
@@ -34,9 +27,6 @@ export default abstract class BaseObjectGroupLayerManager<
 > extends BaseToolboxManager<ID> {
   /** The key of the currently selected placed object. */
   protected selected: Key | null = null
-
-  /** Non-null while the free-rotate handle is being dragged. */
-  private freeRotateDrag: FreeRotateDrag | null = null
 
   private readonly button: {
     /** The row of buttons shown below the selected object. */
@@ -97,8 +87,14 @@ export default abstract class BaseObjectGroupLayerManager<
   /** Whether `key` rotates to any angle (dragged) rather than between discrete variants (clicked). */
   protected abstract supportsFreeRotation(key: Key, id: ID): boolean
 
-  /** Sets the free (continuous) rotation angle, in degrees, of `key`. */
-  protected abstract setFreeRotation(key: Key, angleDeg: number): void
+  /** Starts a free-rotate drag of `key`, driven by the given pointer. */
+  protected abstract startFreeRotateDrag(
+    key: Key,
+    pointer: Phaser.Input.Pointer,
+  ): void
+
+  /** Cancels an in-progress free-rotate drag, if any. */
+  protected abstract cancelFreeRotateDrag(): void
 
   /** Show/hide and position the ghost based on the tile under the pointer. */
   protected abstract handleGhost(pointer?: Phaser.Input.Pointer): void
@@ -131,34 +127,13 @@ export default abstract class BaseObjectGroupLayerManager<
     return placed !== null && this.supportsFreeRotation(key, placed.id)
   }
 
-  private createRotateButton({ add, input }: Level) {
+  private createRotateButton({ add }: Level) {
     const button = add.fab(0, 0, "rotate-right-icon", 0x2196f3, 0x1565c0)
 
     const onPointerDown: Phaser.Input.Events.GameObjectPointerDown =
       pointer => {
-        if (this.selected === null || !this.isFreeRotating(this.selected))
-          return
-        const placed = this.getPlaced(this.selected)
-        if (!placed) return
-
-        const bounds = placed.obj.getBounds()
-        const pivot = { x: bounds.centerX, y: bounds.centerY }
-        this.freeRotateDrag = {
-          pivot,
-          startAngleDeg: placed.obj.angle,
-          startPointerAngleDeg: Phaser.Math.RadToDeg(
-            Phaser.Math.Angle.Between(
-              pivot.x,
-              pivot.y,
-              pointer.worldX,
-              pointer.worldY,
-            ),
-          ),
-        }
-        this.setIsDragging(true)
-        input.on(Phaser.Input.Events.POINTER_MOVE, this.onFreeRotatePointerMove)
-        input.on(Phaser.Input.Events.POINTER_UP, this.endFreeRotateDrag)
-        input.on(Phaser.Input.Events.GAME_OUT, this.endFreeRotateDrag)
+        if (this.selected !== null && this.isFreeRotating(this.selected))
+          this.startFreeRotateDrag(this.selected, pointer)
       }
 
     const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = () => {
@@ -172,43 +147,6 @@ export default abstract class BaseObjectGroupLayerManager<
       .on(Phaser.Input.Events.POINTER_UP, onPointerUp)
   }
 
-  /** Updates the rotation while the rotate handle is held and dragged. */
-  private onFreeRotatePointerMove: Phaser.Input.Events.PointerMove =
-    pointer => {
-      if (!this.freeRotateDrag || this.selected === null) return
-      const placed = this.getPlaced(this.selected)
-      if (!placed) return
-
-      const { pivot, startAngleDeg, startPointerAngleDeg } = this.freeRotateDrag
-      const pointerAngleDeg = Phaser.Math.RadToDeg(
-        Phaser.Math.Angle.Between(
-          pivot.x,
-          pivot.y,
-          pointer.worldX,
-          pointer.worldY,
-        ),
-      )
-
-      this.setFreeRotation(
-        this.selected,
-        startAngleDeg + (pointerAngleDeg - startPointerAngleDeg),
-      )
-      this.positionButtonStack(placed)
-    }
-
-  /** Ends an in-progress free-rotate drag, if any. */
-  private endFreeRotateDrag = () => {
-    if (!this.freeRotateDrag) return
-    this.freeRotateDrag = null
-    this.setIsDragging(false)
-    this.level.input.off(
-      Phaser.Input.Events.POINTER_MOVE,
-      this.onFreeRotatePointerMove,
-    )
-    this.level.input.off(Phaser.Input.Events.POINTER_UP, this.endFreeRotateDrag)
-    this.level.input.off(Phaser.Input.Events.GAME_OUT, this.endFreeRotateDrag)
-  }
-
   private createCancelButton({ add }: Level) {
     const onPointerUp: Phaser.Input.Events.GameObjectPointerUp = () => {
       this.deselect()
@@ -220,7 +158,7 @@ export default abstract class BaseObjectGroupLayerManager<
   }
 
   /** Positions the button stack under the placed object's current bounds. */
-  private positionButtonStack(placed: Placed<ID, VariantKey>) {
+  protected positionButtonStack(placed: Placed<ID, VariantKey>) {
     // Use the axis-aligned world bounds so the buttons don't rotate with
     // the placed object.
     const bounds = placed.obj.getBounds()
@@ -254,7 +192,7 @@ export default abstract class BaseObjectGroupLayerManager<
 
   protected deselect() {
     if (this.selected === null) return
-    this.endFreeRotateDrag()
+    this.cancelFreeRotateDrag()
     const key = this.selected
     this.selected = null
     this.clearSelectionHighlight(key)
