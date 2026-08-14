@@ -282,6 +282,8 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                         color: "common.white",
                         p: 0,
                         lineHeight: `${lineHeight}px`,
+                        fontWeight: "bold",
+                        textDecoration: "underline",
                       }}
                     >
                       {subheader}
