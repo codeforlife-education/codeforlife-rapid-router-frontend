@@ -22,7 +22,7 @@ const ImageSelect: FC<ImageSelectProps> = ({ tool, setTool }) => {
       categories={[
         {
           key: "start",
-          subheader: "Start (Only 1 Allowed)",
+          subheader: "Start (Only 1, Only on Dead End)",
           images: [
             {
               key: tilesets.IDs.Endpoints.CFC.Warehouse.DEFAULT,
@@ -53,7 +53,7 @@ const ImageSelect: FC<ImageSelectProps> = ({ tool, setTool }) => {
         },
         {
           key: "end",
-          subheader: "End (Multiple Allowed)",
+          subheader: "End (1 per Road, On any Road)",
           images: [
             {
               key: tilesets.IDs.Endpoints.House.Common.BLUE,
