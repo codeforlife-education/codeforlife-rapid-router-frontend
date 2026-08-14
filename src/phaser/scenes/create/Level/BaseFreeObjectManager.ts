@@ -163,6 +163,7 @@ export default abstract class BaseFreeObjectManager<
     }
     this.setIsDragging(true)
     this.setButtonStackVisible(false)
+    this.level.input.setDefaultCursor("grabbing")
     this.level.input.on(
       Phaser.Input.Events.POINTER_MOVE,
       this.onFreeRotatePointerMove,
@@ -185,10 +186,21 @@ export default abstract class BaseFreeObjectManager<
           pointer.worldY,
         ),
       )
+      const candidateAngleDeg =
+        startAngleDeg + (pointerAngleDeg - startPointerAngleDeg)
 
-      obj.rotateAboutCenter(
-        startAngleDeg + (pointerAngleDeg - startPointerAngleDeg),
-      )
+      obj.rotateAboutCenter(candidateAngleDeg)
+
+      // Snap back to the drag's start angle, as dragging a placed object to
+      // an invalid position does, rather than the last valid angle.
+      const [angleDeg, cursor] =
+        this.isOverlappingPlacedObject(obj) ||
+        this.isOverlappingRoad(obj, obj.x, obj.y)
+          ? [startAngleDeg, "not-allowed"]
+          : [candidateAngleDeg, "grabbing"]
+
+      if (angleDeg !== candidateAngleDeg) obj.rotateAboutCenter(angleDeg)
+      this.level.input.setDefaultCursor(cursor)
     }
 
   /** Tears down an in-progress free-rotate drag's state and listeners. */
@@ -197,6 +209,7 @@ export default abstract class BaseFreeObjectManager<
     const { obj } = this.freeRotateDrag
     this.freeRotateDrag = null
     this.setIsDragging(false)
+    this.level.input.setDefaultCursor("default")
     this.level.input.off(
       Phaser.Input.Events.POINTER_MOVE,
       this.onFreeRotatePointerMove,
