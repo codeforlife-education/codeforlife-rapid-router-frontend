@@ -32,7 +32,7 @@ export default class extends BaseFreeObjectManager<
     return objects.getFactory<
       objects.scenery.Name,
       tilesets.scenery.ID,
-      "" // TODO: support rotating scenery objects by adding variants.
+      "" // Scenery has a single discrete variant; angle is free-rotated instead.
     >(id)
   }
 

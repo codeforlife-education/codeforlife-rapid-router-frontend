@@ -2,6 +2,7 @@ import {
   Clear as ClearIcon,
   Delete as DeleteIcon,
   RotateRight as RotateRightIcon,
+  ThreeSixty as ThreeSixtyIcon,
 } from "@mui/icons-material"
 
 import * as layers from "../../layers"
@@ -41,6 +42,10 @@ export default class extends BasePreloader {
       height: TILE_HEIGHT / 3,
     })
     this.loadMuiIcon("clear-icon", ClearIcon, {
+      width: TILE_WIDTH / 3,
+      height: TILE_HEIGHT / 3,
+    })
+    this.loadMuiIcon("three-sixty-icon", ThreeSixtyIcon, {
       width: TILE_WIDTH / 3,
       height: TILE_HEIGHT / 3,
     })

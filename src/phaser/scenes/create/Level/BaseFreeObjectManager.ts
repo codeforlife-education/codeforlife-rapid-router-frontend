@@ -126,6 +126,18 @@ export default abstract class BaseFreeObjectManager<
   /** There's nothing to rotate to while there's only 1 variant per id. */
   protected rotate() {}
 
+  /** Free objects can always be rotated to any angle via the free-rotate handle. */
+  protected override supportsFreeRotation() {
+    return true
+  }
+
+  protected override setFreeRotation(
+    obj: Phaser.GameObjects.Image,
+    angleDeg: number,
+  ) {
+    obj.rotateAboutCenter(angleDeg)
+  }
+
   protected highlightSelection(obj: Phaser.GameObjects.Image) {
     obj.setTint(0xaaddff)
   }

@@ -80,11 +80,6 @@ declare module "phaser" {
       ): this
     }
 
-    type Button = {
-      bg: Phaser.GameObjects.Rectangle
-      label: Phaser.GameObjects.Text
-    }
-
     interface FloatingActionButton extends Phaser.GameObjects.Container {
       radius: number
       backgroundColorOut: number
@@ -112,11 +107,11 @@ declare module "phaser" {
       /** The name is one of the defined in the registry. */
       name: layers.objectGroup.objects.Name
 
-      /** Returns the top-left corner this image would have if its origin were positioned at (x, y). */
-      getRelativeTopLeft(x: number, y: number): Phaser.Types.Math.Vector2Like
-
       /** Returns the bounding rectangle this image would have if its origin were positioned at (x, y). */
       getRelativeBounds(x: number, y: number): Phaser.Geom.Rectangle
+
+      /** Sets the angle while keeping the image's visual center fixed in place. */
+      rotateAboutCenter(angleDeg: number): this
 
       /** Sets the properties of the image to match the given Tiled object. */
       asTiledObject<
@@ -294,6 +289,14 @@ declare module "phaser" {
 
       // https://docs.phaser.io/api-documentation/event/input-events#gameobject_pointer_up
       type GameObjectPointerUp = (
+        pointer: Phaser.Input.Pointer,
+        localX: number,
+        localY: number,
+        event: Phaser.Types.Input.EventData,
+      ) => void
+
+      // https://docs.phaser.io/api-documentation/event/input-events#gameobject_pointer_down
+      type GameObjectPointerDown = (
         pointer: Phaser.Input.Pointer,
         localX: number,
         localY: number,

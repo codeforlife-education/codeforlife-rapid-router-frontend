@@ -134,6 +134,13 @@ export default abstract class BaseRoadObjectManager<
     this.select(tile)
   }
 
+  /** Road objects are only ever rotated between discrete facing variants. */
+  protected supportsFreeRotation() {
+    return false
+  }
+
+  protected setFreeRotation() {}
+
   private createGhost(id: ID, alpha = 0.5) {
     if (this.ghost?.id === id) {
       this.ghost.obj.setAlpha(alpha)

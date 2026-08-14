@@ -9,28 +9,33 @@ import {
   getFlipY,
 } from "../layers/objectGroup/objects"
 
-Phaser.GameObjects.Image.prototype.getRelativeTopLeft = function (
-  this: Phaser.GameObjects.Image,
-  x: number,
-  y: number,
-): Phaser.Types.Math.Vector2Like {
-  return {
-    x: x - this.displayWidth * this.originX,
-    y: y - this.displayHeight * this.originY,
-  }
-}
-
 Phaser.GameObjects.Image.prototype.getRelativeBounds = function (
   this: Phaser.GameObjects.Image,
   x: number,
   y: number,
 ): Phaser.Geom.Rectangle {
-  const topLeft = this.getRelativeTopLeft(x, y)
-  return new Phaser.Geom.Rectangle(
-    topLeft.x,
-    topLeft.y,
-    this.displayWidth,
-    this.displayHeight,
+  // Reuse the real (rotation-aware) getBounds() rather than a hand-rolled
+  // unrotated rect, so a hypothetical position still respects the current
+  // angle.
+  const { x: origX, y: origY } = this
+  this.setPosition(x, y)
+  const bounds = this.getBounds()
+  this.setPosition(origX, origY)
+  return bounds
+}
+
+Phaser.GameObjects.Image.prototype.rotateAboutCenter = function (
+  this: Phaser.GameObjects.Image,
+  angleDeg: number,
+): typeof this {
+  // A rectangle's rotated AABB is always centered on its true geometric
+  // center, regardless of origin, so this needs no manual trigonometry.
+  const center = this.getBounds()
+  this.setAngle(angleDeg)
+  const drifted = this.getBounds()
+  return this.setPosition(
+    this.x + (center.centerX - drifted.centerX),
+    this.y + (center.centerY - drifted.centerY),
   )
 }
 
