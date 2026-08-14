@@ -24,7 +24,13 @@ const ToggleButtonGroup: FC<ToggleButtonGroupProps> = ({ tool, setTool }) => (
     onChange={(_, newValue) => {
       if (newValue !== null) setTool(newValue as Tool)
     }}
-    sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1 }}
+    sx={{
+      position: "fixed",
+      bottom: 16,
+      right: 16,
+      zIndex: 1,
+      animation: "pulse 1.5s ease-in-out infinite",
+    }}
   >
     <Tooltip title="Add Road" placement="top" arrow>
       <ToggleButton
