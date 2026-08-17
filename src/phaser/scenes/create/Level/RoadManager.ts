@@ -2,8 +2,8 @@ import Phaser from "phaser"
 
 import * as layers from "../../../layers"
 import BaseTileLayerManager, { type DragEndData } from "./BaseTileLayerManager"
+import { type COLS, Events, type ROWS } from "../../../globals"
 import type { DirectionSet, default as Level } from "."
-import { Events } from "../../../globals"
 
 export default class extends BaseTileLayerManager<"add" | "delete"> {
   /**
@@ -47,6 +47,17 @@ export default class extends BaseTileLayerManager<"add" | "delete"> {
 
   get ids() {
     return layers.tile.data.IDs.Road[this.type]
+  }
+
+  /** Exports the current road grid as a Tiled tile layer's `data`. */
+  toTiledData() {
+    return Array.from({ length: this.level.tilemap.height }, (_, row) =>
+      Array.from({ length: this.level.tilemap.width }, (_, col) =>
+        this.dirsToId(this.dirs({ col, row })),
+      ),
+    ) as (layers.tile.data.RoadID[] & { length: typeof COLS })[] & {
+      length: typeof ROWS
+    }
   }
 
   /**

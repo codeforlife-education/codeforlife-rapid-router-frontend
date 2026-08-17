@@ -1,10 +1,12 @@
 import Phaser from "phaser"
 
+import type * as images from "../../../images"
+import * as tilemaps from "../../../tilemaps"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
+import { Events, SceneKeys } from "../../../globals"
 import EndpointManager from "./EndpointManager"
 import ObstacleManager from "./ObstacleManager"
 import RoadManager from "./RoadManager"
-import { SceneKeys } from "../../../globals"
 import SceneryManager from "./SceneryManager"
 
 export type Direction = "top" | "bottom" | "left" | "right"
@@ -70,6 +72,34 @@ export default class extends BaseLevel<LevelData> {
     this.endpoint = new EndpointManager(this)
     this.obstacle = new ObstacleManager(this)
     this.scenery = new SceneryManager(this)
+
+    const onExportLevel = () =>
+      this.setVariable("levelTiledJson", this.toTiledJSON())
+    this.game.events.on(Events.EXPORT_LEVEL, onExportLevel)
+
+    this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off(Events.EXPORT_LEVEL, onExportLevel)
+    })
+  }
+
+  /** Exports the current editor state as a Tiled-compatible tilemap JSON. */
+  toTiledJSON(): tilemaps.OrthogonalTilemap {
+    return tilemaps.makeOrthogonal({
+      properties: {
+        background: this.getVariable<keyof typeof images.URLs.Background>(
+          "background",
+          "GRASS",
+        ),
+      },
+      layers: {
+        tile: { road: { data: this.road.toTiledData() } },
+        objectGroup: {
+          obstacles: { objects: this.obstacle.toTiledObjects() },
+          endpoints: { objects: this.endpoint.toTiledObjects() },
+          scenery: { objects: this.scenery.toTiledObjects() },
+        },
+      },
+    })
   }
 
   /** The currently active tool selected by the player. */

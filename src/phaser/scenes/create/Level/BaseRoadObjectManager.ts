@@ -104,6 +104,24 @@ export default abstract class BaseRoadObjectManager<
     variantKey: VariantKey,
   ): void
 
+  /** Exports every placed object as Tiled objects, keyed by their tile. */
+  toTiledObjects(): objects.FactoryObject<Name, ID>[] {
+    const result: objects.FactoryObject<Name, ID>[] = []
+
+    for (let row = 0; row < this.level.tilemap.height; row++) {
+      for (let col = 0; col < this.level.tilemap.width; col++) {
+        const tile = { row, col }
+        const placed = this.getPlaced(tile)
+        if (!placed) continue
+
+        const factory = this.getFactory(placed.id, placed.variantKey)
+        if (factory) result.push(factory(tile))
+      }
+    }
+
+    return result
+  }
+
   protected sameKey(
     a: Phaser.Types.Tilemaps.Tile,
     b: Phaser.Types.Tilemaps.Tile,

@@ -197,7 +197,7 @@ export function decode(id: ID) {
       // D+H = 90° CW
       // D+V = 270° CW.
       {
-        index: (id & ~MASK) >>> 0,
+        index: ((id & ~MASK) >>> 0) as ID,
         flipX: false,
         flipY: false,
         rotation: h ? Math.PI / 2 : -Math.PI / 2,
@@ -211,7 +211,7 @@ export function decode(id: ID) {
       // V only (vertical flip) → flipX=true, rotation=π (180° + flipX ≡ V flip)
       // H+V (180° rotation) → flipX=false, rotation=π
       {
-        index: (id & ~MASK) >>> 0,
+        index: ((id & ~MASK) >>> 0) as ID,
         flipX: !!(h ^ v),
         flipY: false,
         rotation: v ? Math.PI : 0,

@@ -119,6 +119,29 @@ export default abstract class BaseFreeObjectManager<
     return this.level.layers[this.layerName]
   }
 
+  /**
+   * Exports every placed object as a Tiled object. Since these objects rotate
+   * freely about their centre (rather than Tiled's rotation-about-anchor
+   * convention), the anchor is recovered by rotating the pre-rotation
+   * bottom-left corner back around the object's current centre.
+   */
+  toTiledObjects(): objects.FactoryObject<Name, ID>[] {
+    return this.placedObjects.map(obj => {
+      const placed = this.getPlaced(obj)!
+      const anchor = Phaser.Math.RotateAround(
+        { x: obj.x - obj.displayWidth / 2, y: obj.y + obj.displayHeight / 2 },
+        obj.x,
+        obj.y,
+        obj.rotation,
+      )
+
+      return {
+        ...this.getFactory(placed.id)!({ x: anchor.x, y: anchor.y }),
+        rotation: obj.angle,
+      }
+    })
+  }
+
   private get endpoints() {
     return this.level.layers["ObjectGroup.ENDPOINTS"]
   }

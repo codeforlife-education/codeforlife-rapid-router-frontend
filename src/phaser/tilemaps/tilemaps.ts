@@ -2,7 +2,7 @@ import type { TiledMapOrthogonal as _OrthogonalTilemap } from "tiled-types"
 
 import type * as images from "../images"
 import * as layers from "../layers"
-import type * as tilesets from "../tilesets"
+import * as tilesets from "../tilesets"
 import { COLS, ROWS, TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 type MakeTileLayerKwArgs<
@@ -41,6 +41,7 @@ type MakeOrthogonalPartials =
   | "nextobjectid"
   | "tilewidth"
   | "tileheight"
+  | "tilesets"
 export type MakeOrthogonalKwArgs<
   COLS extends number = typeof COLS,
   ROWS extends number = typeof ROWS,
@@ -102,6 +103,27 @@ export const makeOrthogonal = <
   layers: _layers,
   ...tilemap
 }: MakeOrthogonalKwArgs<COLS, ROWS>): OrthogonalTilemap => {
+  // Auto-derive the tilesets in use from the layer data when not explicitly
+  // provided. Tile IDs are bit-encoded with flip/rotation flags, so they must
+  // be decoded to recover the underlying tileset ID; object GIDs are already
+  // tileset IDs.
+  _tilesets ??= Array.from(
+    new Set<tilesets.ID>([
+      ...[_layers.tile.road.data]
+        .map(data => data.flat())
+        .flat()
+        .map(id => layers.tile.data.decode(id).index)
+        .filter(id => id !== layers.tile.data.IDs.EMPTY),
+      ...[
+        _layers.objectGroup.endpoints,
+        _layers.objectGroup.obstacles,
+        _layers.objectGroup.scenery,
+      ].flatMap(group => group?.objects.map(obj => obj.gid) ?? []),
+    ]),
+  )
+    .map(tilesets.getTileset)
+    .filter(tileset => tileset !== undefined)
+
   const tilesetsById = _tilesets.reduce(
     (acc, tileset) => ({ ...acc, [tileset.firstgid]: tileset }),
     {} as Partial<Record<tilesets.ID, tilesets.Tileset>>,
