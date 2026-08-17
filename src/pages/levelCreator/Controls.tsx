@@ -68,6 +68,11 @@ const Controls: FC<ControlsProps> = () => {
           tool={toolbox.box === "scenery" ? toolbox.tool : undefined}
           setTool={tool => setToolbox({ box: "scenery", tool })}
         />
+        <items.BackgroundButton
+          isDrawerOpen={isDrawerOpen}
+          tool={toolbox.box === "background" ? toolbox.tool : undefined}
+          setTool={tool => setToolbox({ box: "background", tool })}
+        />
         <Divider />
         <items.CharacterButton isDrawerOpen={isDrawerOpen} />
         <items.CodeButton isDrawerOpen={isDrawerOpen} />

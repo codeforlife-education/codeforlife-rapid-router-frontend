@@ -1,4 +1,8 @@
 export {
+  default as BackgroundButton,
+  type BackgroundButtonProps,
+} from "./BackgroundButton"
+export {
   default as CharacterButton,
   type CharacterButtonProps,
 } from "./CharacterButton"
