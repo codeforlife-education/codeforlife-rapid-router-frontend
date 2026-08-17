@@ -79,6 +79,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
     return {
       zoomIn: () => events?.emit(Events.ZOOM_IN),
       zoomOut: () => events?.emit(Events.ZOOM_OUT),
+      exportLevel: () => events?.emit(Events.EXPORT_LEVEL),
       getVariable,
       setVariable,
     }

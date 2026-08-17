@@ -31,6 +31,9 @@ export default class extends BasePreloader {
       },
     })
 
+    // Tracked so the level editor can read it back when exporting to JSON.
+    this.setVariable("background", tilemap.properties[0].value)
+
     this.loadTilemap(tilemap)
 
     this.loadMuiIcon("delete-icon", DeleteIcon, {
