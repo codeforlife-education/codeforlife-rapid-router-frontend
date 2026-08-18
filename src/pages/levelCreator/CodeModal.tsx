@@ -10,20 +10,18 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import InputLabel from "@mui/material/InputLabel"
 import MenuItem from "@mui/material/MenuItem"
 import Modal from "@mui/material/Modal"
+import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 
 import BlockListItem, { type BlockCount } from "./BlockListItem"
-import {
-  CUSTOM_BLOCKS,
-  START_BLOCK_TYPES,
-  type StartBlockType,
-} from "../../blockly/blocks"
+import { CUSTOM_BLOCKS, START_BLOCK_TYPES } from "../../blockly/blocks"
+import { type BlockDefinition } from "../../blockly/utils"
 
 // The start block isn't an optional, player-selectable block like the others -
 // it's always present, so it's excluded from this list.
-const BLOCKS = CUSTOM_BLOCKS.filter(
-  ({ type }) => !START_BLOCK_TYPES.includes(type as StartBlockType),
+const BLOCKS = (CUSTOM_BLOCKS as BlockDefinition<string>[]).filter(
+  block => !(START_BLOCK_TYPES as readonly string[]).includes(block.type),
 )
 
 const LANGUAGE_OPTIONS: Record<string, string> = {
@@ -75,6 +73,8 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
   const handleChange = (event: SelectChangeEvent) => {
     setLanguage(event.target.value)
   }
+
+  const [maxMoves, setMaxMoves] = useState(50)
 
   const [blockCounts, setBlockCounts] = useState<Record<string, BlockCount>>(
     () => Object.fromEntries(BLOCKS.map(block => [block.type, "infinite"])),
@@ -144,7 +144,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
         <Typography>
           Here you can select the code you can use while playing your new level!
         </Typography>
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "flex-start" }}>
           <FormControl>
             <InputLabel id="language-label">Language</InputLabel>
             <Select
@@ -171,6 +171,27 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
               ))}
             </Select>
           </FormControl>
+          <TextField
+            type="number"
+            label="Max steps"
+            variant="outlined"
+            size="medium"
+            value={maxMoves}
+            onChange={event => {
+              const value = Number(event.target.value)
+              if (!Number.isNaN(value)) {
+                setMaxMoves(Math.min(100, Math.max(1, value)))
+              }
+            }}
+            slotProps={{ htmlInput: { min: 1, max: 100, size: 4 } }}
+            sx={{
+              width: "fit-content",
+              // The shared theme forces a black border onto the filled
+              // variant's root, which conflicts with this field's outlined
+              // fieldset border, so it needs to be removed here.
+              "& .MuiOutlinedInput-root": { border: "none !important" },
+            }}
+          />
         </Box>
         {language !== "Python" && (
           <>
