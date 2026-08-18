@@ -1,6 +1,7 @@
 import Phaser from "phaser"
 
 import type * as images from "../../../images"
+import type * as layers from "../../../layers"
 import * as tilemaps from "../../../tilemaps"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import { Events, SceneKeys } from "../../../globals"
@@ -83,9 +84,64 @@ export default class extends BaseLevel<LevelData> {
       this.setVariable("levelTiledJson", this.toTiledJSON())
     this.game.events.on(Events.EXPORT_LEVEL, onExportLevel)
 
+    const onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
+      if (key !== "levelTiledJson") return
+      // Restart via the Preloader so it can (re)build the tilemap/tilesets
+      // from the newly-loaded Tiled JSON before this scene is created again.
+      this.scene.start(SceneKeys.Create.PRELOADER)
+    }
+    this.game.events.on(Events.REACT_SET_VARIABLE, onReactSetVariable)
+
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.game.events.off(Events.EXPORT_LEVEL, onExportLevel)
+      this.game.events.off(Events.REACT_SET_VARIABLE, onReactSetVariable)
     })
+
+    // If this scene was (re)started to load a level, the tilemap/layers have
+    // just been rebuilt from its Tiled JSON - rehydrate each manager's own
+    // state (e.g. road connections, placed objects) to match.
+    const loadedTilemap =
+      this.getVariable<tilemaps.OrthogonalTilemap>("levelTiledJson")
+    if (loadedTilemap) this.hydrateFromTiledJSON(loadedTilemap)
+  }
+
+  /** Rehydrates every manager's state from a previously-loaded tilemap. */
+  private hydrateFromTiledJSON(tilemap: tilemaps.OrthogonalTilemap) {
+    const findLayer = (name: layers.Name) =>
+      tilemap.layers.find(layer => layer.name === name)!
+    const tilesOf = (name: layers.tile.Name) =>
+      (
+        findLayer(name) as Extract<
+          tilemaps.OrthogonalTilemap["layers"][number],
+          { type: "tilelayer" }
+        >
+      ).data as number[]
+    const objectsOf = (name: layers.objectGroup.Name) =>
+      (
+        findLayer(name) as Extract<
+          tilemaps.OrthogonalTilemap["layers"][number],
+          { type: "objectgroup" }
+        >
+      ).objects as {
+        gid: number
+        x: number
+        y: number
+        rotation: number
+        width: number
+        height: number
+      }[]
+
+    this.road.fromTiledData(
+      tilesOf("Tile.ROAD") as layers.tile.data.RoadID[],
+      tilemap.width,
+    )
+
+    for (const obj of objectsOf("ObjectGroup.OBSTACLES"))
+      this.obstacle.fromTiledObject(obj)
+    for (const obj of objectsOf("ObjectGroup.ENDPOINTS"))
+      this.endpoint.fromTiledObject(obj)
+    for (const obj of objectsOf("ObjectGroup.SCENERY"))
+      this.scenery.fromTiledObject(obj)
   }
 
   /** Exports the current editor state as a Tiled-compatible tilemap JSON. */

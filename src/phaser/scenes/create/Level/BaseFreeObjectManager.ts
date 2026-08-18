@@ -142,6 +142,33 @@ export default abstract class BaseFreeObjectManager<
     })
   }
 
+  /**
+   * Rehydrates a previously-exported Tiled object into this manager's state.
+   * The inverse of `toTiledObjects`: the anchor and rotation are used to
+   * recover the centre position these objects are actually placed at.
+   */
+  fromTiledObject(obj: {
+    gid: number
+    x: number
+    y: number
+    rotation: number
+    width: number
+    height: number
+  }) {
+    const cornerOffset = Phaser.Math.RotateAround(
+      { x: -obj.width / 2, y: obj.height / 2 },
+      0,
+      0,
+      Phaser.Math.DegToRad(obj.rotation),
+    )
+
+    this.add(
+      obj.x - cornerOffset.x,
+      obj.y - cornerOffset.y,
+      obj.gid as ID,
+    )?.setAngle(obj.rotation)
+  }
+
   private get endpoints() {
     return this.level.layers["ObjectGroup.ENDPOINTS"]
   }

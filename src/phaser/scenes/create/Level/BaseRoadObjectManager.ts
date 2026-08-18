@@ -122,6 +122,42 @@ export default abstract class BaseRoadObjectManager<
     return result
   }
 
+  /**
+   * Rehydrates a previously-exported Tiled object into this manager's state.
+   * The object's tile and variant aren't stored explicitly in the Tiled
+   * format, so they're recovered by searching for the tile/variant whose
+   * factory output matches the object's position and rotation.
+   */
+  fromTiledObject(obj: {
+    gid: number
+    x: number
+    y: number
+    rotation: number
+  }) {
+    const id = obj.gid as ID
+
+    for (let row = 0; row < this.level.tilemap.height; row++) {
+      for (let col = 0; col < this.level.tilemap.width; col++) {
+        const tile = { row, col }
+        if (!this.canPlace(tile, id)) continue
+
+        const variantKey = this.validVariantKeys(tile, id).find(key => {
+          const candidate = this.getFactory(id, key)?.(tile)
+          return (
+            candidate?.x === obj.x &&
+            candidate.y === obj.y &&
+            candidate.rotation === obj.rotation
+          )
+        })
+
+        if (variantKey !== undefined) {
+          this.place(tile, id, variantKey)
+          return
+        }
+      }
+    }
+  }
+
   protected sameKey(
     a: Phaser.Types.Tilemaps.Tile,
     b: Phaser.Types.Tilemaps.Tile,
