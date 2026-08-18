@@ -4,6 +4,7 @@ import type * as images from "../../../images"
 import * as tilemaps from "../../../tilemaps"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import { Events, SceneKeys } from "../../../globals"
+import BackgroundManager from "./BackgroundManager"
 import EndpointManager from "./EndpointManager"
 import ObstacleManager from "./ObstacleManager"
 import RoadManager from "./RoadManager"
@@ -25,6 +26,9 @@ export interface LevelData extends BaseLevelData {}
  */
 export default class extends BaseLevel<LevelData> {
   static readonly KEY = SceneKeys.Create.LEVEL
+
+  /** Background manager responsible for handling the level's background. */
+  background!: BackgroundManager
 
   /** Road manager responsible for handling road tiles. */
   road!: RoadManager
@@ -61,6 +65,7 @@ export default class extends BaseLevel<LevelData> {
         this.tilemap.height,
         this.tilemap.tileWidth,
         this.tilemap.tileHeight,
+        { width: 2, color: 0x000000 },
       )
 
     // Create a configurable graphics objects for tools to use.
@@ -68,6 +73,7 @@ export default class extends BaseLevel<LevelData> {
     this.graphics = this.add.graphics().setDepth(1)
 
     // Initialize the managers.
+    this.background = new BackgroundManager(this)
     this.road = new RoadManager(this)
     this.endpoint = new EndpointManager(this)
     this.obstacle = new ObstacleManager(this)
@@ -86,10 +92,8 @@ export default class extends BaseLevel<LevelData> {
   toTiledJSON(): tilemaps.OrthogonalTilemap {
     return tilemaps.makeOrthogonal({
       properties: {
-        background: this.getVariable<keyof typeof images.URLs.Background>(
-          "background",
-          "GRASS",
-        ),
+        background: this.backgroundTileSprite.texture
+          .key as keyof typeof images.URLs.Background,
       },
       layers: {
         tile: { road: { data: this.road.toTiledData() } },
