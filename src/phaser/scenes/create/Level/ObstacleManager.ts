@@ -1,12 +1,14 @@
 import Phaser from "phaser"
 
 import * as layers from "../../../layers"
-import type * as tilesets from "../../../tilesets"
+import * as tilesets from "../../../tilesets"
 import BaseRoadObjectManager, { type Placed } from "./BaseRoadObjectManager"
 import { Events } from "../../../globals"
 import type { default as Level } from "."
 
-type VariantKey = keyof layers.objectGroup.objects.StraightRotationVariants
+type VariantKey =
+  | keyof layers.objectGroup.objects.StraightRotationVariants
+  | keyof layers.objectGroup.objects.DiagonalRotationVariants
 
 export default class extends BaseRoadObjectManager<
   layers.objectGroup.objects.obstacles.Name,
@@ -78,7 +80,10 @@ export default class extends BaseRoadObjectManager<
    * 7. Bottom
    * 8. Bottom Left
    */
-  private roadIdToVariantKeys(roadId: layers.tile.data.RoadID): VariantKey[] {
+  private roadIdToVariantKeys(
+    roadId: layers.tile.data.RoadID,
+    id: tilesets.obstacles.ID,
+  ): VariantKey[] {
     const roadIds = this.level.road.ids
     // Dead end
     if (roadId === roadIds.DeadEnd.LEFT) return ["left"]
@@ -89,10 +94,22 @@ export default class extends BaseRoadObjectManager<
     if (roadId === roadIds.Straight.HORIZONTAL) return ["left", "right"]
     if (roadId === roadIds.Straight.VERTICAL) return ["top", "bottom"]
     // Turn
-    if (roadId === roadIds.Turn.TOP_LEFT) return ["left", "top"]
-    if (roadId === roadIds.Turn.TOP_RIGHT) return ["top", "right"]
-    if (roadId === roadIds.Turn.BOTTOM_LEFT) return ["left", "bottom"]
-    if (roadId === roadIds.Turn.BOTTOM_RIGHT) return ["right", "bottom"]
+    if (roadId === roadIds.Turn.TOP_LEFT)
+      return id === tilesets.IDs.Obstacles.TrafficLight.RED
+        ? ["left", "top"]
+        : ["topLeft"]
+    if (roadId === roadIds.Turn.TOP_RIGHT)
+      return id === tilesets.IDs.Obstacles.TrafficLight.RED
+        ? ["top", "right"]
+        : ["topRight"]
+    if (roadId === roadIds.Turn.BOTTOM_LEFT)
+      return id === tilesets.IDs.Obstacles.TrafficLight.RED
+        ? ["left", "bottom"]
+        : ["bottomLeft"]
+    if (roadId === roadIds.Turn.BOTTOM_RIGHT)
+      return id === tilesets.IDs.Obstacles.TrafficLight.RED
+        ? ["right", "bottom"]
+        : ["bottomRight"]
     // T-junction
     if (roadId === roadIds.TJunction.LEFT_RIGHT_BOTTOM)
       return ["left", "right", "bottom"]
@@ -108,8 +125,11 @@ export default class extends BaseRoadObjectManager<
     return []
   }
 
-  protected validVariantKeys(tile: Phaser.Types.Tilemaps.Tile) {
-    return this.roadIdToVariantKeys(this.roadId(tile))
+  protected validVariantKeys(
+    tile: Phaser.Types.Tilemaps.Tile,
+    id: tilesets.obstacles.ID,
+  ) {
+    return this.roadIdToVariantKeys(this.roadId(tile), id)
   }
 
   /**

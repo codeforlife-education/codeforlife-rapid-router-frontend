@@ -3,6 +3,7 @@ import {
   createIdRegistry,
   createPathStrings,
 } from "codeforlife/utils/object"
+import type Phaser from "phaser"
 import type { TiledObject as _Object } from "tiled-types"
 
 import type * as tilesets from "../../../tilesets"
@@ -108,10 +109,9 @@ export type FactoryObject<N extends Name, GID extends ID> = Omit<
   | "height"
 >
 
-type TileOffset = { col: number; row: number }
-
 export type FactoryBaseKwArgs<N extends Name, GID extends ID> = Partial<
-  Omit<FactoryObject<N, GID>, "type" | "name" | "gid"> & TileOffset
+  Omit<FactoryObject<N, GID>, "type" | "name" | "gid"> &
+    Phaser.Types.Tilemaps.Tile
 >
 type FactoryBase<N extends Name, GID extends ID> = (
   kwArgs: FactoryBaseKwArgs<N, GID>,
@@ -233,7 +233,9 @@ export type BaseStraightRotationVariants = {
   left: BaseStraightRotationVariant
 }
 export type MakeStraightRotationVariantsKwArgs =
-  BaseStraightRotationVariants & { tileOffset?: Partial<TileOffset> }
+  BaseStraightRotationVariants & {
+    tileOffset?: Partial<Phaser.Types.Tilemaps.Tile>
+  }
 export type StraightRotationVariant = RotationVariant<StraightRotation>
 export type StraightRotationVariants = {
   [K in keyof BaseStraightRotationVariants]: StraightRotationVariant
@@ -261,7 +263,9 @@ export type BaseDiagonalRotationVariants = {
   bottomLeft: BaseDiagonalRotationVariant
 }
 export type MakeDiagonalRotationVariantsKwArgs =
-  BaseDiagonalRotationVariants & { tileOffset?: Partial<TileOffset> }
+  BaseDiagonalRotationVariants & {
+    tileOffset?: Partial<Phaser.Types.Tilemaps.Tile>
+  }
 export type DiagonalRotationVariant = RotationVariant<DiagonalRotation>
 export type DiagonalRotationVariants = {
   [K in keyof BaseDiagonalRotationVariants]: DiagonalRotationVariant
