@@ -61,6 +61,7 @@ const BackgroundButton: FC<BackgroundButtonProps> = ({
               ],
             },
           ]}
+          closedImageFit="cover"
           selected={tool}
           onChange={_setTool}
         />
