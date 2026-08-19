@@ -65,18 +65,17 @@ export type MakeOrthogonalKwArgs<
           NoInfer<COLS>,
           NoInfer<ROWS>
         >
-        environment?: MakeTileLayerKwArgs<
-          "Tile.ENVIRONMENT",
-          layers.tile.data.EnvironmentID,
-          NoInfer<COLS>,
-          NoInfer<ROWS>
-        >
       }
       objectGroup: {
         endpoints: MakeObjectGroupLayerKwArgs<
           "ObjectGroup.ENDPOINTS",
           layers.objectGroup.objects.endpoints.Name,
           tilesets.endpoints.ID
+        >
+        obstacles?: MakeObjectGroupLayerKwArgs<
+          "ObjectGroup.OBSTACLES",
+          layers.objectGroup.objects.obstacles.Name,
+          tilesets.obstacles.ID
         >
         scenery?: MakeObjectGroupLayerKwArgs<
           "ObjectGroup.SCENERY",
@@ -184,7 +183,10 @@ export const makeOrthogonal = <
     ),
     layers: [
       makeTileLayer(layers.Names.Tile.ROAD, _layers.tile.road),
-      makeTileLayer(layers.Names.Tile.ENVIRONMENT, _layers.tile.environment),
+      makeObjectGroupLayer(
+        layers.Names.ObjectGroup.OBSTACLES,
+        _layers.objectGroup.obstacles,
+      ),
       makeObjectGroupLayer(
         layers.Names.ObjectGroup.ENDPOINTS,
         _layers.objectGroup.endpoints,

@@ -4,14 +4,21 @@ import {
   ImageListItem,
   ImageListItemBar,
   ListSubheader,
+  Portal,
   Tooltip,
   imageListItemBarClasses,
 } from "@mui/material"
 import { type FC, Fragment, type JSX, useEffect, useState } from "react"
 
 import MarqueeTitle from "./MarqueeTitle"
+import { useBreakpoint } from "../app/hooks"
 
-type Image = { key: string | number; title: string; src: string }
+type Image = {
+  key: string | number
+  title: string
+  src: string
+  rotate?: number
+}
 type Category = { key: string; subheader: string; images: readonly Image[] }
 type ImageKey<Categories extends readonly Category[]> = {
   [C in Categories[number] as C["key"]]: C["images"][number]["key"]
@@ -25,25 +32,29 @@ export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   onChange: (key: ImageKey<Categories>) => void
   ease?: string
   padding?: number
-  cols: number
   gap?: number
-  fab: { margin: number; size: number }
+  fab?: { margin: number; size: number }
   categories: Categories
   lineHeight?: number
   titleScrollSpeed?: number
-  image: { size: number; padding?: number }
+  image?: { size: number; padding?: number }
 }
 
-const Img: FC<{ height: number; src: string; alt: string }> = ({
-  height,
-  ...props
-}) => (
+const Img: FC<{
+  height: number
+  src: string
+  alt: string
+  rotate?: number
+}> = ({ height, ...props }) => (
   <Box
     component="img"
     {...props}
     width="100%"
     height={`${height}px`}
-    sx={{ objectFit: "contain" }}
+    sx={{
+      objectFit: "contain",
+      rotate: props.rotate ? `${props.rotate}deg` : undefined,
+    }}
   />
 )
 
@@ -53,9 +64,8 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   titleScrollSpeed,
   padding = 2,
   gap = 8,
-  cols,
-  fab,
-  image,
+  fab = { size: 64, margin: 2 },
+  image = { size: 64 },
   categories,
   open,
   onClose,
@@ -65,6 +75,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
 }: SpeedImageSelectProps<Categories>): JSX.Element => {
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const [scrollable, setScrollable] = useState(false)
+  const breakpoint = useBreakpoint()
 
   // Reset whenever the catalogue closes so the next open starts fresh.
   useEffect(() => {
@@ -76,6 +87,13 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
     (max, category) => Math.max(max, category.images.length),
     0,
   )
+  let cols = {
+    xs: 3,
+    sm: 4,
+    md: 5,
+    lg: 6,
+    xl: 7,
+  }[breakpoint]
   cols = cols <= maxImagesLength ? cols : maxImagesLength
   const rows = categories.reduce(
     (sum, category) => sum + Math.ceil(category.images.length / cols),
@@ -119,12 +137,11 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
     onClose()
   }
 
-  const ImageItem: FC<{ key: string; image: Image }> = ({ key, image }) => {
+  const ImageItem: FC<{ image: Image }> = ({ image }) => {
     const [tooltipOpen, setTooltipOpen] = useState(false)
 
     return (
       <Tooltip
-        key={key}
         title={image.title}
         placement="bottom"
         slotProps={{
@@ -157,7 +174,12 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             maxWidth: `${pxImageSize + pxImagePadding * 2}px`,
           }}
         >
-          <Img src={image.src} alt={image.title} height={pxImageSize} />
+          <Img
+            src={image.src}
+            alt={image.title}
+            rotate={image.rotate}
+            height={pxImageSize}
+          />
           <ImageListItemBar
             title={
               <MarqueeTitle
@@ -187,7 +209,9 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   }
 
   return (
-    <>
+    // Portal is used to render the catalogue outside of the normal DOM
+    // hierarchy, allowing it to overlay other content.
+    <Portal>
       {/* Click-away backdrop */}
       {open && (
         <Box
@@ -233,11 +257,15 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               `background-color 0.3s ${ease}`,
               `padding 0.3s ${ease}`,
             ].join(", "),
-            animation: open ? "none" : "fabPulse 1.5s ease-in-out infinite",
+            animation: open ? "none" : "pulse 1.5s ease-in-out infinite",
             cursor: "pointer",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            // flex-start avoids the classic centering bug where overflowing
+            // content is clipped equally above/below and the top becomes
+            // unreachable when scrolling; margin:auto on the child instead
+            // provides "safe centering" when the content actually fits.
+            alignItems: open ? "flex-start" : "center",
+            justifyContent: open ? "flex-start" : "center",
           }}
           onClick={() => {
             if (open) return
@@ -254,7 +282,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               gap={gap}
               sx={{
                 width: `${imageListWidth}px`,
-                m: 0,
+                m: "auto",
                 p: 0,
                 userSelect: "none",
               }}
@@ -269,6 +297,8 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
                         color: "common.white",
                         p: 0,
                         lineHeight: `${lineHeight}px`,
+                        fontWeight: "bold",
+                        textDecoration: "underline",
                       }}
                     >
                       {subheader}
@@ -287,12 +317,13 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             <Img
               src={selectedImage.src}
               alt={selectedImage.title}
+              rotate={selectedImage.rotate}
               height={fab.size * 0.65}
             />
           )}
         </Box>
       </Tooltip>
-    </>
+    </Portal>
   )
 }
 

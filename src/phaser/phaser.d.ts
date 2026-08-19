@@ -11,13 +11,6 @@ declare module "phaser" {
     type ReactSetVariable = (key: Variable) => void
     type PhaserSetVariable = (key: Variable) => void
 
-    type DragEndData = {
-      toolbox: Phaser.Types.Scenes.Create.Toolbox.Any
-      sequence: Phaser.Types.Tilemaps.Tile[]
-      set: Set<string>
-    }
-    type DragEnd = (data: DragEndData) => void
-
     type AddRoadData = Phaser.Types.Tilemaps.Tile & {
       id: layers.tile.data.RoadID
     }
@@ -87,11 +80,6 @@ declare module "phaser" {
       ): this
     }
 
-    type Button = {
-      bg: Phaser.GameObjects.Rectangle
-      label: Phaser.GameObjects.Text
-    }
-
     interface FloatingActionButton extends Phaser.GameObjects.Container {
       radius: number
       backgroundColorOut: number
@@ -108,25 +96,39 @@ declare module "phaser" {
       ): this
     }
 
+    interface Stack extends Phaser.GameObjects.Container {
+      direction: Phaser.Types.GameObjects.Stack.Direction
+      gap: number
+    }
+
+    interface Tooltip extends Phaser.GameObjects.Text {}
+
     interface Image {
-      /** Returns the top-left corner this image would have if its origin were positioned at (x, y). */
-      getRelativeTopLeft(x: number, y: number): Phaser.Types.Math.Vector2Like
+      /** The name is one of the defined in the registry. */
+      name: layers.objectGroup.objects.Name
 
       /** Returns the bounding rectangle this image would have if its origin were positioned at (x, y). */
       getRelativeBounds(x: number, y: number): Phaser.Geom.Rectangle
+
+      /** Sets the angle while keeping the image's visual center fixed in place. */
+      rotateAboutCenter(angleDeg: number): this
+
+      /** Sets the properties of the image to match the given Tiled object. */
+      asTiledObject<
+        Name extends layers.objectGroup.objects.Name,
+        ID extends layers.objectGroup.objects.ID,
+      >(
+        obj: layers.objectGroup.objects.FactoryObject<Name, ID>,
+      ): this
+
+      /** Sets the required properties for the image. */
+      setRequiredProperties(
+        id?: layers.objectGroup.objects.ID | layers.objectGroup.objects.Name,
+      ): this
     }
 
     interface GameObjectFactory {
-      button(
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        labelText: string,
-        labelStyle: Phaser.Types.GameObjects.Text.TextStyle,
-        bgStyle: Phaser.Types.GameObjects.Graphics.FillStyle,
-      ): Button
-
+      /** Creates a new floating action button. */
       fab(
         x: number,
         y: number,
@@ -134,7 +136,29 @@ declare module "phaser" {
         backgroundColorOut: number,
         backgroundColorOver: number,
         options?: Phaser.Types.GameObjects.FloatingActionButton.Options,
-      ): FloatingActionButton
+      ): Phaser.GameObjects.FloatingActionButton
+
+      /** Creates a new image from a tileset. */
+      imageFromTileset(
+        x: number,
+        y: number,
+        tilesetId: layers.objectGroup.objects.ID,
+      ): Phaser.GameObjects.Image
+
+      /** Creates a new stack that lays out its children in a row or column. */
+      stack(
+        x: number,
+        y: number,
+        children: Phaser.GameObjects.GameObject[],
+        options?: Phaser.Types.GameObjects.Stack.Options,
+      ): Phaser.GameObjects.Stack
+
+      /** Creates a new tooltip that shows next to a target while it's hovered. */
+      tooltip(
+        title: string,
+        target: Phaser.GameObjects.GameObject | Phaser.GameObjects.GameObject[],
+        options?: Phaser.Types.GameObjects.Tooltip.Options,
+      ): Phaser.GameObjects.Tooltip
     }
   }
 
@@ -146,16 +170,22 @@ declare module "phaser" {
     namespace Scenes {
       namespace Create {
         namespace Toolbox {
-          type Map = _Toolbox<
-            "map",
-            | "add-road"
-            | "delete-road"
-            | "add-house"
-            | "delete-house"
-            | "mark-start"
-          >
+          type Road = _Toolbox<"road", "add" | "delete">
+          type Endpoints = _Toolbox<"endpoints", tilesets.endpoints.ID>
           type Scenery = _Toolbox<"scenery", tilesets.scenery.ID>
-          type Any = Map | Scenery
+          type Obstacles = _Toolbox<
+            "obstacles",
+            // Get the IDs of the obstacles that cannot be driven through.
+            Extract<
+              (typeof tilesets.obstacles.default)[number],
+              {
+                properties: tilesets.obstacles.Properties<{
+                  canDriveThrough: false
+                }>
+              }
+            >["firstgid"]
+          >
+          type Any = Road | Endpoints | Scenery | Obstacles
         }
       }
       namespace Play {}
@@ -173,6 +203,16 @@ declare module "phaser" {
 
       namespace FloatingActionButton {
         type Options = { depth?: number; iconMargin?: number }
+      }
+
+      namespace Stack {
+        type Direction = "row" | "column"
+        type Options = { direction?: Direction; gap?: number; depth?: number }
+      }
+
+      namespace Tooltip {
+        type Placement = "top" | "bottom" | "left" | "right"
+        type Options = { placement?: Placement; gap?: number; depth?: number }
       }
     }
 
@@ -249,6 +289,14 @@ declare module "phaser" {
 
       // https://docs.phaser.io/api-documentation/event/input-events#gameobject_pointer_up
       type GameObjectPointerUp = (
+        pointer: Phaser.Input.Pointer,
+        localX: number,
+        localY: number,
+        event: Phaser.Types.Input.EventData,
+      ) => void
+
+      // https://docs.phaser.io/api-documentation/event/input-events#gameobject_pointer_down
+      type GameObjectPointerDown = (
         pointer: Phaser.Input.Pointer,
         localX: number,
         localY: number,

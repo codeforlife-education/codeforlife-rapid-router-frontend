@@ -186,38 +186,9 @@ export const IDs = {
       ],
     }),
   },
-  Environment: {
-    Animal: {
-      Cow: createCRotations(tilesets.IDs.Environment.Animal.COW, "TOP", {
-        90: "RIGHT",
-        180: "BOTTOM",
-        270: "LEFT",
-      }),
-      Pigeon: createCRotations(
-        tilesets.IDs.Environment.Animal.PIGEON,
-        "RIGHT",
-        { 90: "BOTTOM", 180: "LEFT", 270: "TOP" },
-      ),
-    },
-    TrafficLight: {
-      Green: createCRotations(
-        tilesets.IDs.Environment.TrafficLight.GREEN,
-        "BOTTOM",
-        { 90: "LEFT", 180: "TOP", 270: "RIGHT" },
-      ),
-      Red: createCRotations(
-        tilesets.IDs.Environment.TrafficLight.RED,
-        "BOTTOM",
-        { 90: "LEFT", 180: "TOP", 270: "RIGHT" },
-      ),
-    },
-  },
 } as const
 export type ID = DeepNumbersOf<typeof IDs>
 export type RoadID = typeof IDs.EMPTY | DeepNumbersOf<typeof IDs.Road>
-export type EnvironmentID =
-  | typeof IDs.EMPTY
-  | DeepNumbersOf<typeof IDs.Environment>
 
 export function decode(id: ID) {
   const [h, v, d] = extract(id)
@@ -307,5 +278,7 @@ export function fillManyRows<
   ROWS extends number = typeof ROWS,
 >(options: FillManyRowsOptions<DID, COLS, ROWS> = {}) {
   const { rows = ROWS as ROWS, ...fillRowOptions } = options
-  return Array(rows).fill(fillRow(fillRowOptions)) as ManyRows<DID, COLS, ROWS>
+  return Array.from({ length: rows }, () =>
+    fillRow(fillRowOptions),
+  ) as ManyRows<DID, COLS, ROWS>
 }

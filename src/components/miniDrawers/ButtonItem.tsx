@@ -60,6 +60,11 @@ const ButtonItem: FC<ButtonItemProps> = ({
             minHeight: 48,
             px: 2.5,
             justifyContent: isDrawerOpen ? "initial" : "center",
+            "&.Mui-selected, &.Mui-selected:hover": {
+              bgcolor: "primary.main",
+              "& .MuiListItemIcon-root": { color: "common.white" },
+              "& .MuiListItemText-primary": { color: "common.white" },
+            },
           }}
         >
           <ListItemIcon

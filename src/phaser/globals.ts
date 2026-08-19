@@ -17,7 +17,6 @@ export const MAP_HEIGHT = ROWS * TILE_HEIGHT
 export const Events = createIdRegistry({
   "add-road": "ADD_ROAD",
   "delete-road": "DELETE_ROAD",
-  "drag-end": "DRAG_END",
   "zoom-in": "ZOOM_IN",
   "zoom-out": "ZOOM_OUT",
   "scene-activity-changed": "SCENE_ACTIVITY_CHANGED",
