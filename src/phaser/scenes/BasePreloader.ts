@@ -10,12 +10,11 @@ import type { OrthogonalTilemap } from "../tilemaps"
 export default class BasePreloader<
   Data extends object | undefined = undefined,
 > extends BaseScene<Data> {
-  static readonly KEY = "Preloader"
   levelData: BaseLevelData = {
     background: images.URLs.Background.GRASS,
     tilesets: {
       "Tile.ROAD": [],
-      "Tile.ENVIRONMENT": [],
+      "ObjectGroup.OBSTACLES": [],
       "ObjectGroup.ENDPOINTS": [],
       "ObjectGroup.SCENERY": [],
     },
@@ -79,16 +78,15 @@ export default class BasePreloader<
       image,
       name,
       firstgid: id,
-      imagewidth = TILE_WIDTH,
-      imageheight = TILE_HEIGHT,
+      imagewidth,
+      imageheight,
+      imagescale,
     } of tilemap.tilesets) {
       // Track each layer's tilesets.
       if (tilesets.road.IDs.includes(id as tilesets.road.ID)) {
         this.levelData.tilesets["Tile.ROAD"].push({ name })
-      } else if (
-        tilesets.environment.IDs.includes(id as tilesets.environment.ID)
-      ) {
-        this.levelData.tilesets["Tile.ENVIRONMENT"].push({ name })
+      } else if (tilesets.obstacles.IDs.includes(id as tilesets.obstacles.ID)) {
+        this.levelData.tilesets["ObjectGroup.OBSTACLES"].push({ name, gid: id })
       } else if (tilesets.endpoints.IDs.includes(id as tilesets.endpoints.ID)) {
         this.levelData.tilesets["ObjectGroup.ENDPOINTS"].push({ name, gid: id })
       } else if (tilesets.scenery.IDs.includes(id as tilesets.scenery.ID)) {
@@ -99,7 +97,11 @@ export default class BasePreloader<
 
       // Load the image.
       if (image.endsWith(".svg")) {
-        this.load.svg(name, image, { width: imagewidth, height: imageheight })
+        this.load.svg(name, image, {
+          width: imagewidth,
+          height: imageheight,
+          scale: imagescale,
+        })
       } else throw new Error(`Unsupported tileset image format: ${image}`)
     }
   }

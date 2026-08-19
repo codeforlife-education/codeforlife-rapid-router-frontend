@@ -8,9 +8,21 @@ import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
 
 // Create top-level object factories for constructing tile IDs.
 const road = <const V>(v: V) => ({ Road: v })
-const env = <const V>(v: V) => ({ Environment: v })
-const end = <const V>(v: V) => ({ Endpoints: v })
+road.asphalt = <const V>(v: V) => road({ Asphalt: v })
+road.dirt = <const V>(v: V) => road({ Dirt: v })
+
+const obstacles = <const V>(v: V) => ({ Obstacles: v })
+obstacles.animal = <const V>(v: V) => obstacles({ Animal: v })
+obstacles.trafficLight = <const V>(v: V) => obstacles({ TrafficLight: v })
+
+const endpoints = <const V>(v: V) => ({ Endpoints: v })
+endpoints.cfc = <const V>(v: V) => endpoints({ CFC: v })
+endpoints.house = <const V>(v: V) => endpoints({ House: v })
+
 const scenery = <const V>(v: V) => ({ Scenery: v })
+scenery.building = <const V>(v: V) => scenery({ Building: v })
+scenery.nature = <const V>(v: V) => scenery({ Nature: v })
+scenery.other = <const V>(v: V) => scenery({ Other: v })
 
 /**
  * Global registry of tile IDs.
@@ -20,53 +32,52 @@ const scenery = <const V>(v: V) => ({ Scenery: v })
  */
 export const IDs = createIdRegistry({
   // 0 is reserved by Phaser as a special "empty" tile.
-  1: road({ Asphalt: "STRAIGHT" }),
-  2: road({ Asphalt: "TURN" }),
-  3: road({ Asphalt: "T_JUNCTION" }),
-  4: road({ Asphalt: "CROSSROADS" }),
-  5: road({ Asphalt: "DEAD_END" }),
-  6: road({ Dirt: "STRAIGHT" }),
-  7: road({ Dirt: "TURN" }),
-  8: road({ Dirt: "T_JUNCTION" }),
-  9: road({ Dirt: "CROSSROADS" }),
-  10: road({ Dirt: "DEAD_END" }),
-  11: env({ City: "HOSPITAL" }),
-  12: env({ City: "SCHOOL" }),
-  13: env({ City: "SHOP" }),
-  14: env({ City: "SOLAR_PANEL" }),
-  15: env({ Farm: "CROPS" }),
-  16: env({ Farm: "SOLAR_PANEL" }),
-  17: env({ Grass: "SOLAR_PANEL" }),
-  18: env({ Snow: "BARN" }),
-  19: env({ Snow: "CROPS" }),
-  20: env({ Snow: "HOSPITAL" }),
-  21: env({ Snow: "SCHOOL" }),
-  22: env({ Snow: "SHOP" }),
-  23: env({ Snow: "SOLAR_PANEL" }),
-  24: env({ Common: { TrafficLight: "GREEN" } }),
-  25: env({ Common: { TrafficLight: "RED" } }),
-  26: env({ Common: "PIGEON" }),
-  27: env({ Common: "COW" }),
-  28: end({ CFC: { Barn: "BLACK" } }),
-  29: end({ CFC: { Barn: "RED" } }),
-  30: end({ CFC: { Warehouse: "DEFAULT" } }),
-  31: end({ CFC: { Warehouse: "SNOW" } }),
-  32: end({ House: { Snow: "BLUE" } }),
-  33: end({ House: { Snow: "ORANGE" } }),
-  34: end({ House: { Snow: "STRAW" } }),
-  35: end({ House: { Common: "BLUE" } }),
-  36: end({ House: { Common: "ORANGE" } }),
-  37: end({ House: { Common: "STRAW" } }),
-  38: end({ House: { Common: "WOOD" } }),
-  39: scenery({ Snow: "BUSH" }),
-  40: scenery({ Snow: "POND" }),
-  41: scenery({ Snow: "TREE1" }),
-  42: scenery({ Snow: "TREE2" }),
-  43: scenery({ Common: "BUSH" }),
-  44: scenery({ Common: "HAY" }),
-  45: scenery({ Common: "POND" }),
-  46: scenery({ Common: "TREE1" }),
-  47: scenery({ Common: "TREE2" }),
+  1: road.asphalt("STRAIGHT"),
+  2: road.asphalt("TURN"),
+  3: road.asphalt("T_JUNCTION"),
+  4: road.asphalt("CROSSROADS"),
+  5: road.asphalt("DEAD_END"),
+  6: road.dirt("STRAIGHT"),
+  7: road.dirt("TURN"),
+  8: road.dirt("T_JUNCTION"),
+  9: road.dirt("CROSSROADS"),
+  10: road.dirt("DEAD_END"),
+  11: obstacles.animal("COW"),
+  12: obstacles.animal("PIGEON"),
+  13: obstacles.trafficLight("GREEN"),
+  14: obstacles.trafficLight("RED"),
+  15: endpoints.cfc({ Barn: "BLACK" }),
+  16: endpoints.cfc({ Barn: "RED" }),
+  17: endpoints.cfc({ Barn: "SNOW" }),
+  18: endpoints.cfc({ Warehouse: "DEFAULT" }),
+  19: endpoints.cfc({ Warehouse: "SNOW" }),
+  20: endpoints.house({ Snow: "BLUE" }),
+  21: endpoints.house({ Snow: "ORANGE" }),
+  22: endpoints.house({ Snow: "STRAW" }),
+  23: endpoints.house({ Common: "BLUE" }),
+  24: endpoints.house({ Common: "ORANGE" }),
+  25: endpoints.house({ Common: "STRAW" }),
+  26: scenery.building("HOSPITAL"),
+  27: scenery.building("HOUSE"),
+  28: scenery.building("LOG_CABIN"),
+  29: scenery.building("SCHOOL"),
+  30: scenery.building("SHOP"),
+  31: scenery.building({ Snow: "HOSPITAL" }),
+  32: scenery.building({ Snow: "SCHOOL" }),
+  33: scenery.building({ Snow: "SHOP" }),
+  34: scenery.nature("BUSH"),
+  35: scenery.nature("CROPS"),
+  36: scenery.nature("HAY"),
+  37: scenery.nature("POND"),
+  38: scenery.nature({ Tree: "OAK" }),
+  39: scenery.nature({ Tree: "PINE" }),
+  40: scenery.nature({ Snow: "BUSH" }),
+  41: scenery.nature({ Snow: "CROPS" }),
+  42: scenery.nature({ Snow: "POND" }),
+  43: scenery.nature({ Snow: { Tree: "OAK" } }),
+  44: scenery.nature({ Snow: { Tree: "PINE" } }),
+  45: scenery.other("SOLAR_PANEL"),
+  46: scenery.other({ Snow: "SOLAR_PANEL" }),
 } as const)
 export type ID = DeepNumbersOf<typeof IDs>
 
@@ -77,7 +88,12 @@ export type Tileset<
   image: string
   firstgid: GID
   properties: Props
+  imagescale?: number
 }
+
+// Global registry of tilesets, keyed by their GID, and a getter.
+const TILESETS: Partial<Record<ID, Tileset<ID, Property[] | undefined>>> = {}
+export const getTileset = (id: ID) => TILESETS[id]
 
 type MakePartials =
   | "name"
@@ -94,7 +110,7 @@ export type MakeKwArgs<
   GID extends ID,
   Props extends Property[] | undefined = undefined,
 > = Omit<Tileset<GID, Props>, MakePartials> &
-  Partial<Pick<Tileset<GID, Props>, MakePartials>> & { image: string }
+  Partial<Pick<Tileset<GID, Props>, MakePartials>>
 
 export const make = <
   GID extends ID,
@@ -102,23 +118,25 @@ export const make = <
 >(
   importMetaUrl: string,
   {
+    firstgid,
     image,
     name,
     tilecount = 1,
     columns = 1,
     spacing = 0,
     margin = 0,
-    imageheight = TILE_HEIGHT,
-    imagewidth = TILE_WIDTH,
-    tileheight = TILE_HEIGHT,
-    tilewidth = TILE_WIDTH,
+    imageheight,
+    imagewidth,
+    tileheight = imageheight ?? TILE_HEIGHT,
+    tilewidth = imagewidth ?? TILE_WIDTH,
     properties,
-    ...tileset
+    ...kwArgs
   }: MakeKwArgs<GID, Props>,
 ): Tileset<GID, Props> => {
   image = new URL(image, importMetaUrl).href
 
-  return {
+  const tileset: Tileset<GID, Props> = {
+    firstgid,
     image,
     name: name ?? image, // Use the provided name or fallback to the image path.
     tilecount,
@@ -130,6 +148,9 @@ export const make = <
     tileheight,
     tilewidth,
     properties: properties as Props,
-    ...tileset,
+    ...kwArgs,
   }
+
+  TILESETS[firstgid] = tileset
+  return tileset
 }

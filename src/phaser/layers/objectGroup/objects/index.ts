@@ -1,4 +1,5 @@
 export * as endpoints from "./endpoints"
+export * as obstacles from "./obstacles"
 export * as scenery from "./scenery"
 export {
   type StraightRotationVariants,
@@ -10,4 +11,13 @@ export {
   type Name,
   Names,
   type ID,
+  getFactory,
+  getDepth,
+  getFlipX,
+  getFlipY,
+  Depths,
+  type Depth,
+  type Density,
+  getDensity,
+  Densities,
 } from "./objects"

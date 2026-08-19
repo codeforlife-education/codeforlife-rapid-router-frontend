@@ -21,6 +21,7 @@ import {
   selectSettings,
 } from "./slices"
 import { BlocklyWorkspaceContext } from "../blockly"
+import { PhaserGameContext } from "../phaser"
 
 export type ScreenOrientation = "portrait" | "landscape"
 
@@ -94,3 +95,4 @@ export const useGameHasFinished = () => useSelector(selectGameHasFinished)
 // Contexts
 export const useBlocklyWorkspaceContext = () =>
   useContext(BlocklyWorkspaceContext)
+export const usePhaserGameContext = () => useContext(PhaserGameContext)

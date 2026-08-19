@@ -65,18 +65,17 @@ export type MakeOrthogonalKwArgs<
           NoInfer<COLS>,
           NoInfer<ROWS>
         >
-        environment?: MakeTileLayerKwArgs<
-          "Tile.ENVIRONMENT",
-          layers.tile.data.EnvironmentID,
-          NoInfer<COLS>,
-          NoInfer<ROWS>
-        >
       }
       objectGroup: {
         endpoints: MakeObjectGroupLayerKwArgs<
           "ObjectGroup.ENDPOINTS",
           layers.objectGroup.objects.endpoints.Name,
           tilesets.endpoints.ID
+        >
+        obstacles?: MakeObjectGroupLayerKwArgs<
+          "ObjectGroup.OBSTACLES",
+          layers.objectGroup.objects.obstacles.Name,
+          tilesets.obstacles.ID
         >
         scenery?: MakeObjectGroupLayerKwArgs<
           "ObjectGroup.SCENERY",
@@ -103,6 +102,11 @@ export const makeOrthogonal = <
   layers: _layers,
   ...tilemap
 }: MakeOrthogonalKwArgs<COLS, ROWS>): OrthogonalTilemap => {
+  const tilesetsById = _tilesets.reduce(
+    (acc, tileset) => ({ ...acc, [tileset.firstgid]: tileset }),
+    {} as Partial<Record<tilesets.ID, tilesets.Tileset>>,
+  )
+
   const makeTileLayer = <
     Name extends layers.tile.Name,
     ID extends layers.tile.data.ID,
@@ -140,15 +144,12 @@ export const makeOrthogonal = <
       name,
       width,
       height,
-      objects: _objects.map(
-        // Provide default values for width and height based on the tilemap.
-        ({ width = mapTileWidth, height = mapTileHeight, ...obj }) => ({
-          id: objectIdCounter++,
-          width,
-          height,
-          ...obj,
-        }),
-      ),
+      objects: _objects.map(obj => ({
+        id: objectIdCounter++,
+        width: tilesetsById[obj.gid]?.imagewidth ?? mapTileWidth,
+        height: tilesetsById[obj.gid]?.imageheight ?? mapTileHeight,
+        ...obj,
+      })),
       ...layer,
     })
 
@@ -182,7 +183,10 @@ export const makeOrthogonal = <
     ),
     layers: [
       makeTileLayer(layers.Names.Tile.ROAD, _layers.tile.road),
-      makeTileLayer(layers.Names.Tile.ENVIRONMENT, _layers.tile.environment),
+      makeObjectGroupLayer(
+        layers.Names.ObjectGroup.OBSTACLES,
+        _layers.objectGroup.obstacles,
+      ),
       makeObjectGroupLayer(
         layers.Names.ObjectGroup.ENDPOINTS,
         _layers.objectGroup.endpoints,
