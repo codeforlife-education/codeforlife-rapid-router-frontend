@@ -13,7 +13,12 @@ import { type FC, Fragment, type JSX, useEffect, useState } from "react"
 import MarqueeTitle from "./MarqueeTitle"
 import { useBreakpoint } from "../app/hooks"
 
-type Image = { key: string | number; title: string; src: string }
+type Image = {
+  key: string | number
+  title: string
+  src: string
+  rotate?: number
+}
 type Category = { key: string; subheader: string; images: readonly Image[] }
 type ImageKey<Categories extends readonly Category[]> = {
   [C in Categories[number] as C["key"]]: C["images"][number]["key"]
@@ -35,16 +40,21 @@ export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   image?: { size: number; padding?: number }
 }
 
-const Img: FC<{ height: number; src: string; alt: string }> = ({
-  height,
-  ...props
-}) => (
+const Img: FC<{
+  height: number
+  src: string
+  alt: string
+  rotate?: number
+}> = ({ height, ...props }) => (
   <Box
     component="img"
     {...props}
     width="100%"
     height={`${height}px`}
-    sx={{ objectFit: "contain" }}
+    sx={{
+      objectFit: "contain",
+      rotate: props.rotate ? `${props.rotate}deg` : undefined,
+    }}
   />
 )
 
@@ -164,7 +174,12 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             maxWidth: `${pxImageSize + pxImagePadding * 2}px`,
           }}
         >
-          <Img src={image.src} alt={image.title} height={pxImageSize} />
+          <Img
+            src={image.src}
+            alt={image.title}
+            rotate={image.rotate}
+            height={pxImageSize}
+          />
           <ImageListItemBar
             title={
               <MarqueeTitle
@@ -302,6 +317,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
             <Img
               src={selectedImage.src}
               alt={selectedImage.title}
+              rotate={selectedImage.rotate}
               height={fab.size * 0.65}
             />
           )}

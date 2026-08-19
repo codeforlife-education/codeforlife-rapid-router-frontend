@@ -33,11 +33,13 @@ const ImageSelect: FC<ImageSelectProps> = ({ tool, setTool }) => {
               key: tilesets.IDs.Obstacles.Animal.PIGEON,
               title: "Pigeon",
               src: tilesets.obstacles.animal.pigeon.image,
+              rotate: 270,
             },
             {
               key: tilesets.IDs.Obstacles.TrafficLight.RED,
               title: "Traffic Light",
               src: tilesets.obstacles.trafficLight.red.image,
+              rotate: 270,
             },
           ],
         },
