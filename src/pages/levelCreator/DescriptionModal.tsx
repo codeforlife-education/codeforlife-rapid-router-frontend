@@ -7,7 +7,18 @@ import Modal from "@mui/material/Modal"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
-import { type DescriptionSettings } from "./descriptionSettings"
+export interface DescriptionSettings {
+  subtitle: string
+  description: string
+  hint: string
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const DEFAULT_DESCRIPTION_SETTINGS: DescriptionSettings = {
+  subtitle: "",
+  description: "",
+  hint: "",
+}
 
 export interface DescriptionModalProps {
   open: boolean

@@ -19,13 +19,14 @@ import type Phaser from "phaser"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import * as tilesets from "../../phaser/tilesets"
-import { type CodeSettings, DEFAULT_CODE_SETTINGS } from "./codeSettings"
-import {
+import CodeModal, {
+  type CodeSettings,
+  DEFAULT_CODE_SETTINGS,
+} from "./CodeModal"
+import DescriptionModal, {
   DEFAULT_DESCRIPTION_SETTINGS,
   type DescriptionSettings,
-} from "./descriptionSettings"
-import CodeModal from "./CodeModal"
-import DescriptionModal from "./DescriptionModal"
+} from "./DescriptionModal"
 import EndpointsControls from "./endpoints/Controls"
 import ObstaclesControls from "./obstacles/Controls"
 import RoadControls from "./road/Controls"

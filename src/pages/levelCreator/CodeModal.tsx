@@ -15,8 +15,31 @@ import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 
-import { BLOCKS, type CodeSettings } from "./codeSettings"
 import BlockListItem, { type BlockCount } from "./BlockListItem"
+import { CUSTOM_BLOCKS, START_BLOCK_TYPES } from "../../blockly/blocks"
+
+// The start block isn't an optional, player-selectable block like the others -
+// it's always present, so it's excluded from this list.
+const BLOCKS = CUSTOM_BLOCKS.filter(
+  block => !(START_BLOCK_TYPES as readonly string[]).includes(block.type),
+)
+
+export interface CodeSettings {
+  language: string
+  maxMoves: number
+  blockCounts: Record<string, BlockCount>
+  blockEnabled: Record<string, boolean>
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const DEFAULT_CODE_SETTINGS: CodeSettings = {
+  language: "Blockly",
+  maxMoves: 50,
+  blockCounts: Object.fromEntries(
+    BLOCKS.map(block => [block.type, "infinite"]),
+  ),
+  blockEnabled: Object.fromEntries(BLOCKS.map(block => [block.type, true])),
+}
 
 const LANGUAGE_OPTIONS: Record<string, string> = {
   Blockly: "Solve your level using Blockly blocks only.",
