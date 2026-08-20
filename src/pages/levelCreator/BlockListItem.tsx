@@ -78,7 +78,11 @@ const BlockListItem: FC<BlockListItemProps> = ({
       >
         <BlockPreview blockType={block.type} onSize={handlePreviewSize} />
       </Box>
-      <FormControl size="small" disabled={!enabled} sx={{ ml: "auto" }}>
+      <FormControl
+        size="small"
+        disabled={!enabled}
+        sx={{ ml: "auto", minWidth: 80 }}
+      >
         <InputLabel id={labelId}>Count</InputLabel>
         <Select
           labelId={labelId}
