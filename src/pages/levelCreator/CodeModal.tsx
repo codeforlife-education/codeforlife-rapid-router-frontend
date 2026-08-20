@@ -1,6 +1,7 @@
-import { type FC, useCallback, useState } from "react"
-import Select, { type SelectChangeEvent } from "@mui/material/Select"
+import { type FC, useCallback, useEffect, useState } from "react"
+import { Select, type SelectChangeEvent } from "@mui/material"
 import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
 import Checkbox from "@mui/material/Checkbox"
 import { Close as CloseIcon } from "@mui/icons-material"
 import FormControl from "@mui/material/FormControl"
@@ -14,19 +15,11 @@ import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 
+import { BLOCKS, type CodeSettings } from "./codeSettings"
 import BlockListItem, { type BlockCount } from "./BlockListItem"
-import { CUSTOM_BLOCKS, START_BLOCK_TYPES } from "../../blockly/blocks"
-import { type BlockDefinition } from "../../blockly/utils"
-
-// The start block isn't an optional, player-selectable block like the others -
-// it's always present, so it's excluded from this list.
-const BLOCKS = (CUSTOM_BLOCKS as BlockDefinition<string>[]).filter(
-  block => !(START_BLOCK_TYPES as readonly string[]).includes(block.type),
-)
 
 const LANGUAGE_OPTIONS: Record<string, string> = {
-  Blockly:
-    "Solve your level using Blockly blocks only. Select which ones below.",
+  Blockly: "Solve your level using Blockly blocks only.",
   "Blockly with Python view":
     "As you play your level with Blockly, you will see the equivalent Python translation in a code editor.",
   Python: "Solve your level using Python code only.",
@@ -64,29 +57,39 @@ const BLOCK_ROWS_THREE_COLUMNS = Math.ceil(BLOCKS.length / 3)
 
 export interface CodeModalProps {
   open: boolean
+  value: CodeSettings
   onClose: () => void
+  onSubmit: (value: CodeSettings) => void
 }
 
-const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
-  const [language, setLanguage] = useState("Blockly")
+const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
+  const [language, setLanguage] = useState(value.language)
 
   const handleChange = (event: SelectChangeEvent) => {
     setLanguage(event.target.value)
   }
 
-  const [maxMoves, setMaxMoves] = useState(50)
+  const [maxMoves, setMaxMoves] = useState(value.maxMoves)
 
-  const [blockCounts, setBlockCounts] = useState<Record<string, BlockCount>>(
-    () => Object.fromEntries(BLOCKS.map(block => [block.type, "infinite"])),
-  )
+  const [blockCounts, setBlockCounts] = useState(value.blockCounts)
 
   const handleBlockCountChange = (type: string, count: BlockCount) => {
     setBlockCounts(prev => ({ ...prev, [type]: count }))
   }
 
-  const [blockEnabled, setBlockEnabled] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(BLOCKS.map(block => [block.type, true])),
-  )
+  const [blockEnabled, setBlockEnabled] = useState(value.blockEnabled)
+
+  // Discard any unsaved edits and restore the last saved values whenever the
+  // modal is (re)opened.
+  useEffect(() => {
+    if (open) {
+      setLanguage(value.language)
+      setMaxMoves(value.maxMoves)
+      setBlockCounts(value.blockCounts)
+      setBlockEnabled(value.blockEnabled)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const handleBlockEnabledChange = (type: string, enabled: boolean) => {
     setBlockEnabled(prev => ({ ...prev, [type]: enabled }))
@@ -114,9 +117,17 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
     )
   }
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    onSubmit({ language, maxMoves, blockCounts, blockEnabled })
+    onClose()
+  }
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
+        component="form"
+        onSubmit={handleSubmit}
         sx={{
           position: "absolute",
           top: "50%",
@@ -137,7 +148,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
           }}
         >
           <Typography variant="h3">Code</Typography>
-          <IconButton onClick={onClose} size="small">
+          <IconButton onClick={onClose} size="small" type="button">
             <CloseIcon />
           </IconButton>
         </Box>
@@ -211,13 +222,13 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
                 display: "grid",
                 gridTemplateColumns: {
                   xs: "1fr",
-                  lg: "repeat(2, 1fr)",
-                  xl: "repeat(3, 1fr)",
+                  md: "repeat(2, 1fr)",
+                  lg: "repeat(3, 1fr)",
                 },
                 gridTemplateRows: {
                   xs: `repeat(${BLOCKS.length}, auto)`,
-                  lg: `repeat(${BLOCK_ROWS_TWO_COLUMNS}, auto)`,
-                  xl: `repeat(${BLOCK_ROWS_THREE_COLUMNS}, auto)`,
+                  md: `repeat(${BLOCK_ROWS_TWO_COLUMNS}, auto)`,
+                  lg: `repeat(${BLOCK_ROWS_THREE_COLUMNS}, auto)`,
                 },
                 gridAutoFlow: "column",
                 rowGap: 1.5,
@@ -243,6 +254,16 @@ const CodeModal: FC<CodeModalProps> = ({ open, onClose }) => {
             </Box>
           </>
         )}
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button type="button" variant="outlined" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained">
+            Save
+          </Button>
+        </Box>
       </Box>
     </Modal>
   )

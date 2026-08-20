@@ -1,9 +1,10 @@
 import { type FC, useLayoutEffect, useRef } from "react"
-import Box from "@mui/material/Box"
+import { type BlockType } from "./blocks"
+import { Box } from "@mui/material"
 import { initializeBlockPreview } from "./utils"
 
 export interface BlockPreviewProps {
-  blockType: string
+  blockType: BlockType
   /** Called with the block's rendered size once it's been measured. */
   onSize?: (size: { width: number; height: number }) => void
 }

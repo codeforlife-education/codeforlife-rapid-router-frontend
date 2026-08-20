@@ -8,6 +8,7 @@ import MenuItem from "@mui/material/MenuItem"
 
 import { type BlockDefinition } from "../../blockly/utils"
 import { BlockPreview } from "../../blockly"
+import { type BlockType } from "../../blockly/blocks"
 
 /** The number of instances of a block a player can use, or unlimited. */
 export type BlockCount = number | "infinite"
@@ -26,7 +27,7 @@ const BLOCK_COUNT_OPTIONS: BlockCount[] = [
 ]
 
 export interface BlockListItemProps {
-  block: BlockDefinition<string>
+  block: BlockDefinition<BlockType>
   enabled: boolean
   onEnabledChange: (enabled: boolean) => void
   count: BlockCount

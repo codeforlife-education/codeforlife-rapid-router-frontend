@@ -1,20 +1,53 @@
+import { type FC, useEffect, useState } from "react"
 import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
 import { Close as CloseIcon } from "@mui/icons-material"
-import { type FC } from "react"
 import IconButton from "@mui/material/IconButton"
 import Modal from "@mui/material/Modal"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 
+import { type DescriptionSettings } from "./descriptionSettings"
+
 export interface DescriptionModalProps {
   open: boolean
+  value: DescriptionSettings
   onClose: () => void
+  onSubmit: (value: DescriptionSettings) => void
 }
 
-const DescriptionModal: FC<DescriptionModalProps> = ({ open, onClose }) => {
+const DescriptionModal: FC<DescriptionModalProps> = ({
+  open,
+  value,
+  onClose,
+  onSubmit,
+}) => {
+  const [subtitle, setSubtitle] = useState(value.subtitle)
+  const [description, setDescription] = useState(value.description)
+  const [hint, setHint] = useState(value.hint)
+
+  // Discard any unsaved edits and restore the last saved values whenever the
+  // modal is (re)opened.
+  useEffect(() => {
+    if (open) {
+      setSubtitle(value.subtitle)
+      setDescription(value.description)
+      setHint(value.hint)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    onSubmit({ subtitle, description, hint })
+    onClose()
+  }
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
+        component="form"
+        onSubmit={handleSubmit}
         sx={{
           position: "absolute",
           top: "50%",
@@ -35,7 +68,7 @@ const DescriptionModal: FC<DescriptionModalProps> = ({ open, onClose }) => {
           }}
         >
           <Typography variant="h3">Description</Typography>
-          <IconButton onClick={onClose} size="small">
+          <IconButton onClick={onClose} size="small" type="button">
             <CloseIcon />
           </IconButton>
         </Box>
@@ -49,12 +82,11 @@ const DescriptionModal: FC<DescriptionModalProps> = ({ open, onClose }) => {
         </Typography>
         <TextField
           fullWidth
-          multiline
           label="Subtitle"
-          rows={6}
-          sx={{ mb: 2, "& textarea": { resize: "vertical" } }}
+          sx={{ mb: 2 }}
           placeholder="What is the subtitle for this level?"
-          slotProps={{ input: { inputComponent: "textarea" } }}
+          value={subtitle}
+          onChange={event => setSubtitle(event.target.value)}
         />
         <TextField
           fullWidth
@@ -64,6 +96,8 @@ const DescriptionModal: FC<DescriptionModalProps> = ({ open, onClose }) => {
           sx={{ mb: 2, "& textarea": { resize: "vertical" } }}
           placeholder="What do players have to do to complete this level?"
           slotProps={{ input: { inputComponent: "textarea" } }}
+          value={description}
+          onChange={event => setDescription(event.target.value)}
         />
         <Typography>
           Players will have the option to view a hint when they have made an
@@ -77,7 +111,19 @@ const DescriptionModal: FC<DescriptionModalProps> = ({ open, onClose }) => {
           sx={{ "& textarea": { resize: "vertical" } }}
           placeholder="What advice do you want to give for this level?"
           slotProps={{ input: { inputComponent: "textarea" } }}
+          value={hint}
+          onChange={event => setHint(event.target.value)}
         />
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button type="button" variant="outlined" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained">
+            Save
+          </Button>
+        </Box>
       </Box>
     </Modal>
   )
