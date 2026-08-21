@@ -2,10 +2,11 @@ import Phaser from "phaser"
 
 import * as layers from "../../../layers"
 import * as objects from "../../../layers/objectGroup/objects"
+import * as tilesets from "../../../tilesets"
 import BaseObjectGroupLayerManager, {
   type Placed,
 } from "./BaseObjectGroupLayerManager"
-import { Events, Variables } from "../../../globals"
+import { Events, TILE_HEIGHT, TILE_WIDTH, Variables } from "../../../globals"
 import type { default as Level } from "."
 
 type Drag = {
@@ -124,19 +125,32 @@ export default abstract class BaseFreeObjectManager<
    * freely about their centre (rather than Tiled's rotation-about-anchor
    * convention), the anchor is recovered by rotating the pre-rotation
    * bottom-left corner back around the object's current centre.
+   *
+   * The corner is computed from the tileset's declared dimensions (not the
+   * object's live display size) since that's what ends up in the exported
+   * JSON's `width`/`height` fields, and what `fromTiledObject` inverts.
    */
   toTiledObjects(): objects.FactoryObject<Name, ID>[] {
     return this.placedObjects.map(obj => {
       const placed = this.getPlaced(obj)!
+      const tileset = tilesets.getTileset(placed.id)!
+      const imagewidth = tileset.imagewidth ?? TILE_WIDTH
+      const imageheight = tileset.imageheight ?? TILE_HEIGHT
       const anchor = Phaser.Math.RotateAround(
-        { x: obj.x - obj.displayWidth / 2, y: obj.y + obj.displayHeight / 2 },
+        { x: obj.x - imagewidth / 2, y: obj.y + imageheight / 2 },
         obj.x,
         obj.y,
         obj.rotation,
       )
 
       return {
+        // Some factories (e.g. scenery) bake an intrinsic x/y offset into
+        // their base kwArgs, which `add` deliberately discards by setting
+        // the object's position explicitly afterwards - so do the same here
+        // rather than trusting the factory's own computed x/y.
         ...this.getFactory(placed.id)!({ x: anchor.x, y: anchor.y }),
+        x: anchor.x,
+        y: anchor.y,
         rotation: obj.angle,
       }
     })
