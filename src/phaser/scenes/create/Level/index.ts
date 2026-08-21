@@ -129,6 +129,7 @@ export default class extends BaseLevel<LevelData> {
         rotation: number
         width: number
         height: number
+        properties: { name: string; value: unknown }[]
       }[]
 
     this.road.fromTiledData(

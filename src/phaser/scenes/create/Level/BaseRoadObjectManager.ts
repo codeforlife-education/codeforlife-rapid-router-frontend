@@ -115,7 +115,20 @@ export default abstract class BaseRoadObjectManager<
         if (!placed) continue
 
         const factory = this.getFactory(placed.id, placed.variantKey)
-        if (factory) result.push(factory(tile))
+        if (!factory) continue
+
+        const obj = factory(tile)
+        // Store the tile directly rather than relying on it being
+        // recoverable from x/y, since some variants' `tileOffset`s shift
+        // the exported position outside of their own tile's bounds.
+        result.push({
+          ...obj,
+          properties: [
+            ...obj.properties,
+            { name: "tileRow", type: "int", value: row },
+            { name: "tileCol", type: "int", value: col },
+          ],
+        })
       }
     }
 
@@ -124,38 +137,25 @@ export default abstract class BaseRoadObjectManager<
 
   /**
    * Rehydrates a previously-exported Tiled object into this manager's state.
-   * The object's tile and variant aren't stored explicitly in the Tiled
-   * format, so they're recovered by searching for the tile/variant whose
-   * factory output matches the object's position and rotation.
+   * The object's variant and tile are both read directly from its
+   * properties, so no search is needed to recover them.
    */
   fromTiledObject(obj: {
     gid: number
-    x: number
-    y: number
-    rotation: number
+    properties: { name: string; value: unknown }[]
   }) {
     const id = obj.gid as ID
+    const getProp = (name: string) =>
+      obj.properties.find(p => p.name === name)?.value
+    const variantKey = getProp("variant") as VariantKey | undefined
+    const row = getProp("tileRow") as number | undefined
+    const col = getProp("tileCol") as number | undefined
+    if (variantKey === undefined || row === undefined || col === undefined)
+      return
 
-    for (let row = 0; row < this.level.tilemap.height; row++) {
-      for (let col = 0; col < this.level.tilemap.width; col++) {
-        const tile = { row, col }
-        if (!this.canPlace(tile, id)) continue
-
-        const variantKey = this.validVariantKeys(tile, id).find(key => {
-          const candidate = this.getFactory(id, key)?.(tile)
-          return (
-            candidate?.x === obj.x &&
-            candidate.y === obj.y &&
-            candidate.rotation === obj.rotation
-          )
-        })
-
-        if (variantKey !== undefined) {
-          this.place(tile, id, variantKey)
-          return
-        }
-      }
-    }
+    const tile = { row, col }
+    if (!this.canPlace(tile, id)) return
+    this.place(tile, id, variantKey)
   }
 
   protected sameKey(
