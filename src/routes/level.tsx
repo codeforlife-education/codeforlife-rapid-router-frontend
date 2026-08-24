@@ -1,7 +1,6 @@
 import { Route } from "react-router"
 
 import Level, { type LevelProps } from "../pages/level/Level"
-import Level, { type LevelProps } from "../pages/level/Level"
 import LevelCreator from "../pages/levelCreator/LevelCreator"
 import paths from "./paths"
 
