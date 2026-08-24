@@ -1,5 +1,5 @@
 import {
-  Casino as CasinoIcon,
+  // Casino as CasinoIcon,
   CloudDownload as CloudDownloadIcon,
   Description as DescriptionIcon,
   EditRoad as EditRoadIcon,
@@ -7,7 +7,6 @@ import {
   Extension as ExtensionIcon,
   Help as HelpIcon,
   Home as HomeIcon,
-  Lightbulb as LightbulbIcon,
   LocalShipping as LocalShippingIcon,
   Park as ParkIcon,
   People as PeopleIcon,
@@ -20,6 +19,14 @@ import type Phaser from "phaser"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import * as tilesets from "../../phaser/tilesets"
+import CodeModal, {
+  type CodeSettings,
+  DEFAULT_CODE_SETTINGS,
+} from "./CodeModal"
+import DescriptionModal, {
+  DEFAULT_DESCRIPTION_SETTINGS,
+  type DescriptionSettings,
+} from "./DescriptionModal"
 import EndpointsControls from "./endpoints/Controls"
 import ObstaclesControls from "./obstacles/Controls"
 import RoadControls from "./road/Controls"
@@ -27,10 +34,16 @@ import SceneryControls from "./scenery/Controls"
 import { ZoomControls } from "../../phaser"
 import { usePhaserGameContext } from "../../app/hooks"
 
-export interface ControlsProps {}
-
-const Controls: FC<ControlsProps> = () => {
+const Controls: FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [activeModal, setActiveModal] = useState<"code" | "description" | null>(
+    null,
+  )
+  const [codeSettings, setCodeSettings] = useState<CodeSettings>(
+    DEFAULT_CODE_SETTINGS,
+  )
+  const [descriptionSettings, setDescriptionSettings] =
+    useState<DescriptionSettings>(DEFAULT_DESCRIPTION_SETTINGS)
   const {
     ref: { current: phaserGame },
     activeSceneKeys,
@@ -161,24 +174,26 @@ const Controls: FC<ControlsProps> = () => {
           icon={<LocalShippingIcon />}
         />
         <miniDrawers.ButtonItem
+          id="code"
           isDrawerOpen={isDrawerOpen}
+          selected={activeModal === "code"}
           text="Code"
           icon={<ExtensionIcon />}
+          onClick={() => setActiveModal("code")}
         />
+        {/* TODO: Implement random road generator */}
+        {/* <miniDrawers.ButtonItem
+        {...makeSelectableButtonItemProps("random")}
+        text="Random"
+        icon={<CasinoIcon />}
+        /> */}
         <miniDrawers.ButtonItem
+          id="description"
           isDrawerOpen={isDrawerOpen}
-          text="Random"
-          icon={<CasinoIcon />}
-        />
-        <miniDrawers.ButtonItem
-          isDrawerOpen={isDrawerOpen}
+          selected={activeModal === "description"}
           text="Description"
           icon={<DescriptionIcon />}
-        />
-        <miniDrawers.ButtonItem
-          isDrawerOpen={isDrawerOpen}
-          text="Hint"
-          icon={<LightbulbIcon />}
+          onClick={() => setActiveModal("description")}
         />
         <Divider />
         <miniDrawers.ButtonItem
@@ -208,6 +223,18 @@ const Controls: FC<ControlsProps> = () => {
           icon={<ExitToAppIcon />}
         />
       </miniDrawers.MiniDrawer>
+      <CodeModal
+        open={activeModal === "code"}
+        value={codeSettings}
+        onClose={() => setActiveModal(null)}
+        onSubmit={setCodeSettings}
+      />
+      <DescriptionModal
+        open={activeModal === "description"}
+        value={descriptionSettings}
+        onClose={() => setActiveModal(null)}
+        onSubmit={setDescriptionSettings}
+      />
     </>
   )
 }
