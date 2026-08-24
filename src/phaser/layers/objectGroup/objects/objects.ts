@@ -1,29 +1,100 @@
-import { type DeepStringsOf, createPathStrings } from "codeforlife/utils/object"
+import {
+  type DeepStringsOf,
+  createIdRegistry,
+  createPathStrings,
+} from "codeforlife/utils/object"
+import type Phaser from "phaser"
 import type { TiledObject as _Object } from "tiled-types"
 
 import type * as tilesets from "../../../tilesets"
 import { TILE_HEIGHT, TILE_WIDTH } from "../../../globals"
 
-export type ID = tilesets.endpoints.ID | tilesets.scenery.ID
+export type ID =
+  | tilesets.endpoints.ID
+  | tilesets.obstacles.ID
+  | tilesets.scenery.ID
 
 // Global registry of object names.
 export const Names = createPathStrings({
   Endpoints: {
     CFC: {
-      Barn: ["BLACK", "RED"],
+      Barn: ["BLACK", "RED", "SNOW"],
       Warehouse: ["DEFAULT", "SNOW"],
     },
     House: {
       Snow: ["BLUE", "ORANGE", "STRAW"],
-      Common: ["BLUE", "ORANGE", "STRAW", "WOOD"],
+      Common: ["BLUE", "ORANGE", "STRAW"],
     },
   },
+  Obstacles: {
+    Animal: ["COW", "PIGEON"],
+    TrafficLight: ["RED", "GREEN"],
+  },
   Scenery: {
-    Snow: ["BUSH", "POND", "TREE1", "TREE2"],
-    Common: ["BUSH", "HAY", "POND", "TREE1", "TREE2"],
+    Nature: [
+      "BUSH",
+      "CROPS",
+      "HAY",
+      "POND",
+      { Tree: ["OAK", "PINE"] },
+      { Snow: ["BUSH", "CROPS", "POND", { Tree: ["OAK", "PINE"] }] },
+    ],
+    Building: [
+      "HOSPITAL",
+      "HOUSE",
+      "LOG_CABIN",
+      "SCHOOL",
+      "SHOP",
+      { Snow: ["HOSPITAL", "SCHOOL", "SHOP"] },
+    ],
+    Other: ["SOLAR_PANEL", { Snow: ["SOLAR_PANEL"] }],
   },
 } as const)
 export type Name = DeepStringsOf<typeof Names>
+
+// Enum of object depths.
+export const Depths = createIdRegistry({
+  0: "BELOW_GROUND", // below the ground layer (e.g., pond).
+  1: "GROUND", // on the ground layer (e.g., bush).
+  2: "ABOVE_GROUND", // above the ground layer (e.g., tree).
+} as const)
+export type Depth = (typeof Depths)[keyof typeof Depths]
+
+// Enum of object densities.
+export const Densities = createIdRegistry({
+  0: "PERMEABLE", // can overlap (e.g., bush).
+  1: "SOLID", // cannot overlap (e.g., house).
+} as const)
+export type Density = (typeof Densities)[keyof typeof Densities]
+
+// Global registries.
+type Registry<T> = Partial<Record<ID | Name, T>>
+const DEPTHS: Registry<Depth> = {}
+const DENSITIES: Registry<Density> = {}
+const FLIP_X: Registry<boolean> = {}
+const FLIP_Y: Registry<boolean> = {}
+const FACTORIES: Registry<Factory<Name, ID>> = {}
+const setInRegistry = <T>(
+  registry: Registry<T>,
+  id: ID,
+  name: Name,
+  value: T,
+) => (registry[id] = registry[name] = value)
+
+// Getters for global registries.
+type GetFromRegistry<T> = (id: ID | Name) => T
+export const getDepth: GetFromRegistry<Depth> = id =>
+  DEPTHS[id] ?? Depths.GROUND
+export const getDensity: GetFromRegistry<Density> = id =>
+  DENSITIES[id] ?? Densities.SOLID
+export const getFlipX: GetFromRegistry<boolean> = id => FLIP_X[id] ?? false
+export const getFlipY: GetFromRegistry<boolean> = id => FLIP_Y[id] ?? false
+export const getFactory = <N extends Name, GID extends ID, V extends string>(
+  id: GID | N,
+) =>
+  FACTORIES[id] as
+    | Factory<N, GID, { [K in V]: FactoryBaseKwArgs<N, GID> }>
+    | undefined
 
 export type Object<N extends Name, GID extends ID> = Omit<
   _Object,
@@ -31,13 +102,16 @@ export type Object<N extends Name, GID extends ID> = Omit<
 > & { type: N; name: N; gid: GID }
 export type FactoryObject<N extends Name, GID extends ID> = Omit<
   Object<N, GID>,
-  "id"
+  | "id"
+  // `width` and `height` are omitted because they will be determined in their
+  // tileset's `imagewidth` and `imageheight` properties.
+  | "width"
+  | "height"
 >
 
-type TileOffset = { col: number; row: number }
-
 export type FactoryBaseKwArgs<N extends Name, GID extends ID> = Partial<
-  Omit<FactoryObject<N, GID>, "type" | "name" | "gid"> & TileOffset
+  Omit<FactoryObject<N, GID>, "type" | "name" | "gid"> &
+    Phaser.Types.Tilemaps.Tile
 >
 type FactoryBase<N extends Name, GID extends ID> = (
   kwArgs: FactoryBaseKwArgs<N, GID>,
@@ -63,6 +137,10 @@ type FactoryVariants<
 export type FactoryKwArgs<N extends Name, GID extends ID> = {
   name: N
   gid: GID
+  depth?: Depth
+  density?: Density
+  flipX?: boolean
+  flipY?: boolean
 } & FactoryBaseKwArgs<N, GID>
 export type Factory<
   N extends Name,
@@ -76,13 +154,16 @@ export const factory = <
   const V extends FactoryVariantSpecs<N, GID> = {},
 >(
   {
+    gid,
     name,
+    depth = Depths.GROUND,
+    density = Densities.SOLID,
+    flipX = false,
+    flipY = false,
     x: baseX = 0,
     y: baseY = 0,
     col: baseCol = 0,
     row: baseRow = 0,
-    width: baseWidth = TILE_WIDTH,
-    height: baseHeight = TILE_HEIGHT,
     properties: baseProperties = [],
     visible: baseVisible = true,
     rotation: baseRotation = 0,
@@ -90,6 +171,12 @@ export const factory = <
   }: FactoryKwArgs<N, GID>,
   variants: V = {} as V,
 ): Factory<N, GID, V> => {
+  // Register the object properties in the global registries.
+  setInRegistry(DEPTHS, gid, name, depth)
+  setInRegistry(DENSITIES, gid, name, density)
+  setInRegistry(FLIP_X, gid, name, flipX)
+  setInRegistry(FLIP_Y, gid, name, flipY)
+
   baseX += baseCol * TILE_WIDTH
   baseY += baseRow * TILE_HEIGHT
 
@@ -98,19 +185,16 @@ export const factory = <
     y,
     col,
     row,
-    width,
-    height,
     properties,
     visible = baseVisible,
     rotation,
     ...obj
   }) => ({
+    gid,
     type: name,
     name,
     x: (x ? baseX + x : baseX) + (col ? col * TILE_WIDTH : 0),
     y: (y ? baseY + y : baseY) + (row ? row * TILE_HEIGHT : 0),
-    width: width ? baseWidth + width : baseWidth,
-    height: height ? baseHeight + height : baseHeight,
     properties: properties
       ? [...baseProperties, ...properties]
       : baseProperties,
@@ -120,7 +204,7 @@ export const factory = <
     ...obj,
   })
 
-  return (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
+  const factory = (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
     (f, [variantName, variantKwArgs]) => {
       ;(f as unknown as FactoryVariants<N, GID, V>)[variantName] = kwArgs =>
         f({ ...variantKwArgs, ...kwArgs }) as FactoryObject<N, GID> & V[keyof V]
@@ -129,6 +213,9 @@ export const factory = <
     },
     base,
   ) as Factory<N, GID, V>
+
+  setInRegistry(FACTORIES, gid, name, factory)
+  return factory
 }
 
 type BaseRotationVariant<R extends number> = { rotation: R }
@@ -146,7 +233,9 @@ export type BaseStraightRotationVariants = {
   left: BaseStraightRotationVariant
 }
 export type MakeStraightRotationVariantsKwArgs =
-  BaseStraightRotationVariants & { tileOffset?: Partial<TileOffset> }
+  BaseStraightRotationVariants & {
+    tileOffset?: Partial<Phaser.Types.Tilemaps.Tile>
+  }
 export type StraightRotationVariant = RotationVariant<StraightRotation>
 export type StraightRotationVariants = {
   [K in keyof BaseStraightRotationVariants]: StraightRotationVariant
@@ -174,7 +263,9 @@ export type BaseDiagonalRotationVariants = {
   bottomLeft: BaseDiagonalRotationVariant
 }
 export type MakeDiagonalRotationVariantsKwArgs =
-  BaseDiagonalRotationVariants & { tileOffset?: Partial<TileOffset> }
+  BaseDiagonalRotationVariants & {
+    tileOffset?: Partial<Phaser.Types.Tilemaps.Tile>
+  }
 export type DiagonalRotationVariant = RotationVariant<DiagonalRotation>
 export type DiagonalRotationVariants = {
   [K in keyof BaseDiagonalRotationVariants]: DiagonalRotationVariant

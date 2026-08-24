@@ -1,19 +1,11 @@
-import {
-  AddRoad as AddRoadIcon,
-  RemoveRoad as RemoveRoadIcon,
-} from "@mui/icons-material"
 import Phaser from "phaser"
 
 import * as layers from "../../../layers"
-import type { DirectionSet, default as Level, Tile } from "."
-import BaseManager from "./BaseManager"
-import type { DragEndEventData } from "./DragManager"
+import BaseTileLayerManager, { type DragEndData } from "./BaseTileLayerManager"
+import type { DirectionSet, default as Level } from "."
 import { Events } from "../../../globals"
 
-export type AddRoadEventData = Tile & { id: layers.tile.data.RoadID }
-export type DeleteRoadEventData = Tile
-
-export default class extends BaseManager {
+export default class extends BaseTileLayerManager<"add" | "delete"> {
   /**
    * Persistent 2D array [row][col] of all placed road tiles.
    * An empty set means no road tile has been placed at that position.
@@ -30,29 +22,28 @@ export default class extends BaseManager {
   /** The type of road currently being placed. */
   private type: keyof typeof layers.tile.data.IDs.Road = "Asphalt"
 
-  /** CSS cursor string for the add-road icon, pre-computed once. */
-  private readonly addRoadCursor = this.level.muiIconToCursor(AddRoadIcon)
-
-  /** CSS cursor string for the delete-road icon, pre-computed once. */
-  private readonly deleteRoadCursor = this.level.muiIconToCursor(RemoveRoadIcon)
-
   constructor(level: Level) {
-    super(level)
+    super(level, {
+      // A direction between 2 tiles is needed to classify a road, so at
+      // least 2 tiles must be visited before a road can be added.
+      add: { drawDirs: true, highlight: { color: 0x00ff00 }, minTiles: 2 },
+      delete: { drawDirs: false, highlight: { color: 0xff0000 } },
+    })
 
-    const onDragEnd = (event: DragEndEventData) => this.onDragEnd(event)
-    level.game.events.on(Events.DRAG_END, onDragEnd)
-
-    const onPointerMove = (pointer: Phaser.Input.Pointer) =>
-      this.onPointerMove(pointer)
-    level.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+    const onHoverMove: Phaser.Input.Events.PointerMove = (...args) =>
+      this.updateCursor(...args)
+    level.input.on(Phaser.Input.Events.POINTER_MOVE, onHoverMove)
 
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
-      level.game.events.off(Events.DRAG_END, onDragEnd)
-      level.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+      level.input.off(Phaser.Input.Events.POINTER_MOVE, onHoverMove)
     })
   }
 
-  dirs = (tile: Tile) => this._dirs[tile.row][tile.col]
+  protected get box() {
+    return "road" as const
+  }
+
+  dirs = (tile: Phaser.Types.Tilemaps.Tile) => this._dirs[tile.row][tile.col]
 
   get ids() {
     return layers.tile.data.IDs.Road[this.type]
@@ -64,17 +55,17 @@ export default class extends BaseManager {
    * accumulate across drags, so a tile may be upgraded (e.g. turn → T-junction)
    * by a subsequent drag.
    */
-  private add(tile: Tile, dirs: DirectionSet) {
+  private add(tile: Phaser.Types.Tilemaps.Tile, dirs: DirectionSet) {
     const id = this.dirsToId(dirs)
     this.level.putTileAt("Tile.ROAD", id, tile.col, tile.row)
     this.level.game.events.emit(Events.ADD_ROAD, {
       ...tile,
       id,
-    } as AddRoadEventData)
+    } as Phaser.Events.AddRoadData)
   }
 
   /** Deletes a road tile at the given tile position. */
-  private delete(tile: Tile) {
+  private delete(tile: Phaser.Types.Tilemaps.Tile) {
     this.level.layers["Tile.ROAD"].putTileAt(-1, tile.col, tile.row)
     this.level.game.events.emit(Events.DELETE_ROAD, tile)
   }
@@ -86,7 +77,7 @@ export default class extends BaseManager {
    * crossroads turns the four previously-connected straights into dead ends
    * pointing away from where the crossroads was.
    */
-  private finalizeDeleteDrag(drag: Pick<DragEndEventData, "set">) {
+  private finalizeDeleteDrag(drag: Pick<DragEndData<"add" | "delete">, "set">) {
     // Collect every tile that needs to be redrawn (deleted tiles + affected
     // neighbours) so we only touch the minimum set.
     const toRedraw = new Set(drag.set)
@@ -125,12 +116,17 @@ export default class extends BaseManager {
    * them into roadDirs, then calls addRoad() for every affected tile.
    *
    * Only exit connections are recorded: moving from tile A → tile B adds an
-   * exit connection to A only. Tile B is only connected when the cursor leaves
+   * exit connection to A only. Phaser.Types.Tilemaps.Tile B is only connected when the cursor leaves
    * it. This means two adjacent tiles never force a shared connection on each
    * other.
    */
-  private finalizeAddDrag(drag: Pick<DragEndEventData, "sequence">) {
-    const pending = new Map<string, Tile & { dirs: DirectionSet }>()
+  private finalizeAddDrag(
+    drag: Pick<DragEndData<"add" | "delete">, "sequence">,
+  ) {
+    const pending = new Map<
+      string,
+      Phaser.Types.Tilemaps.Tile & { dirs: DirectionSet }
+    >()
 
     for (let i = 0; i < drag.sequence.length; i++) {
       const current = drag.sequence[i]
@@ -166,24 +162,24 @@ export default class extends BaseManager {
     }
   }
 
-  private onDragEnd({ tool, ...drag }: DragEndEventData) {
-    if (tool === "add-road") this.finalizeAddDrag(drag)
-    else if (tool === "delete-road") this.finalizeDeleteDrag(drag)
+  protected onDragEnd({ tool, ...drag }: DragEndData<"add" | "delete">) {
+    if (tool === "add") this.finalizeAddDrag(drag)
+    else if (tool === "delete") this.finalizeDeleteDrag(drag)
   }
 
-  private onPointerMove(pointer: Phaser.Input.Pointer) {
-    const tool = this.level.toolbox?.activeTool
-    if (tool !== "add-road" && tool !== "delete-road") return
+  private updateCursor: Phaser.Input.Events.PointerMove = pointer => {
+    const tool = this.tool
+    if (!tool) return
 
-    let cursor = "pointer"
     const tile = this.level.worldToTile(pointer.worldX, pointer.worldY)
-    if (tile) {
-      const dirs = this.dirs(tile)
-      if (tool === "add-road") {
-        if (dirs.size < 4) cursor = this.addRoadCursor
-      } else if (dirs.size > 0) cursor = this.deleteRoadCursor
-    }
-    this.level.input.setDefaultCursor(cursor)
+    const canAct =
+      !!tile &&
+      (tool === "add"
+        ? this.dirs(tile).size <
+          Object.values(this.level.validTileDirs(tile)).filter(Boolean).length
+        : this.dirs(tile).size > 0)
+
+    this.level.input.setDefaultCursor(canAct ? "all-scroll" : "default")
   }
 
   dirsToId(dirs: DirectionSet): layers.tile.data.RoadID {

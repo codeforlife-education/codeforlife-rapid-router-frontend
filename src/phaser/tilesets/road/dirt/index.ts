@@ -30,3 +30,5 @@ export const { crossroads, deadEnd, straight, tJunction, turn } =
       firstgid: _IDs.TURN,
     },
   })
+
+export default [crossroads, deadEnd, straight, tJunction, turn]
