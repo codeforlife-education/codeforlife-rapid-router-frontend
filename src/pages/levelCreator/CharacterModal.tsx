@@ -1,12 +1,15 @@
-import { type FC, useState } from "react"
-import Box from "@mui/material/Box"
+import {
+  Box,
+  Button,
+  FormControlLabel,
+  IconButton,
+  Modal,
+  Radio,
+  RadioGroup,
+  Typography,
+} from "@mui/material"
+import { type FC, useEffect, useState } from "react"
 import { Close as CloseIcon } from "@mui/icons-material"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import IconButton from "@mui/material/IconButton"
-import Modal from "@mui/material/Modal"
-import Radio from "@mui/material/Radio"
-import RadioGroup from "@mui/material/RadioGroup"
-import Typography from "@mui/material/Typography"
 
 import deeImage from "../../images/characters/front_view/Dee.svg"
 import electricVanImage from "../../images/characters/front_view/Electric_van.svg"
@@ -23,26 +26,57 @@ interface CharacterOption {
 }
 
 const CHARACTER_OPTIONS: CharacterOption[] = [
+  { value: "van", name: "Van", image: vanImage },
   { value: "dee", name: "Dee", image: deeImage },
   { value: "electric_van", name: "Electric Van", image: electricVanImage },
   { value: "kirsty", name: "Kirsty", image: kirstyImage },
   { value: "nigel", name: "Nigel", image: nigelImage },
   { value: "phil", name: "Phil", image: philImage },
-  { value: "van", name: "Van", image: vanImage },
   { value: "wes", name: "Wes", image: wesImage },
 ]
 
-export interface CharacterModalProps {
-  open: boolean
-  onClose: () => void
+export interface CharacterSettings {
+  character: string
 }
 
-const CharacterModal: FC<CharacterModalProps> = ({ open, onClose }) => {
-  const [character, setCharacter] = useState(CHARACTER_OPTIONS[0].value)
+// eslint-disable-next-line react-refresh/only-export-components
+export const DEFAULT_CHARACTER_SETTINGS: CharacterSettings = {
+  character: CHARACTER_OPTIONS[0].value,
+}
+
+export interface CharacterModalProps {
+  open: boolean
+  value: CharacterSettings
+  onClose: () => void
+  onSubmit: (value: CharacterSettings) => void
+}
+
+const CharacterModal: FC<CharacterModalProps> = ({
+  open,
+  value,
+  onClose,
+  onSubmit,
+}) => {
+  const [character, setCharacter] = useState(value.character)
+
+  // Discard any unsaved edits and restore the last saved values whenever the
+  // modal is (re)opened.
+  useEffect(() => {
+    if (open) setCharacter(value.character)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    onSubmit({ character })
+    onClose()
+  }
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box
+        component="form"
+        onSubmit={handleSubmit}
         sx={{
           position: "absolute",
           top: "50%",
@@ -63,7 +97,7 @@ const CharacterModal: FC<CharacterModalProps> = ({ open, onClose }) => {
           }}
         >
           <Typography variant="h3">Character</Typography>
-          <IconButton onClick={onClose} size="small">
+          <IconButton onClick={onClose} size="small" type="button">
             <CloseIcon />
           </IconButton>
         </Box>
@@ -99,7 +133,8 @@ const CharacterModal: FC<CharacterModalProps> = ({ open, onClose }) => {
                 component="img"
                 src={option.image}
                 alt={option.name}
-                sx={{ width: 200, height: 200 }}
+                onClick={() => setCharacter(option.value)}
+                sx={{ width: 200, height: 200, cursor: "pointer" }}
               />
               <FormControlLabel
                 value={option.value}
@@ -110,6 +145,16 @@ const CharacterModal: FC<CharacterModalProps> = ({ open, onClose }) => {
             </Box>
           ))}
         </RadioGroup>
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button type="button" variant="outlined" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained">
+            Save
+          </Button>
+        </Box>
       </Box>
     </Modal>
   )
