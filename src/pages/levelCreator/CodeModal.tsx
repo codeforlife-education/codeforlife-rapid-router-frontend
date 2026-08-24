@@ -1,19 +1,22 @@
+import {
+  Box,
+  Button,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Modal,
+  Select,
+  type SelectChangeEvent,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material"
 import { type FC, useCallback, useEffect, useState } from "react"
-import { Select, type SelectChangeEvent } from "@mui/material"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import Checkbox from "@mui/material/Checkbox"
 import { Close as CloseIcon } from "@mui/icons-material"
-import FormControl from "@mui/material/FormControl"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import IconButton from "@mui/material/IconButton"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
-import InputLabel from "@mui/material/InputLabel"
-import MenuItem from "@mui/material/MenuItem"
-import Modal from "@mui/material/Modal"
-import TextField from "@mui/material/TextField"
-import Tooltip from "@mui/material/Tooltip"
-import Typography from "@mui/material/Typography"
 
 import BlockListItem, { type BlockCount } from "./BlockListItem"
 import { CUSTOM_BLOCKS, START_BLOCK_TYPES } from "../../blockly/blocks"

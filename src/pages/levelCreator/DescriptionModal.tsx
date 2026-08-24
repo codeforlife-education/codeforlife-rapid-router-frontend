@@ -1,11 +1,13 @@
+import {
+  Box,
+  Button,
+  IconButton,
+  Modal,
+  TextField,
+  Typography,
+} from "@mui/material"
 import { type FC, useEffect, useState } from "react"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
 import { Close as CloseIcon } from "@mui/icons-material"
-import IconButton from "@mui/material/IconButton"
-import Modal from "@mui/material/Modal"
-import TextField from "@mui/material/TextField"
-import Typography from "@mui/material/Typography"
 
 export interface DescriptionSettings {
   subtitle: string
