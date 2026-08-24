@@ -9,7 +9,7 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.asphalt.deadEnd,
     tilesets.endpoints.cfc.warehouse.default,
     tilesets.endpoints.house.common.orange,
-    tilesets.scenery.common.tree1,
+    tilesets.scenery.nature.tree.oak,
   ],
   layers: {
     tile: {
@@ -48,7 +48,10 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          layers.objectGroup.objects.scenery.common.tree1({ col: 1, row: 3 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            col: 1,
+            row: 3,
+          }),
         ],
       },
     },

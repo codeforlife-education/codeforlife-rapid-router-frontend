@@ -186,106 +186,9 @@ export const IDs = {
       ],
     }),
   },
-  Environment: {
-    City: {
-      Hospital: createCRotations(
-        tilesets.IDs.Environment.City.HOSPITAL,
-        "TOP",
-        { 90: "RIGHT", 180: "BOTTOM", 270: "LEFT" },
-      ),
-      School: createCRotations(tilesets.IDs.Environment.City.SCHOOL, "BOTTOM", {
-        90: "LEFT",
-        180: "TOP",
-        270: "RIGHT",
-      }),
-      Shop: createCRotations(tilesets.IDs.Environment.City.SHOP, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
-      SolarPanel: createCRotations(
-        tilesets.IDs.Environment.City.SOLAR_PANEL,
-        "BOTTOM",
-        { 90: "LEFT", 180: "TOP", 270: "RIGHT" },
-      ),
-    },
-    Common: {
-      Pigeon: createCRotations(
-        tilesets.IDs.Environment.Common.PIGEON,
-        "RIGHT",
-        { 90: "BOTTOM", 180: "LEFT", 270: "TOP" },
-      ),
-      TrafficLight: {
-        Green: createCRotations(
-          tilesets.IDs.Environment.Common.TrafficLight.GREEN,
-          "BOTTOM",
-          { 90: "LEFT", 180: "TOP", 270: "RIGHT" },
-        ),
-        Red: createCRotations(
-          tilesets.IDs.Environment.Common.TrafficLight.RED,
-          "BOTTOM",
-          { 90: "LEFT", 180: "TOP", 270: "RIGHT" },
-        ),
-      },
-    },
-    Farm: {
-      Crops: createCRotations(
-        tilesets.IDs.Environment.Farm.CROPS,
-        "HORIZONTAL",
-        { 90: "VERTICAL" },
-      ),
-      SolarPanel: createCRotations(
-        tilesets.IDs.Environment.Farm.SOLAR_PANEL,
-        "VERTICAL",
-        { 90: "HORIZONTAL" },
-      ),
-    },
-    Grass: {
-      SolarPanel: createCRotations(
-        tilesets.IDs.Environment.Grass.SOLAR_PANEL,
-        "VERTICAL",
-        { 90: "HORIZONTAL" },
-      ),
-    },
-    Snow: {
-      Barn: createCRotations(tilesets.IDs.Environment.Snow.BARN, "TOP", {
-        90: "RIGHT",
-        180: "BOTTOM",
-        270: "LEFT",
-      }),
-      Crops: createCRotations(
-        tilesets.IDs.Environment.Snow.CROPS,
-        "HORIZONTAL",
-        { 90: "VERTICAL" },
-      ),
-      Hospital: createCRotations(
-        tilesets.IDs.Environment.Snow.HOSPITAL,
-        "TOP",
-        { 90: "RIGHT", 180: "BOTTOM", 270: "LEFT" },
-      ),
-      School: createCRotations(tilesets.IDs.Environment.Snow.SCHOOL, "BOTTOM", {
-        90: "LEFT",
-        180: "TOP",
-        270: "RIGHT",
-      }),
-      Shop: createCRotations(tilesets.IDs.Environment.Snow.SHOP, "LEFT", {
-        90: "TOP",
-        180: "RIGHT",
-        270: "BOTTOM",
-      }),
-      SolarPanel: createCRotations(
-        tilesets.IDs.Environment.Snow.SOLAR_PANEL,
-        "VERTICAL",
-        { 90: "HORIZONTAL" },
-      ),
-    },
-  },
 } as const
 export type ID = DeepNumbersOf<typeof IDs>
 export type RoadID = typeof IDs.EMPTY | DeepNumbersOf<typeof IDs.Road>
-export type EnvironmentID =
-  | typeof IDs.EMPTY
-  | DeepNumbersOf<typeof IDs.Environment>
 
 export function decode(id: ID) {
   const [h, v, d] = extract(id)
@@ -375,5 +278,7 @@ export function fillManyRows<
   ROWS extends number = typeof ROWS,
 >(options: FillManyRowsOptions<DID, COLS, ROWS> = {}) {
   const { rows = ROWS as ROWS, ...fillRowOptions } = options
-  return Array(rows).fill(fillRow(fillRowOptions)) as ManyRows<DID, COLS, ROWS>
+  return Array.from({ length: rows }, () =>
+    fillRow(fillRowOptions),
+  ) as ManyRows<DID, COLS, ROWS>
 }

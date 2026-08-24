@@ -1,4 +1,5 @@
 import BaseScene from "../BaseScene"
+import { SceneKeys } from "../../globals"
 
 /**
  * The HUD (Heads-Up Display) Scene is responsible for displaying game
@@ -8,7 +9,7 @@ import BaseScene from "../BaseScene"
  * essential information at a glance.
  */
 export default class extends BaseScene {
-  static readonly KEY = "HUD"
+  static readonly KEY = SceneKeys.Play.HUD
 
   create() {
     // This text will stay glued to the bottom-right of the screen.

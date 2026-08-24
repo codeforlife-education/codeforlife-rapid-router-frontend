@@ -10,6 +10,7 @@ import {
   START_BLOCK_TYPES,
   type StartBlockType,
 } from "./blocks"
+import { type BlockType } from "./blocks"
 import type { GameCommand } from "../app/slices"
 
 export type BlockDefinition<T extends string> = {
@@ -136,7 +137,10 @@ export function initializeBlockly(
  * block's rendered size, so callers can lay out differently sized previews
  * consistently, e.g. to align other elements that follow them in a list.
  */
-export function initializeBlockPreview(div: HTMLDivElement, blockType: string) {
+export function initializeBlockPreview(
+  div: HTMLDivElement,
+  blockType: BlockType,
+) {
   ensureBlocklyInitialized()
 
   const workspace = Blockly.inject(div, {

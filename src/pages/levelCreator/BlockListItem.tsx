@@ -1,13 +1,17 @@
+import {
+  Box,
+  Checkbox,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  type SelectChangeEvent,
+} from "@mui/material"
 import { type FC, useCallback } from "react"
-import Select, { type SelectChangeEvent } from "@mui/material/Select"
-import Box from "@mui/material/Box"
-import Checkbox from "@mui/material/Checkbox"
-import FormControl from "@mui/material/FormControl"
-import InputLabel from "@mui/material/InputLabel"
-import MenuItem from "@mui/material/MenuItem"
 
 import { type BlockDefinition } from "../../blockly/utils"
 import { BlockPreview } from "../../blockly"
+import { type BlockType } from "../../blockly/blocks"
 
 /** The number of instances of a block a player can use, or unlimited. */
 export type BlockCount = number | "infinite"
@@ -26,7 +30,7 @@ const BLOCK_COUNT_OPTIONS: BlockCount[] = [
 ]
 
 export interface BlockListItemProps {
-  block: BlockDefinition<string>
+  block: BlockDefinition<BlockType>
   enabled: boolean
   onEnabledChange: (enabled: boolean) => void
   count: BlockCount
@@ -77,7 +81,11 @@ const BlockListItem: FC<BlockListItemProps> = ({
       >
         <BlockPreview blockType={block.type} onSize={handlePreviewSize} />
       </Box>
-      <FormControl size="small" disabled={!enabled} sx={{ ml: "auto" }}>
+      <FormControl
+        size="small"
+        disabled={!enabled}
+        sx={{ ml: "auto", minWidth: 80 }}
+      >
         <InputLabel id={labelId}>Count</InputLabel>
         <Select
           labelId={labelId}

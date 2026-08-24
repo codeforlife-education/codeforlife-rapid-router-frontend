@@ -3,7 +3,6 @@ import { flattenStringValues } from "codeforlife/utils/object"
 import * as endpoints from "./endpoints"
 import * as objects from "../objects"
 import * as tilesets from "../../../../tilesets"
-import { TILE_HEIGHT, TILE_WIDTH } from "../../../../globals"
 
 const _IDs = tilesets.IDs.Endpoints.House
 const _Names = objects.Names.Endpoints.House
@@ -22,7 +21,7 @@ export type DiagonalRotationVariants = {
 }
 
 const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
-  kwArgs: Omit<endpoints.FactoryKwArgs<N, GID>, "width" | "height">,
+  kwArgs: endpoints.FactoryKwArgs<N, GID>,
   {
     left,
     top,
@@ -53,17 +52,14 @@ const factory = <N extends Name, GID extends tilesets.endpoints.house.ID>(
     outBottomLeft: outside.bottomLeft,
   }
 
-  return endpoints.factory(
-    { width: TILE_WIDTH * 0.5, height: TILE_HEIGHT * 0.5, ...kwArgs },
-    {
-      tileOffset: { col: 0.275, row: 0.275 },
-      left,
-      top,
-      right,
-      bottom,
-      ...diagonalRotationVariants,
-    },
-  )
+  return endpoints.factory(kwArgs, {
+    tileOffset: { col: 0.275, row: 0.275 },
+    left,
+    top,
+    right,
+    bottom,
+    ...diagonalRotationVariants,
+  })
 }
 
 export const common = {
@@ -95,19 +91,6 @@ export const common = {
   ),
   straw: factory(
     { gid: _IDs.Common.STRAW, name: _Names.Common.STRAW },
-    {
-      left: { rotation: 0 },
-      topLeft: { rotation: 45 },
-      top: { rotation: 90 },
-      topRight: { rotation: 135 },
-      right: { rotation: 180 },
-      bottomRight: { rotation: 225 },
-      bottom: { rotation: 270 },
-      bottomLeft: { rotation: 315 },
-    },
-  ),
-  wood: factory(
-    { gid: _IDs.Common.WOOD, name: _Names.Common.WOOD },
     {
       left: { rotation: 0 },
       topLeft: { rotation: 45 },
