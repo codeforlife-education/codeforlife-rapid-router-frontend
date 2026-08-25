@@ -80,11 +80,11 @@ export default class extends BaseLevel<LevelData> {
     this.scenery = new SceneryManager(this)
 
     const onExportLevel = () =>
-      this.setVariable("levelTiledJson", this.toExportedTilemap())
+      this.setVariable("exportedLevel", this.toExportedTilemap())
     this.game.events.on(Events.EXPORT_LEVEL, onExportLevel)
 
     const onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
-      if (key !== "levelTiledJson") return
+      if (key !== "exportedLevel") return
       // Restart via the Preloader so it can (re)build the tilemap/tilesets
       // from the newly-loaded Tiled JSON before this scene is created again.
       this.scene.start(SceneKeys.Create.PRELOADER)
@@ -100,7 +100,7 @@ export default class extends BaseLevel<LevelData> {
     // just been rebuilt from its Tiled JSON - rehydrate each manager's own
     // state (e.g. road connections, placed objects) to match.
     const exportedTilemap =
-      this.getVariable<tilemaps.ExportedOrthogonalTilemap>("levelTiledJson")
+      this.getVariable<tilemaps.ExportedOrthogonalTilemap>("exportedLevel")
     if (exportedTilemap) this.hydrateFromExportedTilemap(exportedTilemap)
   }
 

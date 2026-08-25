@@ -25,7 +25,7 @@ export default class extends BasePreloader {
     // If a level's Tiled JSON was set by React (i.e. the user chose to load an
     // existing level), use it instead of a blank tilemap.
     const exportedTilemap =
-      this.getVariable<tilemaps.ExportedOrthogonalTilemap>("levelTiledJson")
+      this.getVariable<tilemaps.ExportedOrthogonalTilemap>("exportedLevel")
     const tilemap: tilemaps.OrthogonalTilemap = exportedTilemap
       ? {
           ...exportedTilemap,

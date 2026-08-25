@@ -33,7 +33,7 @@ export const Variables = createIdRegistry({
   toolbox: "TOOLBOX",
   maxSceneryObjectCount: "MAX_SCENERY_OBJECT_COUNT",
   sceneryObjectCount: "SCENERY_OBJECT_COUNT",
-  levelTiledJson: "LEVEL_TILED_JSON",
+  exportedLevel: "EXPORTED_LEVEL",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
 

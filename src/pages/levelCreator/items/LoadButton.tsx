@@ -7,7 +7,7 @@ import {
 } from "../../../components/miniDrawers"
 import { usePhaserGameContext } from "../../../app/hooks"
 
-const exampleLevelTiledJson = {
+const exampleExportedLevel = {
   orientation: "orthogonal",
   renderorder: "right-down",
   version: 1,
@@ -1318,7 +1318,7 @@ const LoadButton: FC<LoadButtonProps> = ({ isDrawerOpen }) => {
       // TODO: Fetch the level's Tiled JSON from the API instead of using the
       //  hardcoded example.
       onClick={() =>
-        phaserGame?.setVariable("levelTiledJson", exampleLevelTiledJson)
+        phaserGame?.setVariable("exportedLevel", exampleExportedLevel)
       }
     />
   )

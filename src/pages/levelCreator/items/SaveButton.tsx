@@ -5,27 +5,29 @@ import {
   ButtonItem,
   type ButtonItemProps,
 } from "../../../components/miniDrawers"
+import type { ExportedOrthogonalTilemap } from "../../../phaser/tilemaps"
 import { usePhaserGameContext } from "../../../app/hooks"
 
 export interface SaveButtonProps
   extends Pick<ButtonItemProps, "isDrawerOpen"> {}
 
 const SaveButton: FC<SaveButtonProps> = ({ isDrawerOpen }) => {
-  const [levelTiledJson, setLevelTiledJson] = useState<string>()
+  const [exportedLevel, setExportedLevel] =
+    useState<ExportedOrthogonalTilemap>()
   const {
     ref: { current: phaserGame },
   } = usePhaserGameContext()
 
   useEffect(() => {
     if (phaserGame)
-      return phaserGame.getVariable("levelTiledJson", setLevelTiledJson)
+      return phaserGame.getVariable("exportedLevel", setExportedLevel)
   }, [phaserGame])
 
   useEffect(() => {
-    if (!levelTiledJson) return
-    // TODO: Save the levelTiledJson to a file or server when it changes.
-    console.log(levelTiledJson)
-  }, [levelTiledJson])
+    if (!exportedLevel) return
+    // TODO: Save the exportedLevel to a file or server when it changes.
+    console.log(exportedLevel)
+  }, [exportedLevel])
 
   return (
     <ButtonItem

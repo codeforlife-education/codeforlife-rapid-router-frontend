@@ -36,9 +36,9 @@ export default class extends BasePreloader {
         }
       ).default
     } else {
-      const levelTiledJson =
-        this.getVariable<tilemaps.ExportedOrthogonalTilemap>("levelTiledJson")!
-      tilemap = tilemaps.importOrthogonal(levelTiledJson)
+      const exportedTilemap =
+        this.getVariable<tilemaps.ExportedOrthogonalTilemap>("exportedLevel")!
+      tilemap = tilemaps.importOrthogonal(exportedTilemap)
     }
 
     this.loadTilemap(tilemap)
