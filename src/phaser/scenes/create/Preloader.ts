@@ -24,18 +24,20 @@ export default class extends BasePreloader {
   preload() {
     // If a level's Tiled JSON was set by React (i.e. the user chose to load an
     // existing level), use it instead of a blank tilemap.
-    let tilemap = this.getVariable<tilemaps.OrthogonalTilemap>("levelTiledJson")
-    tilemap = tilemap
+    const exportedTilemap =
+      this.getVariable<tilemaps.ExportedOrthogonalTilemap>("levelTiledJson")
+    const tilemap: tilemaps.OrthogonalTilemap = exportedTilemap
       ? {
-          ...tilemap,
+          ...exportedTilemap,
           // We want all the tilesets to be loaded, even if the level doesn't
           // use them all.
           tilesets,
           // Remove the objects so Phaser doesn't create them. Instead, the
-          // Level Scene's managers recreate them so their states stay in sync.
-          layers: tilemap.layers.map(layer =>
+          // Level Scene's managers recreate them (from the minimal data
+          // still in the registry) so their states stay in sync.
+          layers: exportedTilemap.layers.map(layer =>
             layer.type === "objectgroup" ? { ...layer, objects: [] } : layer,
-          ),
+          ) as tilemaps.OrthogonalTilemap["layers"],
         }
       : tilemaps.makeOrthogonal({
           properties: { background: "GRASS" },

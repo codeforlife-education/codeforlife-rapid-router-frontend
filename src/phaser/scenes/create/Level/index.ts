@@ -1,7 +1,6 @@
 import Phaser from "phaser"
 
 import type * as images from "../../../images"
-import type * as layers from "../../../layers"
 import * as tilemaps from "../../../tilemaps"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import { Events, SceneKeys } from "../../../globals"
@@ -81,7 +80,7 @@ export default class extends BaseLevel<LevelData> {
     this.scenery = new SceneryManager(this)
 
     const onExportLevel = () =>
-      this.setVariable("levelTiledJson", this.toTiledJSON())
+      this.setVariable("levelTiledJson", this.toExportedTilemap())
     this.game.events.on(Events.EXPORT_LEVEL, onExportLevel)
 
     const onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
@@ -100,54 +99,42 @@ export default class extends BaseLevel<LevelData> {
     // If this scene was (re)started to load a level, the tilemap/layers have
     // just been rebuilt from its Tiled JSON - rehydrate each manager's own
     // state (e.g. road connections, placed objects) to match.
-    const loadedTilemap =
-      this.getVariable<tilemaps.OrthogonalTilemap>("levelTiledJson")
-    if (loadedTilemap) this.hydrateFromTiledJSON(loadedTilemap)
+    const exportedTilemap =
+      this.getVariable<tilemaps.ExportedOrthogonalTilemap>("levelTiledJson")
+    if (exportedTilemap) this.hydrateFromExportedTilemap(exportedTilemap)
   }
 
-  /** Rehydrates every manager's state from a previously-loaded tilemap. */
-  private hydrateFromTiledJSON(tilemap: tilemaps.OrthogonalTilemap) {
-    const findLayer = (name: layers.Name) =>
-      tilemap.layers.find(layer => layer.name === name)!
-    const tilesOf = (name: layers.tile.Name) =>
-      (
-        findLayer(name) as Extract<
-          tilemaps.OrthogonalTilemap["layers"][number],
-          { type: "tilelayer" }
-        >
-      ).data as number[]
-    const objectsOf = (name: layers.objectGroup.Name) =>
-      (
-        findLayer(name) as Extract<
-          tilemaps.OrthogonalTilemap["layers"][number],
-          { type: "objectgroup" }
-        >
-      ).objects as {
-        gid: number
-        x: number
-        y: number
-        rotation: number
-        width: number
-        height: number
-        properties: { name: string; value: unknown }[]
-      }[]
-
-    this.road.fromTiledData(
-      tilesOf("Tile.ROAD") as layers.tile.data.RoadID[],
-      tilemap.width,
-    )
-
-    for (const obj of objectsOf("ObjectGroup.OBSTACLES"))
-      this.obstacle.fromTiledObject(obj)
-    for (const obj of objectsOf("ObjectGroup.ENDPOINTS"))
-      this.endpoint.fromTiledObject(obj)
-    for (const obj of objectsOf("ObjectGroup.SCENERY"))
-      this.scenery.fromTiledObject(obj)
+  /** Rehydrates every manager's state from a previously-exported tilemap. */
+  private hydrateFromExportedTilemap({
+    width,
+    layers: [
+      { data: roadData },
+      { objects: obstacleObjects },
+      { objects: endpointObjects },
+      { objects: sceneryObjects },
+    ],
+  }: tilemaps.ExportedOrthogonalTilemap) {
+    this.road.fromTiledData(roadData, width)
+    for (const obj of obstacleObjects) this.obstacle.fromExportedObject(obj)
+    for (const obj of endpointObjects) this.endpoint.fromExportedObject(obj)
+    for (const obj of sceneryObjects) this.scenery.fromExportedObject(obj)
   }
 
-  /** Exports the current editor state as a Tiled-compatible tilemap JSON. */
-  toTiledJSON(): tilemaps.OrthogonalTilemap {
-    return tilemaps.makeOrthogonal({
+  /** Exports the current editor state as a minimal tilemap JSON. */
+  toExportedTilemap(): tilemaps.ExportedOrthogonalTilemap {
+    // Built via the shared tilemap builder (with empty object-group layers,
+    // since it only knows the full Tiled object shape used by play-mode
+    // levels) then the real, minimal objects are spliced in afterwards.
+    const {
+      // Dropped since it was auto-derived from the still-empty object-group
+      // layers above, so it's missing every obstacle/endpoint/scenery
+      // tileset - `importOrthogonal` re-derives it once the real objects are
+      // spliced back in below.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      tilesets: _tilesets,
+      layers: [roadLayer, obstaclesLayer, endpointsLayer, sceneryLayer],
+      ...tilemap
+    } = tilemaps.makeOrthogonal({
       properties: {
         background: this.backgroundTileSprite.texture
           .key as keyof typeof images.URLs.Background,
@@ -155,12 +142,31 @@ export default class extends BaseLevel<LevelData> {
       layers: {
         tile: { road: { data: this.road.toTiledData() } },
         objectGroup: {
-          obstacles: { objects: this.obstacle.toTiledObjects() },
-          endpoints: { objects: this.endpoint.toTiledObjects() },
-          scenery: { objects: this.scenery.toTiledObjects() },
+          obstacles: { objects: [] },
+          endpoints: { objects: [] },
+          scenery: { objects: [] },
         },
       },
     })
+
+    return {
+      ...tilemap,
+      layers: [
+        roadLayer,
+        {
+          ...obstaclesLayer,
+          objects: this.obstacle.toExportedObjects(),
+        },
+        {
+          ...endpointsLayer,
+          objects: this.endpoint.toExportedObjects(),
+        },
+        {
+          ...sceneryLayer,
+          objects: this.scenery.toExportedObjects(),
+        },
+      ],
+    }
   }
 
   /** The currently active tool selected by the player. */

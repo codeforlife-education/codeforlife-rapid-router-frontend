@@ -24,7 +24,24 @@ export type OrthogonalTilemap = Omit<
   _OrthogonalTilemap,
   "layers" | "tilesets" | "properties"
 > & {
-  layers: layers.Layer[]
+  layers: [
+    layers.tile.Layer<"Tile.ROAD", layers.tile.data.RoadID>,
+    layers.objectGroup.Layer<
+      "ObjectGroup.OBSTACLES",
+      layers.objectGroup.objects.obstacles.Name,
+      tilesets.obstacles.ID
+    >,
+    layers.objectGroup.Layer<
+      "ObjectGroup.ENDPOINTS",
+      layers.objectGroup.objects.endpoints.Name,
+      tilesets.endpoints.ID
+    >,
+    layers.objectGroup.Layer<
+      "ObjectGroup.SCENERY",
+      layers.objectGroup.objects.scenery.Name,
+      tilesets.scenery.ID
+    >,
+  ]
   tilesets: tilesets.Tileset<tilesets.ID, any>[]
   properties: [
     {
@@ -220,4 +237,142 @@ export const makeOrthogonal = <
     ],
     ...tilemap,
   }
+}
+
+/** The minimal data needed to recreate a tile-anchored object. */
+export type ExportedRoadObject<GID extends layers.objectGroup.objects.ID> = {
+  gid: GID
+  properties: [
+    { name: "variant"; type: "string"; value: string },
+    { name: "tileRow"; type: "int"; value: number },
+    { name: "tileCol"; type: "int"; value: number },
+  ]
+}
+/** The minimal data needed to recreate a free (non-tile-anchored) object. */
+export type ExportedFreeObject<GID extends layers.objectGroup.objects.ID> = {
+  gid: GID
+  x: number
+  y: number
+  width: number
+  height: number
+  rotation: number
+}
+/** The minimal data needed to recreate an orthogonal tilemap. */
+export type ExportedOrthogonalTilemap = Omit<
+  OrthogonalTilemap,
+  "layers" | "tilesets"
+> & {
+  layers: [
+    layers.tile.Layer<"Tile.ROAD", layers.tile.data.RoadID>,
+    layers.objectGroup.Layer<
+      "ObjectGroup.OBSTACLES",
+      layers.objectGroup.objects.obstacles.Name,
+      tilesets.obstacles.ID,
+      ExportedRoadObject<tilesets.obstacles.ID>
+    >,
+    layers.objectGroup.Layer<
+      "ObjectGroup.ENDPOINTS",
+      layers.objectGroup.objects.endpoints.Name,
+      tilesets.endpoints.ID,
+      ExportedRoadObject<tilesets.endpoints.ID>
+    >,
+    layers.objectGroup.Layer<
+      "ObjectGroup.SCENERY",
+      layers.objectGroup.objects.scenery.Name,
+      tilesets.scenery.ID,
+      ExportedFreeObject<tilesets.scenery.ID>
+    >,
+  ]
+}
+
+/**
+ * Reconstructs a full, spec-shaped Tiled tilemap from a previously-exported
+ * minimal one (see `ExportedOrthogonalTilemap`) - re-deriving each object's
+ * full position/rotation/name/etc. from its gid/variant/tile via the same
+ * factories used to create it in the first place, so it can be loaded
+ * directly by Phaser's native tilemap/object-layer renderer (e.g. play mode).
+ */
+export const importOrthogonal = ({
+  width,
+  height,
+  properties: [{ value: background }],
+  layers: [roadLayer, obstaclesLayer, endpointsLayer, sceneryLayer],
+  ...tilemap
+}: ExportedOrthogonalTilemap): OrthogonalTilemap => {
+  // Reconstructs a full road object from its minimal exported data.
+  const importRoadObject = <
+    N extends layers.objectGroup.objects.Name,
+    GID extends layers.objectGroup.objects.ID,
+  >({
+    gid,
+    properties: [{ value: variantKey }, { value: row }, { value: col }],
+  }: ExportedRoadObject<GID>) => {
+    const factory = layers.objectGroup.objects.getFactory<N, GID, string>(gid)!
+    return factory[variantKey]({ row, col })
+  }
+
+  // Reconstructs a full free object from its minimal exported data.
+  const importFreeObject = <
+    N extends layers.objectGroup.objects.Name,
+    GID extends layers.objectGroup.objects.ID,
+  >({
+    gid,
+    x,
+    y,
+    rotation,
+  }: ExportedFreeObject<GID>) => {
+    const factory = layers.objectGroup.objects.getFactory<N, GID, string>(gid)!
+    // The factory's own x/y is ignored (see `BaseFreeObjectManager`), since
+    // only the position we already recovered from the export is accurate.
+    return { ...factory({}), x, y, rotation }
+  }
+
+  // Converts a flat array of tile IDs into a 2D array with the correct
+  // row/column structure.
+  const importTileData = <ID extends layers.tile.data.ID>(data: ID[]) =>
+    Array.from({ length: height }, (_, row) =>
+      data.slice(row * width, (row + 1) * width),
+    ) as (ID[] & { length: typeof COLS })[] & { length: typeof ROWS }
+
+  return makeOrthogonal({
+    ...tilemap,
+    // Force re-derivation from the (now fully-reconstructed) objects below,
+    // in case a stale/incomplete value leaked in via the spread above.
+    tilesets: undefined,
+    width,
+    height,
+    properties: { background },
+    layers: {
+      tile: { road: { data: importTileData(roadLayer.data) } },
+      objectGroup: {
+        obstacles: {
+          ...obstaclesLayer,
+          objects: obstaclesLayer.objects.map(
+            importRoadObject<
+              layers.objectGroup.objects.obstacles.Name,
+              tilesets.obstacles.ID
+            >,
+          ),
+        },
+        endpoints: {
+          ...endpointsLayer,
+          objects: endpointsLayer.objects.map(
+            importRoadObject<
+              layers.objectGroup.objects.endpoints.Name,
+              tilesets.endpoints.ID
+            >,
+          ),
+        },
+        scenery: {
+          ...sceneryLayer,
+          objects: sceneryLayer.objects.map(
+            importFreeObject<
+              layers.objectGroup.objects.scenery.Name,
+              tilesets.scenery.ID
+            >,
+          ),
+        },
+      },
+    },
+  })
 }

@@ -7,6 +7,7 @@ import BaseObjectGroupLayerManager, {
   type Placed,
 } from "./BaseObjectGroupLayerManager"
 import { Events, TILE_HEIGHT, TILE_WIDTH, Variables } from "../../../globals"
+import type { ExportedFreeObject } from "../../../tilemaps"
 import type { default as Level } from "."
 
 type Drag = {
@@ -121,36 +122,36 @@ export default abstract class BaseFreeObjectManager<
   }
 
   /**
-   * Exports every placed object as a Tiled object. Since these objects rotate
-   * freely about their centre (rather than Tiled's rotation-about-anchor
-   * convention), the anchor is recovered by rotating the pre-rotation
-   * bottom-left corner back around the object's current centre.
+   * Exports every placed object as a minimal Tiled-like object. Since these
+   * objects rotate freely about their centre (rather than Tiled's
+   * rotation-about-anchor convention), the anchor is recovered by rotating
+   * the pre-rotation bottom-left corner back around the object's current
+   * centre.
    *
    * The corner is computed from the tileset's declared dimensions (not the
-   * object's live display size) since that's what ends up in the exported
-   * JSON's `width`/`height` fields, and what `fromTiledObject` inverts.
+   * object's live display size) so that it's exactly invertible by
+   * `fromExportedObject`, regardless of whether the declared size matches the
+   * object's true rendered size.
    */
-  toTiledObjects(): objects.FactoryObject<Name, ID>[] {
+  toExportedObjects(): ExportedFreeObject<ID>[] {
     return this.placedObjects.map(obj => {
       const placed = this.getPlaced(obj)!
       const tileset = tilesets.getTileset(placed.id)!
-      const imagewidth = tileset.imagewidth ?? TILE_WIDTH
-      const imageheight = tileset.imageheight ?? TILE_HEIGHT
+      const width = tileset.imagewidth ?? TILE_WIDTH
+      const height = tileset.imageheight ?? TILE_HEIGHT
       const anchor = Phaser.Math.RotateAround(
-        { x: obj.x - imagewidth / 2, y: obj.y + imageheight / 2 },
+        { x: obj.x - width / 2, y: obj.y + height / 2 },
         obj.x,
         obj.y,
         obj.rotation,
       )
 
       return {
-        // Some factories (e.g. scenery) bake an intrinsic x/y offset into
-        // their base kwArgs, which `add` deliberately discards by setting
-        // the object's position explicitly afterwards - so do the same here
-        // rather than trusting the factory's own computed x/y.
-        ...this.getFactory(placed.id)!({ x: anchor.x, y: anchor.y }),
+        gid: placed.id,
         x: anchor.x,
         y: anchor.y,
+        width,
+        height,
         rotation: obj.angle,
       }
     })
@@ -161,26 +162,21 @@ export default abstract class BaseFreeObjectManager<
    * The inverse of `toTiledObjects`: the anchor and rotation are used to
    * recover the centre position these objects are actually placed at.
    */
-  fromTiledObject(obj: {
-    gid: number
-    x: number
-    y: number
-    rotation: number
-    width: number
-    height: number
-  }) {
+  fromExportedObject({
+    width,
+    height,
+    x,
+    y,
+    rotation,
+    gid,
+  }: ExportedFreeObject<ID>) {
     const cornerOffset = Phaser.Math.RotateAround(
-      { x: -obj.width / 2, y: obj.height / 2 },
+      { x: -width / 2, y: height / 2 },
       0,
       0,
-      Phaser.Math.DegToRad(obj.rotation),
+      Phaser.Math.DegToRad(rotation),
     )
-
-    this.add(
-      obj.x - cornerOffset.x,
-      obj.y - cornerOffset.y,
-      obj.gid as ID,
-    )?.setAngle(obj.rotation)
+    this.add(x - cornerOffset.x, y - cornerOffset.y, gid)?.setAngle(rotation)
   }
 
   private get endpoints() {

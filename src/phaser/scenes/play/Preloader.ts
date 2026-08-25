@@ -1,9 +1,9 @@
 import Phaser from "phaser"
 
-import { SceneKeys, Variables } from "../../globals"
+import * as tilemaps from "../../tilemaps"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
-import type { OrthogonalTilemap } from "../../tilemaps"
+import { SceneKeys } from "../../globals"
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for
@@ -22,14 +22,24 @@ export default class extends BasePreloader {
     void this.lazyLoadTilemap()
   }
 
+  /**
+   * Loads a predefined level by id if one was set, otherwise expands a
+   * previously-exported (and possibly still-unsaved) level's Tiled JSON.
+   */
   async lazyLoadTilemap() {
-    // Get the level ID from the registry.
-    const levelId = this.game.registry.get(Variables.LEVEL_ID) as number
-
-    // Dynamically import the tilemap JSON file based on the level ID.
-    const { default: tilemap } = (await import(
-      `../../tilemaps/level${levelId}.ts`
-    )) as { default: OrthogonalTilemap }
+    let tilemap: tilemaps.OrthogonalTilemap
+    const levelId = this.getVariable<number>("levelId")
+    if (levelId !== undefined) {
+      tilemap = (
+        (await import(`../../tilemaps/level${levelId}.ts`)) as {
+          default: tilemaps.OrthogonalTilemap
+        }
+      ).default
+    } else {
+      const levelTiledJson =
+        this.getVariable<tilemaps.ExportedOrthogonalTilemap>("levelTiledJson")!
+      tilemap = tilemaps.importOrthogonal(levelTiledJson)
+    }
 
     this.loadTilemap(tilemap)
 

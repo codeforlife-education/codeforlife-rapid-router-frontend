@@ -4,6 +4,7 @@ import BaseObjectGroupLayerManager, {
   type Placed,
 } from "./BaseObjectGroupLayerManager"
 import { Events, Variables } from "../../../globals"
+import type { ExportedRoadObject } from "../../../tilemaps"
 import type { default as Level } from "."
 import type { objects } from "../../../layers/objectGroup"
 
@@ -105,26 +106,17 @@ export default abstract class BaseRoadObjectManager<
   ): void
 
   /** Exports every placed object as Tiled objects, keyed by their tile. */
-  toTiledObjects(): objects.FactoryObject<Name, ID>[] {
-    const result: objects.FactoryObject<Name, ID>[] = []
-
+  toExportedObjects(): ExportedRoadObject<ID>[] {
+    const objects: ExportedRoadObject<ID>[] = []
     for (let row = 0; row < this.level.tilemap.height; row++) {
       for (let col = 0; col < this.level.tilemap.width; col++) {
-        const tile = { row, col }
-        const placed = this.getPlaced(tile)
+        const placed = this.getPlaced({ row, col })
         if (!placed) continue
 
-        const factory = this.getFactory(placed.id, placed.variantKey)
-        if (!factory) continue
-
-        const obj = factory(tile)
-        // Store the tile directly rather than relying on it being
-        // recoverable from x/y, since some variants' `tileOffset`s shift
-        // the exported position outside of their own tile's bounds.
-        result.push({
-          ...obj,
+        objects.push({
+          gid: placed.id,
           properties: [
-            ...obj.properties,
+            { name: "variant", type: "string", value: placed.variantKey },
             { name: "tileRow", type: "int", value: row },
             { name: "tileCol", type: "int", value: col },
           ],
@@ -132,7 +124,7 @@ export default abstract class BaseRoadObjectManager<
       }
     }
 
-    return result
+    return objects
   }
 
   /**
@@ -140,22 +132,13 @@ export default abstract class BaseRoadObjectManager<
    * The object's variant and tile are both read directly from its
    * properties, so no search is needed to recover them.
    */
-  fromTiledObject(obj: {
-    gid: number
-    properties: { name: string; value: unknown }[]
-  }) {
-    const id = obj.gid as ID
-    const getProp = (name: string) =>
-      obj.properties.find(p => p.name === name)?.value
-    const variantKey = getProp("variant") as VariantKey | undefined
-    const row = getProp("tileRow") as number | undefined
-    const col = getProp("tileCol") as number | undefined
-    if (variantKey === undefined || row === undefined || col === undefined)
-      return
-
+  fromExportedObject({
+    gid,
+    properties: [{ value: variantKey }, { value: row }, { value: col }],
+  }: ExportedRoadObject<ID>) {
     const tile = { row, col }
-    if (!this.canPlace(tile, id)) return
-    this.place(tile, id, variantKey)
+    if (!this.canPlace(tile, gid)) return
+    this.place(tile, gid, variantKey as VariantKey)
   }
 
   protected sameKey(
