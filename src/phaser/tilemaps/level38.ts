@@ -10,15 +10,15 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.dirt.deadEnd,
     tilesets.endpoints.cfc.barn.red,
     tilesets.endpoints.house.common.straw,
-    tilesets.scenery.common.tree1,
-    tilesets.scenery.common.tree2,
+    tilesets.scenery.nature.tree.oak,
+    tilesets.scenery.nature.tree.pine,
   ],
   layers: {
     tile: {
       road: {
         data: [
           // Row 1 - 10 columns of empty tiles
-          ...layers.tile.data.fillRow({ cols: 10 }),
+          [...layers.tile.data.fillRow({ cols: 10 })],
           // Row 2
           [
             // 1 column of right-turn road tile

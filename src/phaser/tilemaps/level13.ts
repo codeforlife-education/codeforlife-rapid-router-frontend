@@ -11,8 +11,8 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.asphalt.tJunction,
     tilesets.endpoints.cfc.warehouse.default,
     tilesets.endpoints.house.common.orange,
-    tilesets.scenery.common.tree1,
-    tilesets.scenery.common.tree2,
+    tilesets.scenery.nature.tree.oak,
+    tilesets.scenery.nature.tree.pine,
   ],
   layers: {
     tile: {
@@ -188,12 +188,12 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          // layers.objectGroup.objects.scenery.common.tree1({ col: 1, row: -2 }),
-          // layers.objectGroup.objects.scenery.common.tree1({ col: 2, row: 0 }),
-          // layers.objectGroup.objects.scenery.common.tree1({ col: 3, row: -2 }),
-          // layers.objectGroup.objects.scenery.common.tree1({ col: 3, row: -1 }),
-          // layers.objectGroup.objects.scenery.common.tree2({ col: 4, row: -2 }),
-          // layers.objectGroup.objects.scenery.common.tree1({ col: 4, row: -1 }),
+          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 1, row: -2 }),
+          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 2, row: 0 }),
+          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 3, row: -2 }),
+          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 3, row: -1 }),
+          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 4, row: -2 }),
+          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 4, row: -1 }),
         ],
       },
     },

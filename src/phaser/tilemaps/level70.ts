@@ -12,8 +12,8 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.asphalt.deadEnd,
     tilesets.endpoints.cfc.warehouse.snow,
     tilesets.endpoints.house.snow.orange,
-    tilesets.scenery.snow.tree1,
-    tilesets.scenery.snow.tree2,
+    tilesets.scenery.nature.snow.tree.oak,
+    tilesets.scenery.nature.snow.tree.pine,
   ],
   layers: {
     tile: {

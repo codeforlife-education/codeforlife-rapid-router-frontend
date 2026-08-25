@@ -10,8 +10,8 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.dirt.deadEnd,
     tilesets.endpoints.cfc.barn.red,
     tilesets.endpoints.house.common.straw,
-    tilesets.scenery.common.tree1,
-    tilesets.scenery.common.tree2,
+    tilesets.scenery.nature.tree.oak,
+    tilesets.scenery.nature.tree.pine,
   ],
   layers: {
     tile: {

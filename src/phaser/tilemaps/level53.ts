@@ -11,8 +11,8 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.dirt.crossroads,
     tilesets.endpoints.cfc.barn.red,
     tilesets.endpoints.house.common.straw,
-    tilesets.scenery.common.tree1,
-    tilesets.scenery.common.tree2,
+    tilesets.scenery.nature.tree.oak,
+    tilesets.scenery.nature.tree.pine,
   ],
   layers: {
     tile: {
@@ -68,6 +68,8 @@ export default tilemaps.makeOrthogonal({
               id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
               cols: 1,
             }),
+            // 1 column of empty tiles
+            ...layers.tile.data.fillRow({ cols: 1 }),
           ],
           // Row 4
           [

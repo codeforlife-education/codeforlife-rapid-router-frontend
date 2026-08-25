@@ -11,19 +11,19 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.asphalt.deadEnd,
     tilesets.endpoints.cfc.warehouse.default,
     tilesets.endpoints.house.common.orange,
-    tilesets.scenery.common.tree1,
-    tilesets.scenery.common.tree2,
+    tilesets.scenery.nature.tree.oak,
+    tilesets.scenery.nature.tree.pine,
   ],
   layers: {
     tile: {
       road: {
         data: [
           // Row 1 - 10 columns of empty tiles
-          ...layers.tile.data.fillRow({ cols: 10 }),
+          [...layers.tile.data.fillRow({ cols: 10 })],
           // Row 2 - 10 columns of empty tiles
-          ...layers.tile.data.fillRow({ cols: 10 }),
+          [...layers.tile.data.fillRow({ cols: 10 })],
           // Row 3 - 10 columns of empty tiles
-          ...layers.tile.data.fillRow({ cols: 10 }),
+          [...layers.tile.data.fillRow({ cols: 10 })],
           // Row 4
           [
             // 2 columns of empty tiles
@@ -93,9 +93,9 @@ export default tilemaps.makeOrthogonal({
             ...layers.tile.data.fillRow({ cols: 5 }),
           ],
           // Row 7 - 10 columns of empty tiles
-          ...layers.tile.data.fillRow({ cols: 10 }),
+          [...layers.tile.data.fillRow({ cols: 10 })],
           // Row 8 - 10 columns of empty tiles
-          ...layers.tile.data.fillRow({ cols: 10 }),
+          [...layers.tile.data.fillRow({ cols: 10 })],
         ],
       },
     },

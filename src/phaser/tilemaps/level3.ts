@@ -10,7 +10,7 @@ export default tilemaps.makeOrthogonal({
     tilesets.road.asphalt.turn,
     tilesets.endpoints.cfc.warehouse.default,
     tilesets.endpoints.house.common.orange,
-    tilesets.scenery.common.tree2,
+    tilesets.scenery.nature.tree.pine,
   ],
   layers: {
     tile: {
@@ -61,16 +61,46 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          layers.objectGroup.objects.scenery.common.tree2({ col: 0, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 1, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 2, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 3, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 4, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 5, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 6, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 7, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 8, row: 1 }),
-          layers.objectGroup.objects.scenery.common.tree2({ col: 9, row: 1 }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 0,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 1,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 2,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 3,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 4,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 5,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 6,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 7,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 8,
+            row: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            col: 9,
+            row: 1,
+          }),
         ],
       },
     },
