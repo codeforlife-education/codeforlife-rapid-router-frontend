@@ -9,7 +9,6 @@ import {
   MenuItem,
   Modal,
   Select,
-  type SelectChangeEvent,
   TextField,
   Tooltip,
   Typography,
@@ -19,36 +18,23 @@ import { Close as CloseIcon } from "@mui/icons-material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 
 import BlockListItem, { type BlockCount } from "./BlockListItem"
-import { CUSTOM_BLOCKS, START_BLOCK_TYPES } from "../../blockly/blocks"
+import {
+  DELETABLE_CUSTOM_BLOCKS,
+  type DeletableBlockType,
+} from "../../blockly/blocks"
 
-// The start block isn't an optional, player-selectable block like the others -
-// it's always present, so it's excluded from this list.
-const BLOCKS = CUSTOM_BLOCKS.filter(
-  block => !(START_BLOCK_TYPES as readonly string[]).includes(block.type),
-)
-
-export interface CodeSettings {
-  language: string
-  maxMoves: number
-  blockCounts: Record<string, BlockCount>
-  blockEnabled: Record<string, boolean>
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const DEFAULT_CODE_SETTINGS: CodeSettings = {
-  language: "Blockly",
-  maxMoves: 50,
-  blockCounts: Object.fromEntries(
-    BLOCKS.map(block => [block.type, "infinite"]),
-  ),
-  blockEnabled: Object.fromEntries(BLOCKS.map(block => [block.type, true])),
-}
-
-const LANGUAGE_OPTIONS: Record<string, string> = {
+const LANGUAGE_OPTIONS = {
   Blockly: "Solve your level using Blockly blocks only.",
   "Blockly with Python view":
     "As you play your level with Blockly, you will see the equivalent Python translation in a code editor.",
   Python: "Solve your level using Python code only.",
+} as const satisfies Record<string, string>
+type Language = keyof typeof LANGUAGE_OPTIONS
+
+export interface Code {
+  language: Language
+  maxMoves: number
+  blocks: Record<DeletableBlockType, { count: BlockCount; enabled: boolean }>
 }
 
 const LanguageOptionLabel: FC<{ label: string; tooltip: string }> = ({
@@ -78,48 +64,25 @@ const LanguageOptionLabel: FC<{ label: string; tooltip: string }> = ({
 // Used to fill the multi-column grid layouts column-by-column (top to
 // bottom in the first column, then top to bottom in the next, and so on)
 // instead of the grid's default row-by-row fill order.
-const BLOCK_ROWS_TWO_COLUMNS = Math.ceil(BLOCKS.length / 2)
-const BLOCK_ROWS_THREE_COLUMNS = Math.ceil(BLOCKS.length / 3)
+const BLOCK_ROWS_TWO_COLUMNS = Math.ceil(DELETABLE_CUSTOM_BLOCKS.length / 2)
+const BLOCK_ROWS_THREE_COLUMNS = Math.ceil(DELETABLE_CUSTOM_BLOCKS.length / 3)
 
 export interface CodeModalProps {
   open: boolean
-  value: CodeSettings
+  value: Code
   onClose: () => void
-  onSubmit: (value: CodeSettings) => void
+  onSubmit: (value: Code) => void
 }
 
 const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
-  const [language, setLanguage] = useState(value.language)
-
-  const handleChange = (event: SelectChangeEvent) => {
-    setLanguage(event.target.value)
-  }
-
-  const [maxMoves, setMaxMoves] = useState(value.maxMoves)
-
-  const [blockCounts, setBlockCounts] = useState(value.blockCounts)
-
-  const handleBlockCountChange = (type: string, count: BlockCount) => {
-    setBlockCounts(prev => ({ ...prev, [type]: count }))
-  }
-
-  const [blockEnabled, setBlockEnabled] = useState(value.blockEnabled)
+  const [code, setCode] = useState(value)
 
   // Discard any unsaved edits and restore the last saved values whenever the
   // modal is (re)opened.
   useEffect(() => {
-    if (open) {
-      setLanguage(value.language)
-      setMaxMoves(value.maxMoves)
-      setBlockCounts(value.blockCounts)
-      setBlockEnabled(value.blockEnabled)
-    }
+    if (open) setCode(value)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
-
-  const handleBlockEnabledChange = (type: string, enabled: boolean) => {
-    setBlockEnabled(prev => ({ ...prev, [type]: enabled }))
-  }
 
   // Track the widest rendered block preview so every row reserves the same
   // width for its preview, keeping the count selectors aligned regardless
@@ -130,22 +93,30 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
     setPreviewSlotWidth(prev => Math.max(prev, width))
   }, [])
 
-  const enabledCount = Object.values(blockEnabled).filter(Boolean).length
-  const allEnabled = enabledCount === BLOCKS.length
+  const enabledCount = Object.values(code.blocks).filter(
+    ({ enabled }) => enabled,
+  ).length
+  const allEnabled = enabledCount === DELETABLE_CUSTOM_BLOCKS.length
   const someEnabled = enabledCount > 0 && !allEnabled
 
   const handleSelectAllChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const { checked } = event.target
-    setBlockEnabled(
-      Object.fromEntries(BLOCKS.map(block => [block.type, checked])),
-    )
+    const { checked: enabled } = event.target
+    setCode(prev => ({
+      ...prev,
+      blocks: Object.fromEntries(
+        DELETABLE_CUSTOM_BLOCKS.map(({ type }) => [
+          type,
+          { ...prev.blocks[type], enabled },
+        ]),
+      ) as Code["blocks"],
+    }))
   }
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onSubmit({ language, maxMoves, blockCounts, blockEnabled })
+    onSubmit(code)
     onClose()
   }
 
@@ -188,8 +159,10 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
               labelId="language-label"
               id="language-select"
               label="Language"
-              value={language}
-              onChange={handleChange}
+              value={code.language}
+              onChange={event =>
+                setCode(prev => ({ ...prev, language: event.target.value }))
+              }
               MenuProps={{
                 anchorOrigin: { vertical: "bottom", horizontal: "left" },
                 transformOrigin: { vertical: "top", horizontal: "left" },
@@ -213,12 +186,14 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
             label="Max steps"
             variant="outlined"
             size="medium"
-            value={maxMoves}
+            value={code.maxMoves}
             onChange={event => {
               const value = Number(event.target.value)
-              if (!Number.isNaN(value)) {
-                setMaxMoves(Math.min(100, Math.max(1, value)))
-              }
+              if (Number.isNaN(value)) return
+              setCode(prev => ({
+                ...prev,
+                maxMoves: Math.min(100, Math.max(1, value)),
+              }))
             }}
             slotProps={{ htmlInput: { min: 1, max: 100, size: 4 } }}
             sx={{
@@ -230,7 +205,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
             }}
           />
         </Box>
-        {language !== "Python" && (
+        {code.language !== "Python" && (
           <>
             <Typography variant="h6">Blocks</Typography>
             <FormControlLabel
@@ -252,7 +227,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
                   lg: "repeat(3, 1fr)",
                 },
                 gridTemplateRows: {
-                  xs: `repeat(${BLOCKS.length}, auto)`,
+                  xs: `repeat(${DELETABLE_CUSTOM_BLOCKS.length}, auto)`,
                   md: `repeat(${BLOCK_ROWS_TWO_COLUMNS}, auto)`,
                   lg: `repeat(${BLOCK_ROWS_THREE_COLUMNS}, auto)`,
                 },
@@ -261,17 +236,29 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
                 columnGap: 4,
               }}
             >
-              {BLOCKS.map(block => (
+              {DELETABLE_CUSTOM_BLOCKS.map(block => (
                 <BlockListItem
                   key={block.type}
                   block={block}
-                  enabled={blockEnabled[block.type]}
-                  onEnabledChange={(enabled: boolean) =>
-                    handleBlockEnabledChange(block.type, enabled)
+                  enabled={code.blocks[block.type].enabled}
+                  onEnabledChange={enabled =>
+                    setCode(prev => ({
+                      ...prev,
+                      blocks: {
+                        ...prev.blocks,
+                        [block.type]: { ...prev.blocks[block.type], enabled },
+                      },
+                    }))
                   }
-                  count={blockCounts[block.type]}
+                  count={code.blocks[block.type].count}
                   onCountChange={count =>
-                    handleBlockCountChange(block.type, count)
+                    setCode(prev => ({
+                      ...prev,
+                      blocks: {
+                        ...prev.blocks,
+                        [block.type]: { ...prev.blocks[block.type], count },
+                      },
+                    }))
                   }
                   previewSlotWidth={previewSlotWidth || undefined}
                   onPreviewWidth={handlePreviewWidth}

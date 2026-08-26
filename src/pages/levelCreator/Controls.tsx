@@ -19,14 +19,10 @@ import type Phaser from "phaser"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import * as tilesets from "../../phaser/tilesets"
-import CodeModal, {
-  type CodeSettings,
-  DEFAULT_CODE_SETTINGS,
-} from "./CodeModal"
-import DescriptionModal, {
-  DEFAULT_DESCRIPTION_SETTINGS,
-  type DescriptionSettings,
-} from "./DescriptionModal"
+import CharacterModal, { type Character } from "./CharacterModal"
+import CodeModal, { type Code } from "./CodeModal"
+import DescriptionModal, { type Description } from "./DescriptionModal"
+import { DELETABLE_CUSTOM_BLOCKS } from "../../blockly/blocks"
 import EndpointsControls from "./endpoints/Controls"
 import ObstaclesControls from "./obstacles/Controls"
 import RoadControls from "./road/Controls"
@@ -36,18 +32,36 @@ import { usePhaserGameContext } from "../../app/hooks"
 
 const Controls: FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [activeModal, setActiveModal] = useState<"code" | "description" | null>(
-    null,
-  )
-  const [codeSettings, setCodeSettings] = useState<CodeSettings>(
-    DEFAULT_CODE_SETTINGS,
-  )
-  const [descriptionSettings, setDescriptionSettings] =
-    useState<DescriptionSettings>(DEFAULT_DESCRIPTION_SETTINGS)
   const {
     ref: { current: phaserGame },
     activeSceneKeys,
   } = usePhaserGameContext()
+
+  // States for the modals and their content.
+  const [code, setCode] = useState<Code>({
+    language: "Blockly",
+    maxMoves: 50,
+    blocks: DELETABLE_CUSTOM_BLOCKS.reduce(
+      (blocks, { type }) => ({
+        ...blocks,
+        [type]: { count: "infinite", enabled: true },
+      }),
+      {} as Code["blocks"],
+    ),
+  })
+  const [description, setDescription] = useState<Description>({
+    subtitle: "",
+    description: "",
+    hint: "",
+  })
+  const [character, setCharacter] = useState<Character>("van")
+  // The currently active modal, if any.
+  const [activeModal, setActiveModal] = useState<
+    "code" | "description" | "character"
+  >()
+
+  // A helper function to close any active modal.
+  const closeModal = () => setActiveModal(undefined)
 
   // States for each box's tool - persist the last selected tool for each box.
   const [roadTool, setRoadTool] =
@@ -172,11 +186,10 @@ const Controls: FC = () => {
           isDrawerOpen={isDrawerOpen}
           text="Character"
           icon={<LocalShippingIcon />}
+          onClick={() => setActiveModal("character")}
         />
         <miniDrawers.ButtonItem
-          id="code"
           isDrawerOpen={isDrawerOpen}
-          selected={activeModal === "code"}
           text="Code"
           icon={<ExtensionIcon />}
           onClick={() => setActiveModal("code")}
@@ -188,9 +201,7 @@ const Controls: FC = () => {
         icon={<CasinoIcon />}
         /> */}
         <miniDrawers.ButtonItem
-          id="description"
           isDrawerOpen={isDrawerOpen}
-          selected={activeModal === "description"}
           text="Description"
           icon={<DescriptionIcon />}
           onClick={() => setActiveModal("description")}
@@ -225,15 +236,21 @@ const Controls: FC = () => {
       </miniDrawers.MiniDrawer>
       <CodeModal
         open={activeModal === "code"}
-        value={codeSettings}
-        onClose={() => setActiveModal(null)}
-        onSubmit={setCodeSettings}
+        value={code}
+        onClose={closeModal}
+        onSubmit={setCode}
       />
       <DescriptionModal
         open={activeModal === "description"}
-        value={descriptionSettings}
-        onClose={() => setActiveModal(null)}
-        onSubmit={setDescriptionSettings}
+        value={description}
+        onClose={closeModal}
+        onSubmit={setDescription}
+      />
+      <CharacterModal
+        open={activeModal === "character"}
+        value={character}
+        onClose={closeModal}
+        onSubmit={setCharacter}
       />
     </>
   )

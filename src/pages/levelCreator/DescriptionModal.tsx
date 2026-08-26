@@ -9,24 +9,17 @@ import {
 import { type FC, useEffect, useState } from "react"
 import { Close as CloseIcon } from "@mui/icons-material"
 
-export interface DescriptionSettings {
+export interface Description {
   subtitle: string
   description: string
   hint: string
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const DEFAULT_DESCRIPTION_SETTINGS: DescriptionSettings = {
-  subtitle: "",
-  description: "",
-  hint: "",
-}
-
 export interface DescriptionModalProps {
   open: boolean
-  value: DescriptionSettings
+  value: Description
   onClose: () => void
-  onSubmit: (value: DescriptionSettings) => void
+  onSubmit: (value: Description) => void
 }
 
 const DescriptionModal: FC<DescriptionModalProps> = ({
@@ -35,24 +28,18 @@ const DescriptionModal: FC<DescriptionModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [subtitle, setSubtitle] = useState(value.subtitle)
-  const [description, setDescription] = useState(value.description)
-  const [hint, setHint] = useState(value.hint)
+  const [description, setDescription] = useState(value)
 
   // Discard any unsaved edits and restore the last saved values whenever the
   // modal is (re)opened.
   useEffect(() => {
-    if (open) {
-      setSubtitle(value.subtitle)
-      setDescription(value.description)
-      setHint(value.hint)
-    }
+    if (open) setDescription(value)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onSubmit({ subtitle, description, hint })
+    onSubmit(description)
     onClose()
   }
 
@@ -98,8 +85,13 @@ const DescriptionModal: FC<DescriptionModalProps> = ({
           label="Subtitle"
           sx={{ mb: 2 }}
           placeholder="What is the subtitle for this level?"
-          value={subtitle}
-          onChange={event => setSubtitle(event.target.value)}
+          value={description.subtitle}
+          onChange={event =>
+            setDescription(prevDescription => ({
+              ...prevDescription,
+              subtitle: event.target.value,
+            }))
+          }
         />
         <TextField
           fullWidth
@@ -109,8 +101,13 @@ const DescriptionModal: FC<DescriptionModalProps> = ({
           sx={{ mb: 2, "& textarea": { resize: "vertical" } }}
           placeholder="What do players have to do to complete this level?"
           slotProps={{ input: { inputComponent: "textarea" } }}
-          value={description}
-          onChange={event => setDescription(event.target.value)}
+          value={description.description}
+          onChange={event =>
+            setDescription(prevDescription => ({
+              ...prevDescription,
+              description: event.target.value,
+            }))
+          }
         />
         <Typography>
           Players will have the option to view a hint when they have made an
@@ -124,8 +121,13 @@ const DescriptionModal: FC<DescriptionModalProps> = ({
           sx={{ "& textarea": { resize: "vertical" } }}
           placeholder="What advice do you want to give for this level?"
           slotProps={{ input: { inputComponent: "textarea" } }}
-          value={hint}
-          onChange={event => setHint(event.target.value)}
+          value={description.hint}
+          onChange={event =>
+            setDescription(prevDescription => ({
+              ...prevDescription,
+              hint: event.target.value,
+            }))
+          }
         />
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
