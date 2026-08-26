@@ -3,18 +3,46 @@ import { Divider } from "@mui/material"
 import type Phaser from "phaser"
 
 import * as items from "./items"
+import CharacterModal, { type Character } from "./CharacterModal"
+import CodeModal, { type Code } from "./CodeModal"
+import DescriptionModal, { type Description } from "./DescriptionModal"
+import { DELETABLE_CUSTOM_BLOCKS } from "../../blockly/blocks"
 import { MiniDrawer } from "../../components/miniDrawers"
 import { ZoomControls } from "../../phaser"
 import { usePhaserGameContext } from "../../app/hooks"
 
-export interface ControlsProps {}
-
-const Controls: FC<ControlsProps> = () => {
+const Controls: FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const {
     ref: { current: phaserGame },
     activeSceneKeys,
   } = usePhaserGameContext()
+
+  // States for the modals and their content.
+  const [code, setCode] = useState<Code>({
+    language: "Blockly",
+    maxMoves: 50,
+    blocks: DELETABLE_CUSTOM_BLOCKS.reduce(
+      (blocks, { type }) => ({
+        ...blocks,
+        [type]: { count: "infinite", enabled: true },
+      }),
+      {} as Code["blocks"],
+    ),
+  })
+  const [description, setDescription] = useState<Description>({
+    subtitle: "",
+    description: "",
+    hint: "",
+  })
+  const [character, setCharacter] = useState<Character>("van")
+  // The currently active modal, if any.
+  const [activeModal, setActiveModal] = useState<
+    "code" | "description" | "character"
+  >()
+
+  // A helper function to close any active modal.
+  const closeModal = () => setActiveModal(undefined)
 
   // The currently selected box and tool.
   const [toolbox, setToolbox] =
@@ -74,9 +102,18 @@ const Controls: FC<ControlsProps> = () => {
           setTool={tool => setToolbox({ box: "background", tool })}
         />
         <Divider />
-        <items.CharacterButton isDrawerOpen={isDrawerOpen} />
-        <items.CodeButton isDrawerOpen={isDrawerOpen} />
-        <items.DescriptionButton isDrawerOpen={isDrawerOpen} />
+        <items.CharacterButton
+          isDrawerOpen={isDrawerOpen}
+          onClick={() => setActiveModal("character")}
+        />
+        <items.CodeButton
+          isDrawerOpen={isDrawerOpen}
+          onClick={() => setActiveModal("code")}
+        />
+        <items.DescriptionButton
+          isDrawerOpen={isDrawerOpen}
+          onClick={() => setActiveModal("description")}
+        />
         <Divider />
         <items.LoadButton isDrawerOpen={isDrawerOpen} />
         <items.SaveButton isDrawerOpen={isDrawerOpen} />
@@ -85,6 +122,24 @@ const Controls: FC<ControlsProps> = () => {
         <items.HelpButton isDrawerOpen={isDrawerOpen} />
         <items.QuitButton isDrawerOpen={isDrawerOpen} />
       </MiniDrawer>
+      <CodeModal
+        open={activeModal === "code"}
+        value={code}
+        onClose={closeModal}
+        onSubmit={setCode}
+      />
+      <DescriptionModal
+        open={activeModal === "description"}
+        value={description}
+        onClose={closeModal}
+        onSubmit={setDescription}
+      />
+      <CharacterModal
+        open={activeModal === "character"}
+        value={character}
+        onClose={closeModal}
+        onSubmit={setCharacter}
+      />
     </>
   )
 }

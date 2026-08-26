@@ -15,12 +15,8 @@ function defineBooleanBlock<T extends string>(
 
 export const ROAD_EXISTS_BLOCK = defineBooleanBlock({
   type: "road_exists",
-  message0: "%1 %2 %3",
+  message0: "%1 %2",
   args0: [
-    {
-      type: "input_dummy",
-      name: "DUMMY",
-    },
     {
       type: "field_dropdown",
       name: "CHOICE",
@@ -33,8 +29,8 @@ export const ROAD_EXISTS_BLOCK = defineBooleanBlock({
     {
       type: "field_image",
       src: emptyIcon,
-      width: 30,
-      height: 30,
+      width: 15,
+      height: 15,
       alt: "*",
       flipRtl: "FALSE",
     },
@@ -42,12 +38,8 @@ export const ROAD_EXISTS_BLOCK = defineBooleanBlock({
 })
 export const TRAFFIC_LIGHT_BLOCK = defineBooleanBlock({
   type: "traffic_light",
-  message0: "%1 %2 %3",
+  message0: "%1 %2",
   args0: [
-    {
-      type: "input_dummy",
-      name: "DUMMY",
-    },
     {
       type: "field_dropdown",
       name: "CHOICE",
@@ -59,8 +51,8 @@ export const TRAFFIC_LIGHT_BLOCK = defineBooleanBlock({
     {
       type: "field_image",
       src: emptyIcon,
-      width: 30,
-      height: 30,
+      width: 15,
+      height: 15,
       alt: "*",
       flipRtl: "FALSE",
     },
@@ -77,8 +69,8 @@ export const DEAD_END_BLOCK = defineBooleanBlock({
     {
       type: "field_image",
       src: emptyIcon,
-      width: 30,
-      height: 30,
+      width: 15,
+      height: 15,
       alt: "*",
       flipRtl: "FALSE",
     },
@@ -95,8 +87,8 @@ export const AT_DESTINATION_BLOCK = defineBooleanBlock({
     {
       type: "field_image",
       src: emptyIcon,
-      width: 30,
-      height: 30,
+      width: 15,
+      height: 15,
       alt: "*",
       flipRtl: "FALSE",
     },
@@ -113,8 +105,8 @@ export const COW_CROSSING_BLOCK = defineBooleanBlock({
     {
       type: "field_image",
       src: cowIcon,
-      width: 30,
-      height: 30,
+      width: 15,
+      height: 15,
       alt: "*",
       flipRtl: "FALSE",
     },
@@ -131,8 +123,8 @@ export const PIGEON_CROSSING_BLOCK = defineBooleanBlock({
     {
       type: "field_image",
       src: pigeonIcon,
-      width: 30,
-      height: 30,
+      width: 15,
+      height: 15,
       alt: "*",
       flipRtl: "FALSE",
     },

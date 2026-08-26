@@ -14,7 +14,6 @@ export interface LevelCreatorProps {}
 const LevelCreator: FC<LevelCreatorProps> = () => {
   const phaserGameRef = useRef<PhaserGameRef>(null)
   const [activeSceneKeys, setActiveSceneKeys] = useState<SceneKey[]>([])
-
   return (
     <Box sx={{ display: "flex" }}>
       <PhaserGameContext.Provider
