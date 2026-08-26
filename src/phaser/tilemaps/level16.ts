@@ -237,15 +237,15 @@ export default tilemaps.makeOrthogonal({
             col: 2,
             row: 0,
           }),
-          layers.objectGroup.objects.endpoints.house.common.orange.left({
+          layers.objectGroup.objects.endpoints.house.common.orange.right({
             col: 1,
             row: 3,
           }),
-          layers.objectGroup.objects.endpoints.house.common.orange.left({
+          layers.objectGroup.objects.endpoints.house.common.orange.right({
             col: 5,
             row: 6,
           }),
-          layers.objectGroup.objects.endpoints.house.common.orange.left({
+          layers.objectGroup.objects.endpoints.house.common.orange.top({
             col: 7,
             row: 7,
           }),

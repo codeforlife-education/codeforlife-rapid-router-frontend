@@ -304,22 +304,26 @@ export default tilemaps.makeOrthogonal({
             col: 6,
             row: 6,
           }),
-          layers.objectGroup.objects.endpoints.house.common.orange.left({
+          layers.objectGroup.objects.endpoints.house.common.orange.right({
             col: 8,
             row: 6,
           }),
-          layers.objectGroup.objects.endpoints.house.common.orange.left({
+          layers.objectGroup.objects.endpoints.house.common.orange.right({
             col: 8,
             row: 2,
           }),
-          layers.objectGroup.objects.endpoints.house.common.orange.bottom({
-            col: 7,
-            row: 0,
-          }),
-          layers.objectGroup.objects.endpoints.house.common.orange.bottom({
-            col: 2,
-            row: 0,
-          }),
+          layers.objectGroup.objects.endpoints.house.common.orange.outBottomLeft(
+            {
+              col: 7,
+              row: 0,
+            },
+          ),
+          layers.objectGroup.objects.endpoints.house.common.orange.outBottomRight(
+            {
+              col: 2,
+              row: 0,
+            },
+          ),
         ],
       },
       scenery: {

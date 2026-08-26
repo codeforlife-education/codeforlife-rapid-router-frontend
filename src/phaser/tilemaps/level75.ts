@@ -326,7 +326,7 @@ export default tilemaps.makeOrthogonal({
             col: 8,
             row: 6,
           }),
-          layers.objectGroup.objects.endpoints.house.common.straw.left({
+          layers.objectGroup.objects.endpoints.house.common.straw.top({
             col: 5,
             row: 3,
           }),

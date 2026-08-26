@@ -183,7 +183,7 @@ export default tilemaps.makeOrthogonal({
             col: 0,
             row: 4,
           }),
-          layers.objectGroup.objects.endpoints.house.snow.orange.left({
+          layers.objectGroup.objects.endpoints.house.snow.orange.top({
             col: 7,
             row: 4,
           }),

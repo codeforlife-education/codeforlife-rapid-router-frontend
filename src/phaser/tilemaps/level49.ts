@@ -175,7 +175,7 @@ export default tilemaps.makeOrthogonal({
             col: 3,
             row: 1,
           }),
-          layers.objectGroup.objects.endpoints.house.common.blue.left({
+          layers.objectGroup.objects.endpoints.house.common.blue.top({
             col: 9,
             row: 1,
           }),

@@ -5,9 +5,9 @@ import * as tilesets from "../tilesets"
 export default tilemaps.makeOrthogonal({
   properties: { background: "SNOW" },
   tilesets: [
-    tilesets.road.asphalt.straight,
-    tilesets.road.asphalt.turn,
-    tilesets.road.asphalt.deadEnd,
+    tilesets.road.dirt.straight,
+    tilesets.road.dirt.turn,
+    tilesets.road.dirt.deadEnd,
     tilesets.endpoints.cfc.warehouse.snow,
     tilesets.endpoints.house.snow.orange,
     tilesets.scenery.nature.snow.tree.oak,
@@ -27,17 +27,17 @@ export default tilemaps.makeOrthogonal({
             ...layers.tile.data.fillRow({ cols: 1 }),
             // 1 column of horizontal straight road tile (CFC)
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
+              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 1,
             }),
             // 2 columns of horizontal straight road tiles
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
+              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 2,
             }),
             // 1 column of left-turn road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.BOTTOM_LEFT,
+              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
               cols: 1,
             }),
             // 5 columns of empty tiles
@@ -49,17 +49,17 @@ export default tilemaps.makeOrthogonal({
             ...layers.tile.data.fillRow({ cols: 4 }),
             // 1 column of right-turn road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.TOP_RIGHT,
+              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
               cols: 1,
             }),
             // 3 columns of horizontal straight road tiles
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
+              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 3,
             }),
             // 1 column of left-turn road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.BOTTOM_LEFT,
+              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
               cols: 1,
             }),
             // 1 column of empty tiles
@@ -70,12 +70,12 @@ export default tilemaps.makeOrthogonal({
             // 1 column of empty tiles
             ...layers.tile.data.fillRow({ cols: 1 }),
             // 1 column of a bottom-facing dead end road tile (incl. house)
-            layers.tile.data.IDs.Road.Asphalt.DeadEnd.BOTTOM,
+            layers.tile.data.IDs.Road.Dirt.DeadEnd.BOTTOM,
             // 6 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 6 }),
             // 1 column of vertical straight road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
+              id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
               cols: 1,
             }),
             // 1 column of empty tiles
@@ -87,29 +87,29 @@ export default tilemaps.makeOrthogonal({
             ...layers.tile.data.fillRow({ cols: 1 }),
             // 1 column of right-turn road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.TOP_RIGHT,
+              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
               cols: 1,
             }),
             // 1 column of horizontal straight road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
+              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 1,
             }),
             // 1 column of horizontal straight road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
+              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 1,
             }),
             // 1 column of left-turn road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.BOTTOM_LEFT,
+              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
               cols: 1,
             }),
             // 3 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 3 }),
             // 1 column of vertical straight road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
+              id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
               cols: 1,
             }),
             // 1 column of empty tiles
@@ -121,17 +121,17 @@ export default tilemaps.makeOrthogonal({
             ...layers.tile.data.fillRow({ cols: 4 }),
             // 1 column of right-turn road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.TOP_RIGHT,
+              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
               cols: 1,
             }),
             // 3 columns of horizontal straight road tiles
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
+              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 3,
             }),
             // 1 column of left-turn road tile
             ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.TOP_LEFT,
+              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
               cols: 1,
             }),
             // 1 column of empty tiles
@@ -149,9 +149,9 @@ export default tilemaps.makeOrthogonal({
             col: 1,
             row: 2,
           }),
-          layers.objectGroup.objects.endpoints.house.snow.orange.bottom({
+          layers.objectGroup.objects.endpoints.house.snow.orange.right({
             col: 1,
-            row: 3,
+            row: 4,
           }),
         ],
       },

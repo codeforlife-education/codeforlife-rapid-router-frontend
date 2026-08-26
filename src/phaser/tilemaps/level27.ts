@@ -218,7 +218,7 @@ export default tilemaps.makeOrthogonal({
             col: 4,
             row: 2,
           }),
-          layers.objectGroup.objects.endpoints.house.common.straw.bottom({
+          layers.objectGroup.objects.endpoints.house.common.straw.right({
             col: 8,
             row: 4,
           }),
