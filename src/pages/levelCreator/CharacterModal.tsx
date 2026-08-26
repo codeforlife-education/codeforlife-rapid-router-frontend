@@ -19,13 +19,9 @@ import philImage from "../../images/characters/front_view/Phil.svg"
 import vanImage from "../../images/characters/front_view/Van.svg"
 import wesImage from "../../images/characters/front_view/Wes.svg"
 
-interface CharacterOption {
-  value: string
-  name: string
-  image: string
-}
+type CharacterOption = { value: string; name: string; image: string }
 
-const CHARACTER_OPTIONS: CharacterOption[] = [
+const CHARACTER_OPTIONS = [
   { value: "van", name: "Van", image: vanImage },
   { value: "dee", name: "Dee", image: deeImage },
   { value: "electric_van", name: "Electric Van", image: electricVanImage },
@@ -33,22 +29,15 @@ const CHARACTER_OPTIONS: CharacterOption[] = [
   { value: "nigel", name: "Nigel", image: nigelImage },
   { value: "phil", name: "Phil", image: philImage },
   { value: "wes", name: "Wes", image: wesImage },
-]
+] as const satisfies CharacterOption[]
 
-export interface CharacterSettings {
-  character: string
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const DEFAULT_CHARACTER_SETTINGS: CharacterSettings = {
-  character: CHARACTER_OPTIONS[0].value,
-}
+export type Character = (typeof CHARACTER_OPTIONS)[number]["value"]
 
 export interface CharacterModalProps {
   open: boolean
-  value: CharacterSettings
+  value: Character
   onClose: () => void
-  onSubmit: (value: CharacterSettings) => void
+  onSubmit: (value: Character) => void
 }
 
 const CharacterModal: FC<CharacterModalProps> = ({
@@ -57,18 +46,18 @@ const CharacterModal: FC<CharacterModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [character, setCharacter] = useState(value.character)
+  const [character, setCharacter] = useState(value)
 
   // Discard any unsaved edits and restore the last saved values whenever the
   // modal is (re)opened.
   useEffect(() => {
-    if (open) setCharacter(value.character)
+    if (open) setCharacter(value)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onSubmit({ character })
+    onSubmit(character)
     onClose()
   }
 
@@ -106,7 +95,7 @@ const CharacterModal: FC<CharacterModalProps> = ({
         </Typography>
         <RadioGroup
           value={character}
-          onChange={event => setCharacter(event.target.value)}
+          onChange={event => setCharacter(event.target.value as Character)}
           sx={{
             display: "grid",
             gridTemplateColumns: {
