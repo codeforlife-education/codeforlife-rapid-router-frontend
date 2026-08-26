@@ -2,8 +2,8 @@ import Phaser from "phaser"
 
 import * as layers from "../../../layers"
 import BaseTileLayerManager, { type DragEndData } from "./BaseTileLayerManager"
-import { type COLS, Events, type ROWS } from "../../../globals"
 import type { Direction, DirectionSet, default as Level } from "."
+import { Events } from "../../../globals"
 
 /**
  * Reverse of `dirsToId`: maps every possible road tile ID, across every road
@@ -83,14 +83,15 @@ export default class extends BaseTileLayerManager<"add" | "delete"> {
       Array.from({ length: this.level.tilemap.width }, (_, col) =>
         this.dirsToId(this.dirs({ col, row })),
       ),
-    ) as (layers.tile.data.RoadID[] & { length: typeof COLS })[] & {
-      length: typeof ROWS
-    }
+    ) as layers.tile.data.Data<layers.tile.data.RoadID>
   }
 
   /** Rehydrates the road grid from a previously-exported Tiled layer `data`. */
-  fromTiledData(data: readonly layers.tile.data.RoadID[], width: number) {
-    data.forEach((id, i) => {
+  fromTiledData(
+    data: layers.tile.data.Data<layers.tile.data.RoadID>,
+    width: number,
+  ) {
+    data.flat().forEach((id, i) => {
       const dirs = DIRS_BY_ID.get(id)
       if (!dirs) return // Empty tile, or an unrecognized ID.
 

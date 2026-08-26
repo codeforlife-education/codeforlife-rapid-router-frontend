@@ -16,9 +16,15 @@ type MakeObjectGroupLayerKwArgs<
   OGN extends layers.objectGroup.Name,
   ON extends layers.objectGroup.objects.Name,
   OID extends layers.objectGroup.objects.ID,
-> = Omit<layers.objectGroup.MakeKwArgs<OGN, ON, OID>, "name" | "objects"> & {
-  objects: layers.objectGroup.objects.FactoryObject<ON, OID>[]
-}
+> = Omit<
+  layers.objectGroup.MakeKwArgs<
+    OGN,
+    ON,
+    OID,
+    layers.objectGroup.objects.FactoryObject<ON, OID>
+  >,
+  "name"
+>
 
 export type OrthogonalTilemap = Omit<
   _OrthogonalTilemap,
@@ -257,30 +263,41 @@ export type ExportedFreeObject<GID extends layers.objectGroup.objects.ID> = {
   height: number
   rotation: number
 }
-/** The minimal data needed to recreate an orthogonal tilemap. */
-export type ExportedOrthogonalTilemap = Omit<
-  OrthogonalTilemap,
-  "layers" | "tilesets"
-> & {
+/** The minimal data needed to recreate an orthogonal tilemap - everything
+ * else (dimensions, tilesets, render order, etc.) is fixed/derivable, so
+ * `importOrthogonal` can fall back to `makeOrthogonal`'s own defaults. */
+export type ExportedOrthogonalTilemap<
+  COLS extends number = typeof COLS,
+  ROWS extends number = typeof ROWS,
+> = Pick<OrthogonalTilemap, "properties"> & {
   layers: [
-    layers.tile.Layer<"Tile.ROAD", layers.tile.data.RoadID>,
-    layers.objectGroup.Layer<
-      "ObjectGroup.OBSTACLES",
-      layers.objectGroup.objects.obstacles.Name,
-      tilesets.obstacles.ID,
-      ExportedRoadObject<tilesets.obstacles.ID>
+    Pick<MakeOrthogonalKwArgs<COLS, ROWS>["layers"]["tile"]["road"], "data">,
+    Pick<
+      layers.objectGroup.Layer<
+        "ObjectGroup.OBSTACLES",
+        layers.objectGroup.objects.obstacles.Name,
+        tilesets.obstacles.ID,
+        ExportedRoadObject<tilesets.obstacles.ID>
+      >,
+      "objects"
     >,
-    layers.objectGroup.Layer<
-      "ObjectGroup.ENDPOINTS",
-      layers.objectGroup.objects.endpoints.Name,
-      tilesets.endpoints.ID,
-      ExportedRoadObject<tilesets.endpoints.ID>
+    Pick<
+      layers.objectGroup.Layer<
+        "ObjectGroup.ENDPOINTS",
+        layers.objectGroup.objects.endpoints.Name,
+        tilesets.endpoints.ID,
+        ExportedRoadObject<tilesets.endpoints.ID>
+      >,
+      "objects"
     >,
-    layers.objectGroup.Layer<
-      "ObjectGroup.SCENERY",
-      layers.objectGroup.objects.scenery.Name,
-      tilesets.scenery.ID,
-      ExportedFreeObject<tilesets.scenery.ID>
+    Pick<
+      layers.objectGroup.Layer<
+        "ObjectGroup.SCENERY",
+        layers.objectGroup.objects.scenery.Name,
+        tilesets.scenery.ID,
+        ExportedFreeObject<tilesets.scenery.ID>
+      >,
+      "objects"
     >,
   ]
 }
@@ -293,11 +310,8 @@ export type ExportedOrthogonalTilemap = Omit<
  * directly by Phaser's native tilemap/object-layer renderer (e.g. play mode).
  */
 export const importOrthogonal = ({
-  width,
-  height,
   properties: [{ value: background }],
   layers: [roadLayer, obstaclesLayer, endpointsLayer, sceneryLayer],
-  ...tilemap
 }: ExportedOrthogonalTilemap): OrthogonalTilemap => {
   // Reconstructs a full road object from its minimal exported data.
   const importRoadObject = <
@@ -327,26 +341,12 @@ export const importOrthogonal = ({
     return { ...factory({}), x, y, rotation }
   }
 
-  // Converts a flat array of tile IDs into a 2D array with the correct
-  // row/column structure.
-  const importTileData = <ID extends layers.tile.data.ID>(data: ID[]) =>
-    Array.from({ length: height }, (_, row) =>
-      data.slice(row * width, (row + 1) * width),
-    ) as (ID[] & { length: typeof COLS })[] & { length: typeof ROWS }
-
   return makeOrthogonal({
-    ...tilemap,
-    // Force re-derivation from the (now fully-reconstructed) objects below,
-    // in case a stale/incomplete value leaked in via the spread above.
-    tilesets: undefined,
-    width,
-    height,
     properties: { background },
     layers: {
-      tile: { road: { data: importTileData(roadLayer.data) } },
+      tile: { road: { data: roadLayer.data } },
       objectGroup: {
         obstacles: {
-          ...obstaclesLayer,
           objects: obstaclesLayer.objects.map(
             importRoadObject<
               layers.objectGroup.objects.obstacles.Name,
@@ -355,7 +355,6 @@ export const importOrthogonal = ({
           ),
         },
         endpoints: {
-          ...endpointsLayer,
           objects: endpointsLayer.objects.map(
             importRoadObject<
               layers.objectGroup.objects.endpoints.Name,
@@ -364,7 +363,6 @@ export const importOrthogonal = ({
           ),
         },
         scenery: {
-          ...sceneryLayer,
           objects: sceneryLayer.objects.map(
             importFreeObject<
               layers.objectGroup.objects.scenery.Name,

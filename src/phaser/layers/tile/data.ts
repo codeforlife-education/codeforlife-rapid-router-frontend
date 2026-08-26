@@ -190,6 +190,12 @@ export const IDs = {
 export type ID = DeepNumbersOf<typeof IDs>
 export type RoadID = typeof IDs.EMPTY | DeepNumbersOf<typeof IDs.Road>
 
+export type Data<
+  DID extends ID = ID,
+  COLS extends number = typeof COLS,
+  ROWS extends number = typeof ROWS,
+> = (DID[] & { length: COLS })[] & { length: ROWS }
+
 export function decode(id: ID) {
   const [h, v, d] = extract(id)
   return d

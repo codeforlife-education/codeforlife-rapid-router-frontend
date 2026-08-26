@@ -17,12 +17,13 @@ export type MakeKwArgs<
   OGN extends Name = Name,
   ON extends objects.Name = objects.Name,
   OID extends objects.ID = objects.ID,
+  Obj extends { gid: OID } = objects.Object<ON, OID>,
 > = Omit<layers.MakeKwArgs<OGN, "objectgroup">, "type"> &
   Omit<
-    Layer<OGN, ON, OID>,
+    Layer<OGN, ON, OID, Obj>,
     keyof layers.MakeKwArgs<OGN, "objectgroup"> | MakePartials
   > &
-  Partial<Pick<Layer<OGN, ON, OID>, MakePartials>>
+  Partial<Pick<Layer<OGN, ON, OID, Obj>, MakePartials>>
 
 export const make = <
   OGN extends Name,

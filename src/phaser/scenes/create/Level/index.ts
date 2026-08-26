@@ -1,9 +1,9 @@
 import Phaser from "phaser"
 
 import type * as images from "../../../images"
-import * as tilemaps from "../../../tilemaps"
+import type * as tilemaps from "../../../tilemaps"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
-import { Events, SceneKeys } from "../../../globals"
+import { COLS, Events, SceneKeys } from "../../../globals"
 import BackgroundManager from "./BackgroundManager"
 import EndpointManager from "./EndpointManager"
 import ObstacleManager from "./ObstacleManager"
@@ -106,7 +106,6 @@ export default class extends BaseLevel<LevelData> {
 
   /** Rehydrates every manager's state from a previously-exported tilemap. */
   private hydrateFromExportedTilemap({
-    width,
     layers: [
       { data: roadData },
       { objects: obstacleObjects },
@@ -114,7 +113,7 @@ export default class extends BaseLevel<LevelData> {
       { objects: sceneryObjects },
     ],
   }: tilemaps.ExportedOrthogonalTilemap) {
-    this.road.fromTiledData(roadData, width)
+    this.road.fromTiledData(roadData, COLS)
     for (const obj of obstacleObjects) this.obstacle.fromExportedObject(obj)
     for (const obj of endpointObjects) this.endpoint.fromExportedObject(obj)
     for (const obj of sceneryObjects) this.scenery.fromExportedObject(obj)
@@ -122,49 +121,20 @@ export default class extends BaseLevel<LevelData> {
 
   /** Exports the current editor state as a minimal tilemap JSON. */
   toExportedTilemap(): tilemaps.ExportedOrthogonalTilemap {
-    // Built via the shared tilemap builder (with empty object-group layers,
-    // since it only knows the full Tiled object shape used by play-mode
-    // levels) then the real, minimal objects are spliced in afterwards.
-    const {
-      // Dropped since it was auto-derived from the still-empty object-group
-      // layers above, so it's missing every obstacle/endpoint/scenery
-      // tileset - `importOrthogonal` re-derives it once the real objects are
-      // spliced back in below.
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      tilesets: _tilesets,
-      layers: [roadLayer, obstaclesLayer, endpointsLayer, sceneryLayer],
-      ...tilemap
-    } = tilemaps.makeOrthogonal({
-      properties: {
-        background: this.backgroundTileSprite.texture
-          .key as keyof typeof images.URLs.Background,
-      },
-      layers: {
-        tile: { road: { data: this.road.toTiledData() } },
-        objectGroup: {
-          obstacles: { objects: [] },
-          endpoints: { objects: [] },
-          scenery: { objects: [] },
-        },
-      },
-    })
-
     return {
-      ...tilemap,
+      properties: [
+        {
+          name: "background",
+          type: "string",
+          value: this.backgroundTileSprite.texture
+            .key as keyof typeof images.URLs.Background,
+        },
+      ],
       layers: [
-        roadLayer,
-        {
-          ...obstaclesLayer,
-          objects: this.obstacle.toExportedObjects(),
-        },
-        {
-          ...endpointsLayer,
-          objects: this.endpoint.toExportedObjects(),
-        },
-        {
-          ...sceneryLayer,
-          objects: this.scenery.toExportedObjects(),
-        },
+        { data: this.road.toTiledData() },
+        { objects: this.obstacle.toExportedObjects() },
+        { objects: this.endpoint.toExportedObjects() },
+        { objects: this.scenery.toExportedObjects() },
       ],
     }
   }

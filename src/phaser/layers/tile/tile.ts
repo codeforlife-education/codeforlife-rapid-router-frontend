@@ -18,7 +18,7 @@ export type MakeKwArgs<
   ROWS extends number = typeof ROWS,
 > = Omit<layers.MakeKwArgs<N, "tilelayer">, "type"> &
   Omit<Layer<N, ID>, keyof layers.MakeKwArgs<N, "tilelayer"> | "data"> & {
-    data: (ID[] & { length: COLS })[] & { length: ROWS }
+    data: data.Data<ID, COLS, ROWS>
   }
 
 export const make = <
