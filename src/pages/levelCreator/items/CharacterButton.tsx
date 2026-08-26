@@ -7,16 +7,10 @@ import {
 } from "../../../components/miniDrawers"
 
 export interface CharacterButtonProps
-  extends Pick<ButtonItemProps, "isDrawerOpen"> {}
+  extends Pick<ButtonItemProps, "isDrawerOpen" | "onClick"> {}
 
-const CharacterButton: FC<CharacterButtonProps> = ({ isDrawerOpen }) => {
-  return (
-    <ButtonItem
-      isDrawerOpen={isDrawerOpen}
-      text="Character"
-      icon={<LocalShippingIcon />}
-    />
-  )
+const CharacterButton: FC<CharacterButtonProps> = props => {
+  return <ButtonItem text="Character" icon={<LocalShippingIcon />} {...props} />
 }
 
 export default CharacterButton

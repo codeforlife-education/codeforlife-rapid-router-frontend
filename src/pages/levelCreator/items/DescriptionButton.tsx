@@ -7,16 +7,10 @@ import {
 } from "../../../components/miniDrawers"
 
 export interface DescriptionButtonProps
-  extends Pick<ButtonItemProps, "isDrawerOpen"> {}
+  extends Pick<ButtonItemProps, "isDrawerOpen" | "onClick"> {}
 
-const DescriptionButton: FC<DescriptionButtonProps> = ({ isDrawerOpen }) => {
-  return (
-    <ButtonItem
-      isDrawerOpen={isDrawerOpen}
-      text="Description"
-      icon={<DescriptionIcon />}
-    />
-  )
+const DescriptionButton: FC<DescriptionButtonProps> = props => {
+  return <ButtonItem {...props} text="Description" icon={<DescriptionIcon />} />
 }
 
 export default DescriptionButton

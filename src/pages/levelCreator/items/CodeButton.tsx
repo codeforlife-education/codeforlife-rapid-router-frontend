@@ -7,16 +7,10 @@ import {
 } from "../../../components/miniDrawers"
 
 export interface CodeButtonProps
-  extends Pick<ButtonItemProps, "isDrawerOpen"> {}
+  extends Pick<ButtonItemProps, "isDrawerOpen" | "onClick"> {}
 
-const CodeButton: FC<CodeButtonProps> = ({ isDrawerOpen }) => {
-  return (
-    <ButtonItem
-      isDrawerOpen={isDrawerOpen}
-      text="Code"
-      icon={<ExtensionIcon />}
-    />
-  )
+const CodeButton: FC<CodeButtonProps> = props => {
+  return <ButtonItem {...props} text="Code" icon={<ExtensionIcon />} />
 }
 
 export default CodeButton
