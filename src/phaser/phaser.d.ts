@@ -1,8 +1,9 @@
 import type { Property } from "csstype"
 
-import type { Variable, SceneKey } from "./globals"
+import type * as images from "./images"
 import type * as layers from "./layers"
 import type * as tilesets from "./tilesets"
+import type { Variable, SceneKey } from "./globals"
 
 type _Toolbox<B extends string, T> = { box: B; tool: T }
 
@@ -185,7 +186,11 @@ declare module "phaser" {
               }
             >["firstgid"]
           >
-          type Any = Road | Endpoints | Scenery | Obstacles
+          type Background = _Toolbox<
+            "background",
+            keyof typeof images.URLs.Background
+          >
+          type Any = Road | Endpoints | Scenery | Obstacles | Background
         }
       }
       namespace Play {}

@@ -1,10 +1,13 @@
 import Phaser from "phaser"
 
+import type * as images from "../../../images"
+import type * as tilemaps from "../../../tilemaps"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
+import { COLS, Events, SceneKeys } from "../../../globals"
+import BackgroundManager from "./BackgroundManager"
 import EndpointManager from "./EndpointManager"
 import ObstacleManager from "./ObstacleManager"
 import RoadManager from "./RoadManager"
-import { SceneKeys } from "../../../globals"
 import SceneryManager from "./SceneryManager"
 
 export type Direction = "top" | "bottom" | "left" | "right"
@@ -23,6 +26,9 @@ export interface LevelData extends BaseLevelData {}
  */
 export default class extends BaseLevel<LevelData> {
   static readonly KEY = SceneKeys.Create.LEVEL
+
+  /** Background manager responsible for handling the level's background. */
+  background!: BackgroundManager
 
   /** Road manager responsible for handling road tiles. */
   road!: RoadManager
@@ -59,6 +65,7 @@ export default class extends BaseLevel<LevelData> {
         this.tilemap.height,
         this.tilemap.tileWidth,
         this.tilemap.tileHeight,
+        { width: 2, color: 0x000000 },
       )
 
     // Create a configurable graphics objects for tools to use.
@@ -66,10 +73,70 @@ export default class extends BaseLevel<LevelData> {
     this.graphics = this.add.graphics().setDepth(1)
 
     // Initialize the managers.
+    this.background = new BackgroundManager(this)
     this.road = new RoadManager(this)
     this.endpoint = new EndpointManager(this)
     this.obstacle = new ObstacleManager(this)
     this.scenery = new SceneryManager(this)
+
+    const onExportLevel = () =>
+      this.setVariable("exportedLevel", this.toExportedTilemap())
+    this.game.events.on(Events.EXPORT_LEVEL, onExportLevel)
+
+    const onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
+      if (key !== "exportedLevel") return
+      // Restart via the Preloader so it can (re)build the tilemap/tilesets
+      // from the newly-loaded Tiled JSON before this scene is created again.
+      this.scene.start(SceneKeys.Create.PRELOADER)
+    }
+    this.game.events.on(Events.REACT_SET_VARIABLE, onReactSetVariable)
+
+    this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off(Events.EXPORT_LEVEL, onExportLevel)
+      this.game.events.off(Events.REACT_SET_VARIABLE, onReactSetVariable)
+    })
+
+    // If this scene was (re)started to load a level, the tilemap/layers have
+    // just been rebuilt from its Tiled JSON - rehydrate each manager's own
+    // state (e.g. road connections, placed objects) to match.
+    const exportedTilemap =
+      this.getVariable<tilemaps.ExportedOrthogonalTilemap>("exportedLevel")
+    if (exportedTilemap) this.hydrateFromExportedTilemap(exportedTilemap)
+  }
+
+  /** Rehydrates every manager's state from a previously-exported tilemap. */
+  private hydrateFromExportedTilemap({
+    layers: [
+      { data: roadData },
+      { objects: obstacleObjects },
+      { objects: endpointObjects },
+      { objects: sceneryObjects },
+    ],
+  }: tilemaps.ExportedOrthogonalTilemap) {
+    this.road.fromTiledData(roadData, COLS)
+    for (const obj of obstacleObjects) this.obstacle.fromExportedObject(obj)
+    for (const obj of endpointObjects) this.endpoint.fromExportedObject(obj)
+    for (const obj of sceneryObjects) this.scenery.fromExportedObject(obj)
+  }
+
+  /** Exports the current editor state as a minimal tilemap JSON. */
+  toExportedTilemap(): tilemaps.ExportedOrthogonalTilemap {
+    return {
+      properties: [
+        {
+          name: "background",
+          type: "string",
+          value: this.backgroundTileSprite.texture
+            .key as keyof typeof images.URLs.Background,
+        },
+      ],
+      layers: [
+        { data: this.road.toTiledData() },
+        { objects: this.obstacle.toExportedObjects() },
+        { objects: this.endpoint.toExportedObjects() },
+        { objects: this.scenery.toExportedObjects() },
+      ],
+    }
   }
 
   /** The currently active tool selected by the player. */

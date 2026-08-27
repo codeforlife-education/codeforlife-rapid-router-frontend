@@ -110,7 +110,15 @@ export type MakeKwArgs<
   GID extends ID,
   Props extends Property[] | undefined = undefined,
 > = Omit<Tileset<GID, Props>, MakePartials> &
-  Partial<Pick<Tileset<GID, Props>, MakePartials>>
+  Partial<Pick<Tileset<GID, Props>, MakePartials>> & {
+    /**
+     * Scales the declared image/tile dimensions relative to a full tile, e.g.
+     * for an object that should only take up half a tile's width/height.
+     * Unlike `imagescale`, this doesn't affect the loaded image's aspect
+     * ratio - it only affects the declared (Tiled-facing) dimensions.
+     */
+    tilescale?: number
+  }
 
 export const make = <
   GID extends ID,
@@ -125,10 +133,15 @@ export const make = <
     columns = 1,
     spacing = 0,
     margin = 0,
-    imageheight,
-    imagewidth,
-    tileheight = imageheight ?? TILE_HEIGHT,
-    tilewidth = imagewidth ?? TILE_WIDTH,
+    imagescale,
+    tilescale = 1,
+    // `tileheight`/`tilewidth` must always equal `imageheight`/`imagewidth`
+    // (below) - Phaser warns if a tileset's declared dimensions aren't an
+    // exact multiple of each other, regardless of the image's actual size.
+    imageheight = TILE_HEIGHT * tilescale,
+    imagewidth = TILE_WIDTH * tilescale,
+    tileheight = imageheight,
+    tilewidth = imagewidth,
     properties,
     ...kwArgs
   }: MakeKwArgs<GID, Props>,
@@ -143,6 +156,7 @@ export const make = <
     columns,
     spacing,
     margin,
+    imagescale,
     imageheight,
     imagewidth,
     tileheight,

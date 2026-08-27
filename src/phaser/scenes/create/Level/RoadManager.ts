@@ -2,8 +2,36 @@ import Phaser from "phaser"
 
 import * as layers from "../../../layers"
 import BaseTileLayerManager, { type DragEndData } from "./BaseTileLayerManager"
-import type { DirectionSet, default as Level } from "."
+import type { Direction, DirectionSet, default as Level } from "."
 import { Events } from "../../../globals"
+
+/**
+ * Reverse of `dirsToId`: maps every possible road tile ID, across every road
+ * subtype (asphalt, dirt, etc.), back to the set of directions it represents.
+ */
+const DIRS_BY_ID = new Map<layers.tile.data.RoadID, DirectionSet>()
+for (const ids of Object.values(layers.tile.data.IDs.Road)) {
+  const set = (...dirs: Direction[]) => new Set(dirs) as DirectionSet
+
+  DIRS_BY_ID.set(ids.DeadEnd.TOP, set("top"))
+  DIRS_BY_ID.set(ids.DeadEnd.BOTTOM, set("bottom"))
+  DIRS_BY_ID.set(ids.DeadEnd.LEFT, set("left"))
+  DIRS_BY_ID.set(ids.DeadEnd.RIGHT, set("right"))
+  DIRS_BY_ID.set(ids.Straight.VERTICAL, set("top", "bottom"))
+  DIRS_BY_ID.set(ids.Straight.HORIZONTAL, set("left", "right"))
+  DIRS_BY_ID.set(ids.Turn.TOP_LEFT, set("top", "left"))
+  DIRS_BY_ID.set(ids.Turn.TOP_RIGHT, set("top", "right"))
+  DIRS_BY_ID.set(ids.Turn.BOTTOM_LEFT, set("bottom", "left"))
+  DIRS_BY_ID.set(ids.Turn.BOTTOM_RIGHT, set("bottom", "right"))
+  DIRS_BY_ID.set(
+    ids.TJunction.LEFT_RIGHT_BOTTOM,
+    set("left", "right", "bottom"),
+  )
+  DIRS_BY_ID.set(ids.TJunction.TOP_LEFT_BOTTOM, set("top", "left", "bottom"))
+  DIRS_BY_ID.set(ids.TJunction.TOP_LEFT_RIGHT, set("top", "left", "right"))
+  DIRS_BY_ID.set(ids.TJunction.TOP_RIGHT_BOTTOM, set("top", "right", "bottom"))
+  DIRS_BY_ID.set(ids.CROSSROADS, set("top", "left", "right", "bottom"))
+}
 
 export default class extends BaseTileLayerManager<"add" | "delete"> {
   /**
@@ -47,6 +75,29 @@ export default class extends BaseTileLayerManager<"add" | "delete"> {
 
   get ids() {
     return layers.tile.data.IDs.Road[this.type]
+  }
+
+  /** Exports the current road grid as a Tiled tile layer's `data`. */
+  toTiledData() {
+    return Array.from({ length: this.level.tilemap.height }, (_, row) =>
+      Array.from({ length: this.level.tilemap.width }, (_, col) =>
+        this.dirsToId(this.dirs({ col, row })),
+      ),
+    ) as layers.tile.data.Data<layers.tile.data.RoadID>
+  }
+
+  /** Rehydrates the road grid from a previously-exported Tiled layer `data`. */
+  fromTiledData(
+    data: layers.tile.data.Data<layers.tile.data.RoadID>,
+    width: number,
+  ) {
+    data.flat().forEach((id, i) => {
+      const dirs = DIRS_BY_ID.get(id)
+      if (!dirs) return // Empty tile, or an unrecognized ID.
+
+      const tile = { row: Math.floor(i / width), col: i % width }
+      for (const dir of dirs) this.dirs(tile).add(dir)
+    })
   }
 
   /**

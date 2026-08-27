@@ -11,7 +11,7 @@ export default class BasePreloader<
   Data extends object | undefined = undefined,
 > extends BaseScene<Data> {
   levelData: BaseLevelData = {
-    background: images.URLs.Background.GRASS,
+    backgroundKey: "GRASS",
     tilesets: {
       "Tile.ROAD": [],
       "ObjectGroup.OBSTACLES": [],
@@ -62,12 +62,13 @@ export default class BasePreloader<
     })
 
     // Load the background image specified in the tilemap properties.
-    const background = images.URLs.Background[tilemap.properties[0].value]
-    this.load.svg(background, background, {
+    const backgroundKey = tilemap.properties[0].value
+    const backgroundUrl = images.URLs.Background[backgroundKey]
+    this.load.svg(backgroundKey, backgroundUrl, {
       width: tilemap.tilewidth ?? TILE_WIDTH,
       height: tilemap.tileheight ?? TILE_HEIGHT,
     })
-    this.levelData.background = background
+    this.levelData.backgroundKey = backgroundKey
 
     // Load the tileset images and store relevant data in levelData for later
     // use in the Level Scene. This is necessary because Phaser needs the
