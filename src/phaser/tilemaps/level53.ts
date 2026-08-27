@@ -1,19 +1,8 @@
 import * as layers from "../layers"
 import * as tilemaps from "./tilemaps"
-import * as tilesets from "../tilesets"
 
 export default tilemaps.makeOrthogonal({
   properties: { background: "GRASS" },
-  tilesets: [
-    tilesets.road.asphalt.straight,
-    tilesets.road.asphalt.turn,
-    tilesets.road.asphalt.tJunction,
-    tilesets.road.asphalt.crossroads,
-    tilesets.endpoints.cfc.barn.red,
-    tilesets.endpoints.house.common.straw,
-    tilesets.scenery.nature.tree.oak,
-    tilesets.scenery.nature.tree.pine,
-  ],
   layers: {
     tile: {
       road: {
