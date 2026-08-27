@@ -17,7 +17,11 @@ import { CircularProgress } from "@mui/material"
 import type Phaser from "phaser"
 
 import { Events, type Variable } from "./globals"
-import { useGameCommands, usePhaserGameContext } from "../app/hooks"
+import {
+  useGameCommandIndex,
+  useGameCommands,
+  usePhaserGameContext,
+} from "../app/hooks"
 import type { Level } from "../api/level"
 import type { PhaserGameRef } from "./PhaserGameContext"
 
@@ -28,6 +32,7 @@ export type PhaserGameProps =
 const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const phaserGameContext = usePhaserGameContext()
   const gameCommands = useGameCommands()
+  const gameCommandIndex = useGameCommandIndex()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Phaser.Game>(null)
@@ -174,6 +179,11 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   useEffect(() => {
     if (mode === "play") setVariable("commands", gameCommands)
   }, [mode, gameCommands, setVariable])
+
+  // Pass the current game command index to Phaser when in play mode.
+  useEffect(() => {
+    if (mode === "play") setVariable("commandIndex", gameCommandIndex)
+  }, [mode, gameCommandIndex, setVariable])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

@@ -29,6 +29,7 @@ export type Event = (typeof Events)[keyof typeof Events]
 
 export const Variables = createIdRegistry({
   commands: "COMMANDS",
+  commandIndex: "COMMAND_INDEX",
   levelId: "LEVEL_ID",
   toolbox: "TOOLBOX",
   maxSceneryObjectCount: "MAX_SCENERY_OBJECT_COUNT",
