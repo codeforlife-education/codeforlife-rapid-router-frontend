@@ -151,6 +151,22 @@ export default tilemaps.makeOrthogonal({
           }),
         ],
       },
+      obstacles: {
+        objects: [
+          layers.objectGroup.objects.obstacles.animal.cow.top({
+            col: 4,
+            row: 1,
+          }),
+          layers.objectGroup.objects.obstacles.animal.cow.right({
+            col: 2,
+            row: 3,
+          }),
+          layers.objectGroup.objects.obstacles.animal.cow.right({
+            col: 6,
+            row: 3,
+          }),
+        ],
+      },
       scenery: {
         objects: [],
       },

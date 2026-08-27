@@ -49,6 +49,14 @@ export default tilemaps.makeOrthogonal({
           }),
         ],
       },
+      obstacles: {
+        objects: [
+          layers.objectGroup.objects.obstacles.trafficLight.red.left({
+            col: 4,
+            row: 4,
+          }),
+        ],
+      },
       scenery: {
         objects: [],
       },

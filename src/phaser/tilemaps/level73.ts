@@ -156,6 +156,30 @@ export default tilemaps.makeOrthogonal({
           }),
         ],
       },
+      obstacles: {
+        objects: [
+          layers.objectGroup.objects.obstacles.trafficLight.red.top({
+            col: 5,
+            row: 2,
+          }),
+          layers.objectGroup.objects.obstacles.trafficLight.red.top({
+            col: 3,
+            row: 2,
+          }),
+          layers.objectGroup.objects.obstacles.trafficLight.red.bottom({
+            col: 4,
+            row: 1,
+          }),
+          layers.objectGroup.objects.obstacles.trafficLight.green.top({
+            col: 5,
+            row: 3,
+          }),
+          layers.objectGroup.objects.obstacles.trafficLight.green.top({
+            col: 3,
+            row: 3,
+          }),
+        ],
+      },
       scenery: {
         objects: [],
       },
