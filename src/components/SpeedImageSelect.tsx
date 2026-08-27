@@ -38,6 +38,12 @@ export interface SpeedImageSelectProps<Categories extends readonly Category[]> {
   lineHeight?: number
   titleScrollSpeed?: number
   image?: { size: number; padding?: number }
+  /**
+   * How the selected image is presented when the catalogue is closed:
+   * `"contain"` shrinks it to fit inside the circle (default), `"cover"`
+   * fills the circle and clips the image's corners.
+   */
+  closedImageFit?: "contain" | "cover"
 }
 
 const Img: FC<{
@@ -45,14 +51,15 @@ const Img: FC<{
   src: string
   alt: string
   rotate?: number
-}> = ({ height, ...props }) => (
+  fit?: "contain" | "cover"
+}> = ({ height, fit = "contain", ...props }) => (
   <Box
     component="img"
     {...props}
     width="100%"
     height={`${height}px`}
     sx={{
-      objectFit: "contain",
+      objectFit: fit,
       rotate: props.rotate ? `${props.rotate}deg` : undefined,
     }}
   />
@@ -72,6 +79,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
   selected,
   onChange,
   onOpen,
+  closedImageFit = "contain",
 }: SpeedImageSelectProps<Categories>): JSX.Element => {
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const [scrollable, setScrollable] = useState(false)
@@ -248,6 +256,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               : `${fab.size}px`,
             borderRadius: open ? "16px" : "50%",
             bgcolor: open ? "rgba(0, 0, 0, 0.85)" : "rgba(0, 128, 0, 1)",
+            border: open ? "none" : "3px solid rgba(0, 128, 0, 1)",
             padding: open ? `${pxPadding}px` : 0,
             overflow: open && scrollable ? "auto" : "hidden",
             transition: [
@@ -255,6 +264,7 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               `height 0.3s ${ease}`,
               `border-radius 0.3s ${ease}`,
               `background-color 0.3s ${ease}`,
+              `border 0.3s ${ease}`,
               `padding 0.3s ${ease}`,
             ].join(", "),
             animation: open ? "none" : "pulse 1.5s ease-in-out infinite",
@@ -318,7 +328,8 @@ const SpeedImageSelect = <Categories extends readonly Category[]>({
               src={selectedImage.src}
               alt={selectedImage.title}
               rotate={selectedImage.rotate}
-              height={fab.size * 0.65}
+              height={closedImageFit === "cover" ? fab.size : fab.size * 0.65}
+              fit={closedImageFit}
             />
           )}
         </Box>

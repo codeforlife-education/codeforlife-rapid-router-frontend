@@ -4,6 +4,7 @@ import BaseObjectGroupLayerManager, {
   type Placed,
 } from "./BaseObjectGroupLayerManager"
 import { Events, Variables } from "../../../globals"
+import type { ExportedRoadObject } from "../../../tilemaps"
 import type { default as Level } from "."
 import type { objects } from "../../../layers/objectGroup"
 
@@ -103,6 +104,42 @@ export default abstract class BaseRoadObjectManager<
     id: ID,
     variantKey: VariantKey,
   ): void
+
+  /** Exports every placed object as Tiled objects, keyed by their tile. */
+  toExportedObjects(): ExportedRoadObject<ID>[] {
+    const objects: ExportedRoadObject<ID>[] = []
+    for (let row = 0; row < this.level.tilemap.height; row++) {
+      for (let col = 0; col < this.level.tilemap.width; col++) {
+        const placed = this.getPlaced({ row, col })
+        if (!placed) continue
+
+        objects.push({
+          gid: placed.id,
+          properties: [
+            { name: "variant", type: "string", value: placed.variantKey },
+            { name: "tileRow", type: "int", value: row },
+            { name: "tileCol", type: "int", value: col },
+          ],
+        })
+      }
+    }
+
+    return objects
+  }
+
+  /**
+   * Rehydrates a previously-exported Tiled object into this manager's state.
+   * The object's variant and tile are both read directly from its
+   * properties, so no search is needed to recover them.
+   */
+  fromExportedObject({
+    gid,
+    properties: [{ value: variantKey }, { value: row }, { value: col }],
+  }: ExportedRoadObject<ID>) {
+    const tile = { row, col }
+    if (!this.canPlace(tile, gid)) return
+    this.place(tile, gid, variantKey as VariantKey)
+  }
 
   protected sameKey(
     a: Phaser.Types.Tilemaps.Tile,

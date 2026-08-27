@@ -10,6 +10,7 @@ import type { SceneKey, Variable } from "./globals"
 export type PhaserGameRef = {
   zoomIn: () => void
   zoomOut: () => void
+  exportLevel: () => void
   getVariable: {
     <T>(key: Variable, set: Dispatch<SetStateAction<T | undefined>>): () => void
     <T>(

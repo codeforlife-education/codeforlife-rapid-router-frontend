@@ -2,10 +2,12 @@ import Phaser from "phaser"
 
 import * as layers from "../../../layers"
 import * as objects from "../../../layers/objectGroup/objects"
+import * as tilesets from "../../../tilesets"
 import BaseObjectGroupLayerManager, {
   type Placed,
 } from "./BaseObjectGroupLayerManager"
-import { Events, Variables } from "../../../globals"
+import { Events, TILE_HEIGHT, TILE_WIDTH, Variables } from "../../../globals"
+import type { ExportedFreeObject } from "../../../tilemaps"
 import type { default as Level } from "."
 
 type Drag = {
@@ -117,6 +119,64 @@ export default abstract class BaseFreeObjectManager<
   /** Every object currently placed on this manager's layer. */
   protected get placedObjects() {
     return this.level.layers[this.layerName]
+  }
+
+  /**
+   * Exports every placed object as a minimal Tiled-like object. Since these
+   * objects rotate freely about their centre (rather than Tiled's
+   * rotation-about-anchor convention), the anchor is recovered by rotating
+   * the pre-rotation bottom-left corner back around the object's current
+   * centre.
+   *
+   * The corner is computed from the tileset's declared dimensions (not the
+   * object's live display size) so that it's exactly invertible by
+   * `fromExportedObject`, regardless of whether the declared size matches the
+   * object's true rendered size.
+   */
+  toExportedObjects(): ExportedFreeObject<ID>[] {
+    return this.placedObjects.map(obj => {
+      const placed = this.getPlaced(obj)!
+      const tileset = tilesets.getTileset(placed.id)!
+      const width = tileset.imagewidth ?? TILE_WIDTH
+      const height = tileset.imageheight ?? TILE_HEIGHT
+      const anchor = Phaser.Math.RotateAround(
+        { x: obj.x - width / 2, y: obj.y + height / 2 },
+        obj.x,
+        obj.y,
+        obj.rotation,
+      )
+
+      return {
+        gid: placed.id,
+        x: anchor.x,
+        y: anchor.y,
+        width,
+        height,
+        rotation: obj.angle,
+      }
+    })
+  }
+
+  /**
+   * Rehydrates a previously-exported Tiled object into this manager's state.
+   * The inverse of `toTiledObjects`: the anchor and rotation are used to
+   * recover the centre position these objects are actually placed at.
+   */
+  fromExportedObject({
+    width,
+    height,
+    x,
+    y,
+    rotation,
+    gid,
+  }: ExportedFreeObject<ID>) {
+    const cornerOffset = Phaser.Math.RotateAround(
+      { x: -width / 2, y: height / 2 },
+      0,
+      0,
+      Phaser.Math.DegToRad(rotation),
+    )
+    this.add(x - cornerOffset.x, y - cornerOffset.y, gid)?.setAngle(rotation)
   }
 
   private get endpoints() {

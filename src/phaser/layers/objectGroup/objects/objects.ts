@@ -3,8 +3,8 @@ import {
   createIdRegistry,
   createPathStrings,
 } from "codeforlife/utils/object"
+import type { TiledProperty, TiledObject as _Object } from "tiled-types"
 import type Phaser from "phaser"
-import type { TiledObject as _Object } from "tiled-types"
 
 import type * as tilesets from "../../../tilesets"
 import { TILE_HEIGHT, TILE_WIDTH } from "../../../globals"
@@ -121,18 +121,28 @@ export type FactoryVariantSpecs<N extends Name, GID extends ID> = Record<
   string,
   FactoryBaseKwArgs<N, GID>
 >
+
+/** The Tiled property that identifies which variant an object was created from. */
+export type VariantProperty<K extends string> = {
+  name: "variant"
+  type: "string"
+  value: K
+}
+
 export type FactoryVariant<
   N extends Name,
   GID extends ID,
   B extends FactoryBaseKwArgs<N, GID>,
+  K extends string = string,
 > = (
   kwArgs: Omit<FactoryBaseKwArgs<N, GID>, keyof B>,
-) => FactoryObject<N, GID> & B
+) => Omit<FactoryObject<N, GID>, "properties"> &
+  B & { properties: [VariantProperty<K>, ...TiledProperty[]] }
 type FactoryVariants<
   N extends Name,
   GID extends ID,
   V extends FactoryVariantSpecs<N, GID>,
-> = { [K in keyof V]: FactoryVariant<N, GID, V[K]> }
+> = { [K in keyof V]: FactoryVariant<N, GID, V[K], K & string> }
 
 export type FactoryKwArgs<N extends Name, GID extends ID> = {
   name: N
@@ -206,9 +216,16 @@ export const factory = <
 
   const factory = (Object.entries(variants) as [keyof V, V[keyof V]][]).reduce(
     (f, [variantName, variantKwArgs]) => {
-      ;(f as unknown as FactoryVariants<N, GID, V>)[variantName] = kwArgs =>
-        f({ ...variantKwArgs, ...kwArgs }) as FactoryObject<N, GID> & V[keyof V]
-
+      ;(f as unknown as FactoryVariants<N, GID, V>)[variantName] = (kwArgs => {
+        const obj = f({ ...variantKwArgs, ...kwArgs })
+        return {
+          ...obj,
+          properties: [
+            { name: "variant", type: "string", value: variantName },
+            ...obj.properties,
+          ],
+        }
+      }) as FactoryVariant<N, GID, V[keyof V], keyof V & string>
       return f
     },
     base,

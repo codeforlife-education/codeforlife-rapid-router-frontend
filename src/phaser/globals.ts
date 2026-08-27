@@ -23,6 +23,7 @@ export const Events = createIdRegistry({
   "add-endpoint": "ADD_ENDPOINT",
   "phaser-set-variable": "PHASER_SET_VARIABLE",
   "react-set-variable": "REACT_SET_VARIABLE",
+  "export-level": "EXPORT_LEVEL",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 
@@ -32,6 +33,7 @@ export const Variables = createIdRegistry({
   toolbox: "TOOLBOX",
   maxSceneryObjectCount: "MAX_SCENERY_OBJECT_COUNT",
   sceneryObjectCount: "SCENERY_OBJECT_COUNT",
+  exportedLevel: "EXPORTED_LEVEL",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
 

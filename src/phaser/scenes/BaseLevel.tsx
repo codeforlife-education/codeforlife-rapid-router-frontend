@@ -11,7 +11,7 @@ const MIN_VISIBLE_TILES = 4
 const MIN_ZOOM_MARGIN = 1.5
 
 export interface BaseLevelData {
-  background: (typeof images.URLs.Background)[keyof typeof images.URLs.Background]
+  backgroundKey: keyof typeof images.URLs.Background
   tilesets: Record<layers.tile.Name, Array<Pick<tilesets.Tileset, "name">>> &
     Record<
       layers.objectGroup.Name,
@@ -70,7 +70,7 @@ export default class BaseLevel<
       ...this.tilemapCenter,
       width,
       height,
-      this.initData.background,
+      this.initData.backgroundKey,
     )
     this.backgroundTileSprite
       .setOrigin(0.5, 0.5)
