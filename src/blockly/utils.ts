@@ -10,6 +10,7 @@ import {
   START_BLOCK_TYPES,
   type StartBlockType,
 } from "./blocks"
+import { type BlockToolboxEntry } from "../blockly/blocks"
 import { type BlockType } from "./blocks"
 import type { GameCommand } from "../app/slices"
 
@@ -76,16 +77,90 @@ function initializeStartBlock(
   return startBlock
 }
 
+/**
+ * Get or create the text label used to show a flyout block's remaining
+ * instance count, appended directly to the block's own SVG group so it
+ * moves and scales together with the block.
+ */
+function getOrCreateInstanceCountLabel(svgRoot: SVGGElement) {
+  const existingText = svgRoot.querySelector<SVGTextElement>(
+    "text.blockly-instance-count",
+  )
+  if (existingText) return existingText
+
+  const text = Blockly.utils.dom.createSvgElement(
+    Blockly.utils.Svg.TEXT,
+    {
+      class: "blockly-instance-count",
+      "font-size": 16,
+      "font-weight": "bold",
+      "text-anchor": "middle",
+      dy: "0.35em",
+    },
+    svgRoot,
+  )
+  text.style.pointerEvents = "none"
+
+  return text
+}
+
+/**
+ * Show a label on each flyout block that has a max instance limit,
+ * showing how many more of that block can still be placed in the workspace.
+ */
+function updateFlyoutInstanceLabels(
+  workspace: Blockly.WorkspaceSvg,
+  maxInstances: Record<string, number>,
+) {
+  const flyoutWorkspace = workspace.getFlyout()?.getWorkspace()
+  if (!flyoutWorkspace) return
+
+  for (const block of flyoutWorkspace.getTopBlocks(false)) {
+    const max = maxInstances[block.type]
+    if (max === undefined) continue
+
+    const text = getOrCreateInstanceCountLabel(block.getSvgRoot())
+
+    const remaining = Math.max(
+      max - workspace.getBlocksByType(block.type, false).length,
+      0,
+    )
+    text.textContent = `x${remaining}`
+    text.setAttribute("fill", block.getColour())
+
+    const { width, height } = block.getHeightWidth()
+    text.setAttribute("x", String(width + 4 + text.getComputedTextLength() / 2))
+    text.setAttribute("y", String(height / 2))
+  }
+}
+
 function initializeWorkspace(
   div: HTMLDivElement,
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
+  maxInstances: Record<string, number>,
 ) {
   const workspace = Blockly.inject(div, {
     toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
     trashcan: true,
+    maxInstances,
   })
 
   loadWorkspaceState(workspace)
+
+  if (Object.keys(maxInstances).length > 0) {
+    const update = () => updateFlyoutInstanceLabels(workspace, maxInstances)
+
+    // Flyout blocks are rendered asynchronously after injection.
+    setTimeout(update, 0)
+
+    workspace.addChangeListener(event => {
+      if (
+        event instanceof Blockly.Events.BlockCreate ||
+        event instanceof Blockly.Events.BlockDelete
+      )
+        update()
+    })
+  }
 
   return workspace
 }
@@ -117,14 +192,36 @@ export function initializeBlockly(
   div: HTMLDivElement,
   startBlockType: StartBlockType,
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
+  maxInstances: Record<string, number>,
 ) {
   ensureBlocklyInitialized()
 
-  const workspace = initializeWorkspace(div, toolboxContents)
+  const workspace = initializeWorkspace(div, toolboxContents, maxInstances)
 
   const startBlock = initializeStartBlock(workspace, startBlockType)
 
   return { workspace, startBlock }
+}
+
+function isBlockToolboxTuple(
+  entry: BlockToolboxEntry,
+): entry is readonly [BlockType, number] {
+  return Array.isArray(entry)
+}
+
+export function getToolboxContents(
+  entries: BlockToolboxEntry[],
+): Blockly.utils.toolbox.ToolboxItemInfo[] {
+  return entries.map(entry => ({
+    kind: "block",
+    type: isBlockToolboxTuple(entry) ? entry[0] : entry,
+  }))
+}
+
+export function getMaxInstances(
+  entries: BlockToolboxEntry[],
+): Record<string, number> {
+  return Object.fromEntries(entries.filter(isBlockToolboxTuple))
 }
 
 /**
