@@ -53,44 +53,44 @@ export default tilemaps.makeOrthogonal({
       scenery: {
         objects: [
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 0,
-            row: 1,
+            x: 0,
+            y: 65,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 1,
-            row: 1,
+            x: 64,
+            y: 66,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 2,
-            row: 1,
+            x: 129,
+            y: 66,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 3,
-            row: 1,
+            x: 192,
+            y: 61,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 4,
-            row: 1,
+            x: 257,
+            y: 58,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 5,
-            row: 1,
+            x: 319,
+            y: 65,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 6,
-            row: 1,
+            x: 385,
+            y: 62,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 7,
-            row: 1,
+            x: 451,
+            y: 63,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 8,
-            row: 1,
+            x: 515,
+            y: 65,
           }),
           layers.objectGroup.objects.scenery.nature.tree.pine({
-            col: 9,
-            row: 1,
+            x: 578,
+            y: 63,
           }),
         ],
       },

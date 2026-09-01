@@ -135,7 +135,70 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          // No scenery has been placed for this level yet.
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 188,
+            y: 184,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 128,
+            y: 112,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 249,
+            y: 118,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 104,
+            y: 8,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 134,
+            y: 58,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 189,
+            y: 120,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 17,
+            y: 436,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 95,
+            y: 445,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 138,
+            y: 397,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 452,
+            y: 447,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 408,
+            y: 390,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 446,
+            y: 329,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 281,
+            y: 376,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 193,
+            y: 436,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 57,
+            y: 376,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 330,
+            y: 418,
+          }),
         ],
       },
     },

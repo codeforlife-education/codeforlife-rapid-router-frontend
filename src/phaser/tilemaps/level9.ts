@@ -77,16 +77,34 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 0, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 1, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 2, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 3, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 4, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 5, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 6, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 7, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 8, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 9, row: 1 }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 107,
+            y: 188,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 168,
+            y: 190,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 233,
+            y: 191,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 365,
+            y: 190,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 298,
+            y: 193,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 19,
+            y: 43,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 323,
+            y: -97,
+          }),
         ],
       },
     },

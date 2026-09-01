@@ -198,7 +198,80 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.building.logCabin({
+            x: 184,
+            y: 132,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 413,
+            y: 159,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 20,
+            y: 377,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 20,
+            y: 256,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 20,
+            y: 317,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 122,
+            y: 257,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 221,
+            y: 257,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 381,
+            y: 1,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 484,
+            y: 15,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 576,
+            y: 175,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 574,
+            y: 0,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 545,
+            y: 92,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 86,
+            y: 171,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 85,
+            y: 140,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 86,
+            y: 105,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 304,
+            y: 356,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 346,
+            y: 356,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 263,
+            y: 356,
+          }),
+        ],
       },
     },
   },

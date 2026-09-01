@@ -113,16 +113,50 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 0, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 1, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 2, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 3, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 4, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 5, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 6, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 7, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 8, row: 1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 9, row: 1 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 253,
+            y: 189,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 384,
+            y: 191,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 155,
+            y: 191,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 385,
+            y: 106,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 383,
+            y: -65,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 383,
+            y: 13,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 0,
+            y: -64,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 74,
+            y: -65,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 151,
+            y: -63,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 230,
+            y: -62,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 307,
+            y: -63,
+          }),
         ],
       },
     },

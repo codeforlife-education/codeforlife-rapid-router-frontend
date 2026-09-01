@@ -132,7 +132,24 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 224,
+            y: 232,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 223,
+            y: 167,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 220,
+            y: 102,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 219,
+            y: 35,
+          }),
+        ],
       },
     },
   },

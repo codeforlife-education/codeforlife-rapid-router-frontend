@@ -204,7 +204,74 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          // No scenery has been placed for this level yet.
+          layers.objectGroup.objects.scenery.building.shop({
+            x: 418,
+            y: 147,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 212,
+            y: 26,
+          }),
+          layers.objectGroup.objects.scenery.building.hospital({
+            x: 288,
+            y: 126,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 259,
+            y: 26,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 310,
+            y: 26,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 360,
+            y: 26,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 346,
+            y: 106,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 230,
+            y: 150,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 230,
+            y: 106,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 347,
+            y: 151,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 314,
+            y: 188,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 263,
+            y: 188,
+          }),
+          layers.objectGroup.objects.scenery.building.school({
+            x: 448,
+            y: 321,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 502,
+            y: 268,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 465,
+            y: 268,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 426,
+            y: 268,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 540,
+            y: 267,
+          }),
         ],
       },
     },

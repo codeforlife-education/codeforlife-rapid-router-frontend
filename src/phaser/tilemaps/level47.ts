@@ -168,7 +168,64 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 24,
+            y: 127,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 25,
+            y: 192,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 25,
+            y: 259,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 461,
+            y: 28,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 461,
+            y: 92,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 461,
+            y: 157,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 461,
+            y: 228,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 461,
+            y: 307,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 258,
+            y: 206,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 282,
+            y: 147,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 84,
+            y: 33,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 397,
+            y: 7,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 320,
+            y: 353,
+          }),
+          layers.objectGroup.objects.scenery.building.logCabin({
+            x: 352,
+            y: 139,
+          }),
+        ],
       },
     },
   },

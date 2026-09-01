@@ -124,7 +124,70 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          // No scenery has been placed for this level yet.
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 189,
+            y: 71,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 258,
+            y: 135,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 132,
+            y: 193,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 69,
+            y: 124,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 381,
+            y: 198,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 257,
+            y: 255,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 318,
+            y: 317,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 448,
+            y: 260,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 4,
+            y: 378,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 3,
+            y: 444,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 0,
+            y: 301,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 566,
+            y: 8,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 417,
+            y: 7,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 491,
+            y: 4,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 566,
+            y: 80,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 568,
+            y: 152,
+          }),
         ],
       },
     },

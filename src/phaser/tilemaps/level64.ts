@@ -216,7 +216,84 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 202,
+            y: 259,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 305,
+            y: 259,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 403,
+            y: 379,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 321,
+            y: 129,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 61,
+            y: 128,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 449,
+            y: 187,
+          }),
+          layers.objectGroup.objects.scenery.building.logCabin({
+            x: 200,
+            y: 182,
+          }),
+          layers.objectGroup.objects.scenery.building.logCabin({
+            x: 521,
+            y: 255,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 573,
+            y: 132,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 97,
+            y: 380,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 257,
+            y: 312,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 276,
+            y: 334,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 237,
+            y: 333,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 26,
+            y: 55,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 140,
+            y: 60,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 340,
+            y: 60,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 234,
+            y: 29,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 576,
+            y: 28,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 429,
+            y: 20,
+          }),
+        ],
       },
     },
   },

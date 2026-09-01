@@ -235,7 +235,25 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          // No scenery has been placed for this level yet.
+          layers.objectGroup.objects.scenery.nature.bush({ x: 243, y: 113 }),
+          layers.objectGroup.objects.scenery.nature.bush({ x: 371, y: 141 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 125,
+            y: 326,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 189,
+            y: 191,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({ x: 1, y: 17 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 109,
+            y: 190,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 197,
+            y: 326,
+          }),
         ],
       },
     },

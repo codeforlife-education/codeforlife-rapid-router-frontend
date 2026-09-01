@@ -132,7 +132,68 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 98,
+            y: 143,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 21,
+            y: 216,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 121,
+            y: 258,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 517,
+            y: 26,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 568,
+            y: 68,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 460,
+            y: -3,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 444,
+            y: 83,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 377,
+            y: 4,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 588,
+            y: 134,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 578,
+            y: 10,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 523,
+            y: -31,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 518,
+            y: 124,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 567,
+            y: 218,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 87,
+            y: 214,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 52,
+            y: 175,
+          }),
+        ],
       },
     },
   },

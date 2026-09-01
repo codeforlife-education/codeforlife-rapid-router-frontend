@@ -139,7 +139,36 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 365,
+            y: 259,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 365,
+            y: 187,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 365,
+            y: 119,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 188,
+            y: 256,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 455,
+            y: 383,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 574,
+            y: 61,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 73,
+            y: 246,
+          }),
+        ],
       },
     },
   },

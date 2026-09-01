@@ -127,7 +127,72 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 305,
+            y: 74,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 271,
+            y: 143,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 166,
+            y: 274,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 126,
+            y: 200,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 169,
+            y: 226,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 200,
+            y: 388,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 249,
+            y: 435,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 350,
+            y: 299,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 384,
+            y: 388,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 344,
+            y: 344,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 409,
+            y: 331,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 199,
+            y: 440,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 256,
+            y: 91,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 316,
+            y: 120,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 125,
+            y: -1,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 259,
+            y: 1,
+          }),
+        ],
       },
     },
   },

@@ -177,12 +177,22 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 1, row: -2 }),
-          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 2, row: 0 }),
-          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 3, row: -2 }),
-          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 3, row: -1 }),
-          // layers.objectGroup.objects.scenery.nature.tree.pine({ col: 4, row: -2 }),
-          // layers.objectGroup.objects.scenery.nature.tree.oak({ col: 4, row: -1 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({ x: 31, y: 27 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({ x: 31, y: 94 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({ x: 31, y: 163 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({ x: 32, y: 230 }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({ x: 33, y: 298 }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 260,
+            y: 120,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 317,
+            y: 133,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({ x: 320, y: 255 }),
+          layers.objectGroup.objects.scenery.nature.bush({ x: 321, y: 291 }),
+          layers.objectGroup.objects.scenery.nature.bush({ x: 320, y: 324 }),
         ],
       },
     },

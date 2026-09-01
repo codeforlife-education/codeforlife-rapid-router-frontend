@@ -202,7 +202,88 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.building.school({
+            x: 321,
+            y: 136,
+          }),
+          layers.objectGroup.objects.scenery.building.hospital({
+            x: 316,
+            y: 264,
+          }),
+          layers.objectGroup.objects.scenery.building.shop({
+            x: 100,
+            y: 241,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 26,
+            y: 151,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 24,
+            y: 191,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 22,
+            y: 236,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 20,
+            y: 278,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 67,
+            y: 151,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 108,
+            y: 150,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 152,
+            y: 149,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 291,
+            y: 339,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 240,
+            y: 278,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 392,
+            y: 280,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 393,
+            y: 240,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 243,
+            y: 238,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 340,
+            y: 339,
+          }),
+          layers.objectGroup.objects.scenery.building.shop({
+            x: 481,
+            y: 109,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 488,
+            y: 174,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 489,
+            y: 221,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 488,
+            y: 267,
+          }),
+        ],
       },
     },
   },

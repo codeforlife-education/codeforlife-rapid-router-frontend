@@ -203,7 +203,60 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.building.hospital({
+            x: 190,
+            y: 250,
+          }),
+          layers.objectGroup.objects.scenery.building.school({
+            x: 452,
+            y: 256,
+          }),
+          layers.objectGroup.objects.scenery.building.shop({
+            x: 486,
+            y: 134,
+          }),
+          layers.objectGroup.objects.scenery.building.shop({
+            x: 489,
+            y: 365,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 368,
+            y: 346,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 408,
+            y: 331,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 394,
+            y: 287,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 349,
+            y: 301,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 302,
+            y: 284,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 167,
+            y: 173,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 122,
+            y: 174,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 122,
+            y: 214,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 212,
+            y: 172,
+          }),
+        ],
       },
     },
   },

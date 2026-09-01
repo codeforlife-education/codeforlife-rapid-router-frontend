@@ -123,7 +123,60 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 277,
+            y: 172,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.tree.pine({
+            x: 298,
+            y: 74,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.tree.pine({
+            x: 360,
+            y: 41,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 74,
+            y: 297,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.tree.pine({
+            x: 303,
+            y: 0,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 19,
+            y: 339,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 191,
+            y: 370,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 81,
+            y: 353,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 228,
+            y: 401,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: -16,
+            y: 371,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 42,
+            y: 400,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 115,
+            y: 443,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 58,
+            y: 464,
+          }),
+        ],
       },
     },
   },

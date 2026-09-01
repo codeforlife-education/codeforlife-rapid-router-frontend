@@ -127,7 +127,76 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.snow.tree.oak({
+            x: 509,
+            y: 13,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.tree.oak({
+            x: 510,
+            y: 111,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.tree.oak({
+            x: 511,
+            y: 214,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.tree.oak({
+            x: 512,
+            y: 328,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.pond({
+            x: 199,
+            y: 401,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 93,
+            y: 15,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 157,
+            y: 15,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 220,
+            y: 17,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 279,
+            y: 17,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 337,
+            y: 17,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 36,
+            y: 301,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 97,
+            y: 301,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 221,
+            y: 301,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 160,
+            y: 301,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 272,
+            y: 303,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.tree.oak({
+            x: 511,
+            y: 428,
+          }),
+          layers.objectGroup.objects.scenery.nature.snow.bush({
+            x: 31,
+            y: 17,
+          }),
+        ],
       },
     },
   },

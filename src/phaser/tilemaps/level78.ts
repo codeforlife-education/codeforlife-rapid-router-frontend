@@ -355,7 +355,20 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.building.shop({
+            x: 290,
+            y: 69,
+          }),
+          layers.objectGroup.objects.scenery.building.shop({
+            x: 227,
+            y: 68,
+          }),
+          layers.objectGroup.objects.scenery.building.school({
+            x: 467,
+            y: 405,
+          }),
+        ],
       },
     },
   },

@@ -102,7 +102,56 @@ export default tilemaps.makeOrthogonal({
         ],
       },
       scenery: {
-        objects: [],
+        objects: [
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 63,
+            y: 66,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 64,
+            y: 131,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 75,
+            y: 187,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 65,
+            y: 322,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 59,
+            y: 380,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 68,
+            y: 447,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 388,
+            y: 68,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 378,
+            y: 132,
+          }),
+          layers.objectGroup.objects.scenery.nature.bush({
+            x: 328,
+            y: 184,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 382,
+            y: 446,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 446,
+            y: 447,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.pine({
+            x: 511,
+            y: 448,
+          }),
+        ],
       },
     },
   },
