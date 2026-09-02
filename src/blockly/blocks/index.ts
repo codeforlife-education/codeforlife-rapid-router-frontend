@@ -39,3 +39,6 @@ export const CUSTOM_BLOCKS = [
 ] as const satisfies BlockDefinition<string>[]
 
 export type BlockType = DeletableBlockType | starts.StartBlockType
+export type BlockToolboxEntry =
+  | BlockType
+  | readonly [type: BlockType, maxInstances: number]

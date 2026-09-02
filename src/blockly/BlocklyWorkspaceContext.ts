@@ -9,6 +9,7 @@ export type BlocklyWorkspaceRef = {
 export type BlocklyWorkspaceContextValue = {
   ref: RefObject<BlocklyWorkspaceRef | null>
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[]
+  maxInstances: Record<string, number>
 }
 
 const BlocklyWorkspaceContext =
