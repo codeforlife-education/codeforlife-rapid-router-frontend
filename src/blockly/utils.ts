@@ -77,31 +77,50 @@ function initializeStartBlock(
   return startBlock
 }
 
+/** Gap between a flyout block and its instance-count label. */
+const INSTANCE_COUNT_LABEL_GAP = 4
+
 /**
- * Get or create the text label used to show a flyout block's remaining
- * instance count, appended directly to the block's own SVG group so it
- * moves and scales together with the block.
+ * Get or create the label used to show a flyout block's remaining instance
+ * count. It's rendered in a foreignObject, positioned via flexbox so it's
+ * vertically centred against the block without manual offset math, and
+ * appended directly to the block's own SVG group so it moves and scales
+ * together with the block.
  */
 function getOrCreateInstanceCountLabel(svgRoot: SVGGElement) {
-  const existingText = svgRoot.querySelector<SVGTextElement>(
-    "text.blockly-instance-count",
+  const existingForeignObject = svgRoot.querySelector<SVGForeignObjectElement>(
+    "foreignObject.blockly-instance-count",
   )
-  if (existingText) return existingText
+  const existingLabel = existingForeignObject?.querySelector("div")
+  if (existingForeignObject && existingLabel)
+    return { foreignObject: existingForeignObject, label: existingLabel }
 
-  const text = Blockly.utils.dom.createSvgElement(
-    Blockly.utils.Svg.TEXT,
-    {
-      class: "blockly-instance-count",
-      "font-size": 16,
-      "font-weight": "bold",
-      "text-anchor": "middle",
-      dy: "0.35em",
-    },
+  const foreignObject = Blockly.utils.dom.createSvgElement(
+    Blockly.utils.Svg.FOREIGNOBJECT,
+    { class: "blockly-instance-count", width: 1 },
     svgRoot,
   )
-  text.style.pointerEvents = "none"
+  // The foreignObject's own width is just a layout anchor; let its content
+  // overflow to whatever width the label actually needs.
+  foreignObject.style.overflow = "visible"
+  foreignObject.style.pointerEvents = "none"
 
-  return text
+  const label = document.createElementNS(
+    "http://www.w3.org/1999/xhtml",
+    "div",
+  ) as HTMLDivElement
+  Object.assign(label.style, {
+    display: "flex",
+    alignItems: "center",
+    height: "100%",
+    width: "max-content",
+    fontSize: "16px",
+    fontWeight: "bold",
+    whiteSpace: "nowrap",
+  })
+  foreignObject.appendChild(label)
+
+  return { foreignObject, label }
 }
 
 /**
@@ -119,18 +138,20 @@ function updateFlyoutInstanceLabels(
     const max = maxInstances[block.type]
     if (max === undefined) continue
 
-    const text = getOrCreateInstanceCountLabel(block.getSvgRoot())
+    const { foreignObject, label } = getOrCreateInstanceCountLabel(
+      block.getSvgRoot(),
+    )
 
     const remaining = Math.max(
       max - workspace.getBlocksByType(block.type, false).length,
       0,
     )
-    text.textContent = `x${remaining}`
-    text.setAttribute("fill", block.getColour())
+    label.textContent = `x${remaining}`
+    label.style.color = block.getColour()
 
     const { width, height } = block.getHeightWidth()
-    text.setAttribute("x", String(width + 4 + text.getComputedTextLength() / 2))
-    text.setAttribute("y", String(height / 2))
+    foreignObject.setAttribute("x", String(width + INSTANCE_COUNT_LABEL_GAP))
+    foreignObject.setAttribute("height", String(height))
   }
 }
 
