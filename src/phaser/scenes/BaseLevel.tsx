@@ -12,6 +12,10 @@ const MIN_ZOOM_MARGIN = 1.5
 
 export interface BaseLevelData {
   backgroundKey: keyof typeof images.URLs.Background
+  character: {
+    normalKey: keyof typeof images.URLs.Character.Normal
+    wreckageKey?: keyof typeof images.URLs.Character.Wreckage
+  }
   tilesets: Record<layers.tile.Name, Array<Pick<tilesets.Tileset, "name">>> &
     Record<
       layers.objectGroup.Name,
@@ -24,6 +28,7 @@ export default class BaseLevel<
 > extends BaseScene<Data> {
   tilemap!: Phaser.Tilemaps.Tilemap
   backgroundTileSprite!: Phaser.GameObjects.TileSprite
+  characterSprite!: Phaser.GameObjects.CharacterSprite
   tilesets: Record<layers.Name, Phaser.Tilemaps.Tileset[]> = {
     "Tile.ROAD": [],
     "ObjectGroup.OBSTACLES": [],
@@ -115,6 +120,18 @@ export default class BaseLevel<
     ).map(image => image.setRequiredProperties())
   }
 
+  /** Creates the character sprite for the player. */
+  private createCharacterSprite() {
+    this.characterSprite = this.add.characterSprite(
+      this.initData.character.wreckageKey
+        ? [
+            this.initData.character.normalKey,
+            this.initData.character.wreckageKey,
+          ]
+        : this.initData.character.normalKey,
+    )
+  }
+
   /** Returns the center coordinates of the tilemap as [x, y]. */
   get tilemapCenter(): [number, number] {
     return [this.tilemap.widthInPixels / 2, this.tilemap.heightInPixels / 2]
@@ -133,22 +150,25 @@ export default class BaseLevel<
     // 2. Render a tile sprite behind everything as the background.
     this.createBackgroundTileSprite()
 
-    // 3. The road layer is created, on top of the background layer.
+    // 3. The road layer is created on top of the background layer.
     this.createTileLayer("Tile.ROAD")
 
-    // 4. The obstacle objects are created, on top of the road layer.
+    // 4. The obstacle objects are created on top of the road layer.
     this.createObjectGroupLayer("ObjectGroup.OBSTACLES")
 
-    // 5. The endpoint objects are created, on top of the obstacle objects.
+    // 5. The endpoint objects are created on top of the road layer.
     this.createObjectGroupLayer("ObjectGroup.ENDPOINTS")
 
-    // 6. The scenery objects are created, on top of all layers.
+    // 6. The scenery objects are created. Their depths vary.
     this.createObjectGroupLayer("ObjectGroup.SCENERY")
 
-    // 7. Center the camera on the tilemap.
+    // 7. Create the character sprite on top of everything.
+    this.createCharacterSprite()
+
+    // 8. Center the camera on the tilemap.
     this.cameras.main.centerOn(...this.tilemapCenter)
 
-    // 8. Default the zoom so the entire tilemap is visible.
+    // 9. Default the zoom so the entire tilemap is visible.
     this.setZoomInBounds()
   }
 

@@ -1,12 +1,9 @@
 import Phaser from "phaser"
 
-import * as images from "../../images"
 import * as tilemaps from "../../tilemaps"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
 import { SceneKeys } from "../../globals"
-
-const VAN_SCALE = 0.045
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for
@@ -21,16 +18,6 @@ export default class extends BasePreloader {
     // When all the assets have loaded, it's often worth creating global objects
     // here that the rest of the game can use. For example, you can define
     // global animations here, so we can use them in other scenes.
-
-    // TODO: dynamically load character from tilemap property
-    this.load.svg("Character.VAN", images.URLs.Character.TopView.VAN, {
-      scale: VAN_SCALE,
-    })
-    this.load.svg(
-      "Character.VAN_WRECKAGE",
-      images.URLs.Character.TopView.VAN_WRECKAGE,
-      { scale: VAN_SCALE * 4.15 },
-    )
 
     void this.lazyLoadTilemap()
   }

@@ -1,5 +1,7 @@
 import Phaser from "phaser"
 
+import type * as images from "../images"
+import CharacterSprite from "./CharacterSprite"
 import FloatingActionButton from "./FloatingActionButton"
 import type { ID } from "../layers/objectGroup/objects"
 import Stack from "./Stack"
@@ -70,6 +72,24 @@ Phaser.GameObjects.GameObjectFactory.register(
   ): Phaser.GameObjects.Tooltip {
     return this.scene.add.existing(
       new Tooltip(this.scene, title, target, options),
+    )
+  },
+)
+
+Phaser.GameObjects.GameObjectFactory.register(
+  "characterSprite",
+  function (
+    this: Phaser.GameObjects.GameObjectFactory,
+    key:
+      | keyof typeof images.URLs.Character.Normal
+      | [
+          keyof typeof images.URLs.Character.Normal,
+          keyof typeof images.URLs.Character.Wreckage,
+        ],
+    options?: Phaser.Types.GameObjects.CharacterSprite.Options,
+  ): Phaser.GameObjects.CharacterSprite {
+    return this.scene.add.existing(
+      new CharacterSprite(this.scene, key, options),
     )
   },
 )

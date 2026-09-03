@@ -1,6 +1,5 @@
 import Phaser from "phaser"
 
-import * as layers from "../../../layers"
 import * as tilesets from "../../../tilesets"
 import { Events, TILE_WIDTH } from "../../../globals"
 import type { GameCommand } from "../../../../app/slices"
@@ -36,9 +35,6 @@ const turnRight = (dir: Direction) =>
 const turnAround = (dir: Direction) =>
   DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 2) % 4]
 
-/** How long a move/turn animation takes. Fixed - not tied to `playSpeed`. */
-const MOVE_DURATION_MS = 400
-const TURN_AROUND_DURATION_MS = 500
 /** How far off the tile-boundary center the van sits, so it drives on the left. */
 const LANE_OFFSET = 0.125 * TILE_WIDTH
 
@@ -53,7 +49,6 @@ const LANE_OFFSET = 0.125 * TILE_WIDTH
  */
 export default class CharacterManager {
   private readonly level: Level
-  private sprite!: Phaser.GameObjects.Sprite
   private tile!: Tile
   private heading!: Direction
   private crashed = false
@@ -103,26 +98,16 @@ export default class CharacterManager {
     this.crashed = false
 
     const { x, y } = this.boundaryPoint(tile, heading)
-    if (this.sprite) {
-      this.sprite
-        .setTexture("Character.VAN")
-        .setPosition(x, y)
-        .setAngle(ROTATION_BY_DIRECTION[heading])
-    } else {
-      this.sprite = this.level.add
-        .sprite(x, y, "Character.VAN")
-        .setOrigin(0.5, 0.5)
-        .setAngle(ROTATION_BY_DIRECTION[heading])
-        // Place above all obstacles/endpoints/scenery.
-        .setDepth(
-          Math.max(...Object.values(layers.objectGroup.objects.Depths)) + 1,
-        )
-    }
+    this.level.characterSprite
+      .setVisible(true)
+      .setTexture("normal")
+      .setPosition(x, y)
+      .setAngle(ROTATION_BY_DIRECTION[heading])
   }
 
   private crash() {
     this.crashed = true
-    this.sprite.setTexture("Character.VAN_WRECKAGE")
+    this.level.characterSprite.setTexture("wreckage")
   }
 
   private onGameCommandIndexChanged() {
@@ -163,19 +148,10 @@ export default class CharacterManager {
     const from = this.boundaryPoint(this.tile, this.heading)
     const to = this.boundaryPoint(newTile, this.heading)
 
-    this.beginAnimation(
-      MOVE_DURATION_MS,
-      t => {
-        this.sprite.setPosition(
-          Phaser.Math.Linear(from.x, to.x, t),
-          Phaser.Math.Linear(from.y, to.y, t),
-        )
-      },
-      () => {
-        this.tile = newTile
-        this.checkForCrash()
-      },
-    )
+    this.level.characterSprite.move(from, to, () => {
+      this.tile = newTile
+      this.checkForCrash()
+    })
   }
 
   private commandTurn(deltaDeg: -90 | 90) {
@@ -188,12 +164,11 @@ export default class CharacterManager {
     const pivot = this.turnPivot(this.tile, this.heading, newHeading)
     const from = this.boundaryPoint(this.tile, this.heading)
 
-    this.animateRotationAroundPivot(
+    this.level.characterSprite.turn(
       pivot,
       from,
       ROTATION_BY_DIRECTION[this.heading],
       deltaDeg,
-      MOVE_DURATION_MS,
       () => {
         this.tile = newTile
         this.heading = newHeading
@@ -211,85 +186,17 @@ export default class CharacterManager {
     const pivot = this.boundaryCenter(this.tile, this.heading)
     const from = this.boundaryPoint(this.tile, this.heading)
 
-    this.animateRotationAroundPivot(
+    this.level.characterSprite.turn(
       pivot,
       from,
       ROTATION_BY_DIRECTION[this.heading],
       180,
-      TURN_AROUND_DURATION_MS,
       () => {
         this.tile = newTile
         this.heading = newHeading
         this.checkForCrash()
       },
     )
-  }
-
-  /**
-   * Animates the sprite tracing a circular arc of `deltaDeg` around `pivot`,
-   * starting at `from` (at angle `fromAngleDeg`), while rotating the sprite's
-   * own angle by the same `deltaDeg`. Used by both the 90-degree turns and
-   * the 180-degree u-turn - only the pivot/angle/duration differ.
-   */
-  private animateRotationAroundPivot(
-    pivot: Point,
-    from: Point,
-    fromAngleDeg: number,
-    deltaDeg: number,
-    duration: number,
-    commit: () => void,
-  ) {
-    const offset = { x: from.x - pivot.x, y: from.y - pivot.y }
-
-    this.beginAnimation(
-      duration,
-      t => {
-        const rad = Phaser.Math.DegToRad(deltaDeg * t)
-        const cos = Math.cos(rad)
-        const sin = Math.sin(rad)
-        this.sprite.setPosition(
-          pivot.x + offset.x * cos - offset.y * sin,
-          pivot.y + offset.x * sin + offset.y * cos,
-        )
-        this.sprite.setAngle(fromAngleDeg + deltaDeg * t)
-      },
-      commit,
-    )
-  }
-
-  /**
-   * Drives `onUpdate(t)` (t: 0..1) over `duration`, then calls `commit()`.
-   * Exposes a `finish()` escape hatch (via `this.pending`) that jumps
-   * straight to `onUpdate(1)` and `commit()`, for when the next command
-   * arrives before this animation naturally completes.
-   */
-  private beginAnimation(
-    duration: number,
-    onUpdate: (t: number) => void,
-    commit: () => void,
-  ) {
-    const state = { t: 0 }
-    const complete = () => {
-      this.pending = null
-      commit()
-    }
-
-    const tween = this.level.tweens.add({
-      targets: state,
-      t: 1,
-      duration,
-      onUpdate: () => onUpdate(state.t),
-      onComplete: complete,
-    })
-
-    this.pending = {
-      tween,
-      finish: () => {
-        tween.stop()
-        onUpdate(1)
-        complete()
-      },
-    }
   }
 
   /** The tile after moving one step in `dir` (may be off the edge of the map). */
