@@ -128,13 +128,13 @@ export default class CharacterManager {
   private runCommand(command: GameCommand) {
     switch (command) {
       case "move_forwards":
-        return this.commandMoveForwards()
+        return this.moveForwards()
       case "turn_left":
-        return this.commandTurn(-90)
+        return this.turn(-90)
       case "turn_right":
-        return this.commandTurn(90)
+        return this.turn(90)
       case "turn_around":
-        return this.commandTurnAround()
+        return this.turn(180)
       case "wait":
       case "deliver":
       case "sound_horn":
@@ -143,7 +143,7 @@ export default class CharacterManager {
     }
   }
 
-  private commandMoveForwards() {
+  private moveForwards() {
     const newTile = this.moveFromTile(this.tile, this.heading)
     const from = this.boundaryPoint(this.tile, this.heading)
     const to = this.boundaryPoint(newTile, this.heading)
@@ -154,14 +154,22 @@ export default class CharacterManager {
     })
   }
 
-  private commandTurn(deltaDeg: -90 | 90) {
-    const newHeading =
-      deltaDeg < 0 ? turnLeft(this.heading) : turnRight(this.heading)
+  private turn(deltaDeg: -90 | 90 | 180) {
+    const newHeading = {
+      [-90]: turnLeft(this.heading),
+      90: turnRight(this.heading),
+      180: turnAround(this.heading),
+    }[deltaDeg]
     const newTile = this.moveFromTile(this.tile, this.heading)
-
-    // The van advances one tile forward while pivoting 90 degrees around the
-    // inside/outside corner shared by its old and new heading.
-    const pivot = this.turnPivot(this.tile, this.heading, newHeading)
+    const pivot =
+      deltaDeg === 180
+        ? // Sweeps a tight 180-degree hairpin pivoting at the (un-offset)
+          // center of the boundary it's already on, ending on the opposite
+          // lateral side.
+          this.boundaryCenter(this.tile, this.heading)
+        : // The van advances one tile forward while pivoting 90 degrees around
+          // the inside/outside corner shared by its old and new heading.
+          this.turnPivot(this.tile, this.heading, newHeading)
     const from = this.boundaryPoint(this.tile, this.heading)
 
     this.level.characterSprite.turn(
@@ -169,28 +177,6 @@ export default class CharacterManager {
       from,
       ROTATION_BY_DIRECTION[this.heading],
       deltaDeg,
-      () => {
-        this.tile = newTile
-        this.heading = newHeading
-        this.checkForCrash()
-      },
-    )
-  }
-
-  private commandTurnAround() {
-    const newHeading = turnAround(this.heading)
-    const newTile = this.moveFromTile(this.tile, this.heading)
-
-    // Sweeps a tight 180-degree hairpin pivoting at the (un-offset) center of
-    // the boundary it's already on, ending on the opposite lateral side.
-    const pivot = this.boundaryCenter(this.tile, this.heading)
-    const from = this.boundaryPoint(this.tile, this.heading)
-
-    this.level.characterSprite.turn(
-      pivot,
-      from,
-      ROTATION_BY_DIRECTION[this.heading],
-      180,
       () => {
         this.tile = newTile
         this.heading = newHeading
