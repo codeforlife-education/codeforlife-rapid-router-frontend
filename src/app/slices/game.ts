@@ -15,12 +15,14 @@ export type GameCommand = (typeof GAME_COMMANDS)[number]
 export interface GameState {
   gameCommands: GameCommand[]
   gameCommandIndex: number
+  gameOver: boolean
 }
 
 const startGameCommandIndex = -1 // indicates start before the first command
 const initialState: GameState = Object.freeze({
   gameCommands: [],
   gameCommandIndex: startGameCommandIndex,
+  gameOver: false,
 })
 
 // Helper functions to determine game state.
@@ -33,8 +35,15 @@ function gameHasStarted(state: GameState): boolean {
 function gameHasFinished(state: GameState): boolean {
   return state.gameCommandIndex === state.gameCommands.length
 }
+function gameHasFinishedEarly(state: GameState): boolean {
+  return state.gameOver && gameHasStarted(state) && !gameHasFinished(state)
+}
 function gameInPlay(state: GameState): boolean {
-  return gameHasStarted(state) && !gameHasFinished(state)
+  return !state.gameOver && gameHasStarted(state) && !gameHasFinished(state)
+}
+function _restartGame(state: GameState): void {
+  state.gameCommandIndex = startGameCommandIndex
+  state.gameOver = false
 }
 
 export const gameSlice = createSlice({
@@ -44,23 +53,31 @@ export const gameSlice = createSlice({
     setGameCommands: create.reducer(
       (state, action: PayloadAction<GameCommand[]>) => {
         state.gameCommands = action.payload
-        state.gameCommandIndex = startGameCommandIndex
+        _restartGame(state)
       },
     ),
     nextGameCommand: create.reducer(state => {
-      if (gameIsDefined(state)) {
-        state.gameCommandIndex = gameHasFinished(state)
-          ? startGameCommandIndex
-          : state.gameCommandIndex + 1
-      }
+      if (!gameIsDefined(state)) return
+      if (state.gameOver) _restartGame(state)
+      state.gameCommandIndex = state.gameCommandIndex + 1
+      if (gameHasFinished(state)) state.gameOver = true
     }),
-    restartGame: create.reducer(state => {
-      state.gameCommandIndex = startGameCommandIndex
+    restartGame: create.reducer(_restartGame),
+    finishGameEarly: create.reducer((state, action: PayloadAction<number>) => {
+      if (
+        gameIsDefined(state) &&
+        action.payload >= 0 &&
+        action.payload < state.gameCommands.length
+      ) {
+        state.gameCommandIndex = action.payload
+        state.gameOver = true
+      } else _restartGame(state)
     }),
   }),
   selectors: {
     selectGameCommands: state => state.gameCommands,
     selectGameCommandIndex: state => state.gameCommandIndex,
+    selectGameOver: state => state.gameOver,
     selectCurrentGameCommand: state =>
       gameInPlay(state)
         ? state.gameCommands[state.gameCommandIndex]
@@ -68,18 +85,25 @@ export const gameSlice = createSlice({
     selectGameIsDefined: gameIsDefined,
     selectGameHasStarted: gameHasStarted,
     selectGameHasFinished: gameHasFinished,
+    selectGameHasFinishedEarly: gameHasFinishedEarly,
     selectGameInPlay: gameInPlay,
   },
 })
 
-export const { setGameCommands, nextGameCommand, restartGame } =
-  gameSlice.actions
+export const {
+  setGameCommands,
+  nextGameCommand,
+  restartGame,
+  finishGameEarly,
+} = gameSlice.actions
 export const {
   selectGameCommands,
   selectGameCommandIndex,
+  selectGameOver,
   selectCurrentGameCommand,
   selectGameIsDefined,
   selectGameHasStarted,
   selectGameHasFinished,
+  selectGameHasFinishedEarly,
   selectGameInPlay,
 } = gameSlice.selectors

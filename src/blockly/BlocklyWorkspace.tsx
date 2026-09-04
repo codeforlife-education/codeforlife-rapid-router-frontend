@@ -20,6 +20,7 @@ import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
   useGameCommandIndex,
+  useGameHasFinishedEarly,
   useGameInPlay,
 } from "../app/hooks"
 import { type StartBlockType } from "./blocks"
@@ -37,8 +38,13 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const [blockly, setBlockly] = useState<null | ReturnType<
     typeof initializeBlockly
   >>(null)
+  const highlightedBlockRef = useRef<{
+    id: string
+    originalColour?: string
+  } | null>(null)
   const dispatch = useAppDispatch()
   const gameInPlay = useGameInPlay()
+  const gameHasFinishedEarly = useGameHasFinishedEarly()
   const gameCommandIndex = useGameCommandIndex()
 
   if (!blocklyWorkspaceContext)
@@ -90,12 +96,29 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   useEffect(() => {
     if (!blockly) return
 
-    const blockId = gameInPlay
-      ? getNextBlocks(blockly.startBlock)[gameCommandIndex].id
-      : null // Clear any highlighted blocks when the game is not in play.
+    // Restore the previously highlighted block before touching a new one.
+    if (highlightedBlockRef.current) {
+      const { id, originalColour } = highlightedBlockRef.current
+      blockly.workspace.highlightBlock(null) // Unhighlight all blocks.
+      if (originalColour)
+        blockly.workspace.getBlockById(id)?.setColour(originalColour)
+      highlightedBlockRef.current = null
+    }
 
-    blockly.workspace.highlightBlock(blockId)
-  }, [blockly, gameInPlay, gameCommandIndex])
+    // Only highlight the block if the game is in play or has finished early.
+    if (!gameInPlay && !gameHasFinishedEarly) return
+
+    // Get and track the block to highlight.
+    const block = getNextBlocks(blockly.startBlock)[gameCommandIndex]
+    highlightedBlockRef.current = {
+      id: block.id,
+      originalColour: gameHasFinishedEarly ? block.getColour() : undefined,
+    }
+
+    // Highlight the block and possibly change its color.
+    blockly.workspace.highlightBlock(block.id)
+    if (gameHasFinishedEarly) block.setColour("#ff0000")
+  }, [blockly, gameCommandIndex, gameInPlay, gameHasFinishedEarly])
 
   return (
     <Box
