@@ -98,6 +98,7 @@ export default class BasePreloader<
     if (normalKey === "VAN") wreckageKey = "VAN"
     if (!wreckageKey) return
 
+    // TODO: create wreckage SVG for all characters.
     scale = (
       {
         SLEIGH: 1, // TODO: Adjust scale if necessary.
