@@ -15,9 +15,11 @@ import {
   selectGameCommandIndex,
   selectGameCommands,
   selectGameHasFinished,
+  selectGameHasFinishedEarly,
   selectGameHasStarted,
   selectGameInPlay,
   selectGameIsDefined,
+  selectGameOver,
   selectSettings,
 } from "./slices"
 import { BlocklyWorkspaceContext } from "../blockly"
@@ -49,7 +51,7 @@ export function useBreakpoint() {
 export function usePlayInterval() {
   const dispatch = useAppDispatch()
   const { playSpeed } = useSettings()
-  const gameHasFinished = useGameHasFinished()
+  const gameOver = useGameOver()
   const intervalRef = useRef<null | ReturnType<typeof setInterval>>(null)
 
   const clearPlayInterval = useCallback(() => {
@@ -66,13 +68,13 @@ export function usePlayInterval() {
     }, 1000 / playSpeed)
   }, [clearPlayInterval, dispatch, playSpeed])
 
-  // Clear interval on game finish or unmount.
+  // Clear interval on game over or unmount.
   useEffect(() => {
-    if (gameHasFinished) clearPlayInterval()
+    if (gameOver) clearPlayInterval()
     return () => {
       clearPlayInterval()
     }
-  }, [gameHasFinished, clearPlayInterval])
+  }, [gameOver, clearPlayInterval])
 
   // Update interval if playSpeed changes.
   useEffect(() => {
@@ -86,11 +88,14 @@ export function usePlayInterval() {
 export const useSettings = () => useSelector(selectSettings)
 export const useGameCommands = () => useSelector(selectGameCommands)
 export const useGameCommandIndex = () => useSelector(selectGameCommandIndex)
+export const useGameOver = () => useSelector(selectGameOver)
 export const useCurrentGameCommand = () => useSelector(selectCurrentGameCommand)
 export const useGameIsDefined = () => useSelector(selectGameIsDefined)
 export const useGameHasStarted = () => useSelector(selectGameHasStarted)
 export const useGameInPlay = () => useSelector(selectGameInPlay)
 export const useGameHasFinished = () => useSelector(selectGameHasFinished)
+export const useGameHasFinishedEarly = () =>
+  useSelector(selectGameHasFinishedEarly)
 
 // Contexts
 export const useBlocklyWorkspaceContext = () =>
