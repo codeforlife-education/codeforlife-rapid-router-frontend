@@ -28,6 +28,9 @@ declare module "phaser" {
     type AddEndpoint = (data: AddEndpointData) => void
 
     type SceneActivityChanged = (key: SceneKey, isActive: boolean) => void
+
+    /** The index of the command the game ended early on (e.g. the van crashed). */
+    type FinishEarly = (commandIndex: number) => void
   }
 
   namespace GameObjects {

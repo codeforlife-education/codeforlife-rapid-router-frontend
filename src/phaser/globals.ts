@@ -24,6 +24,7 @@ export const Events = createIdRegistry({
   "phaser-set-variable": "PHASER_SET_VARIABLE",
   "react-set-variable": "REACT_SET_VARIABLE",
   "export-level": "EXPORT_LEVEL",
+  "finish-early": "FINISH_EARLY",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 

@@ -52,8 +52,8 @@ export default class CharacterManager {
   private tile!: Tile
   private heading!: Direction
   private crashed = false
-  private pending: { tween: Phaser.Tweens.Tween; finish: () => void } | null =
-    null
+  /** The command index the van is currently acting on, for reporting a crash. */
+  private currentCommandIndex = -1
 
   constructor(level: Level) {
     this.level = level
@@ -65,7 +65,6 @@ export default class CharacterManager {
     level.game.events.on(Events.REACT_SET_VARIABLE, onReactSetVariable)
     level.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
       level.game.events.off(Events.REACT_SET_VARIABLE, onReactSetVariable)
-      this.pending?.tween.stop()
     })
   }
 
@@ -108,19 +107,26 @@ export default class CharacterManager {
   private crash() {
     this.crashed = true
     this.level.characterSprite.setTexture("wreckage")
+    // Report the invalid command back to React as an event arg, not via the
+    // registry, so a React write racing shortly after can't clobber it.
+    this.level.game.events.emit(Events.FINISH_EARLY, this.currentCommandIndex)
   }
 
   private onGameCommandIndexChanged() {
     // Skip any still-running animation straight to its end state first.
-    if (this.pending) this.pending.finish()
+    this.level.characterSprite.finishAnimation()
 
     const index = this.level.commandIndex
     if (index === -1) {
       this.spawn()
       return
     }
-    if (this.crashed) return
+    // A restart-then-resume (e.g. Step/Play after a crash) can jump straight
+    // from the crashed index to the first (0) in a single dispatch, without
+    // ever passing through -1 - so respawn on the start before continuing.
+    if (this.crashed) this.spawn()
 
+    this.currentCommandIndex = index
     const command = this.level.commands[index]
     if (command) this.runCommand(command)
   }

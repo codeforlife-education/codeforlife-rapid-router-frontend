@@ -18,12 +18,14 @@ import type Phaser from "phaser"
 
 import { Events, type Variable } from "./globals"
 import {
+  useAppDispatch,
   useGameCommandIndex,
   useGameCommands,
   usePhaserGameContext,
 } from "../app/hooks"
 import type { Level } from "../api/level"
 import type { PhaserGameRef } from "./PhaserGameContext"
+import { finishGameEarly } from "../app/slices"
 
 export type PhaserGameProps =
   | { mode: "play"; levelId: Level["id"] }
@@ -31,6 +33,7 @@ export type PhaserGameProps =
 
 const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const phaserGameContext = usePhaserGameContext()
+  const dispatch = useAppDispatch()
   const gameCommands = useGameCommands()
   const gameCommandIndex = useGameCommandIndex()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
@@ -61,7 +64,9 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       events.on(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
       // Return a cleanup function to remove the event listener when the
       // component unmounts or the dependencies change.
-      return () => events.off(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
+      return () => {
+        events.off(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
+      }
     }) as PhaserGameRef["getVariable"],
     [gameIsInitialized],
   )
@@ -184,6 +189,21 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   useEffect(() => {
     if (mode === "play") setVariable("commandIndex", gameCommandIndex)
   }, [mode, gameCommandIndex, setVariable])
+
+  // Listen for Phaser reporting a crash, and end the game early at whichever
+  // command index it passes.
+  useEffect(() => {
+    if (mode !== "play" || !gameIsInitialized || !gameRef.current) return
+    const { events } = gameRef.current
+
+    const onFinishEarly: Phaser.Events.FinishEarly = commandIndex => {
+      dispatch(finishGameEarly(commandIndex))
+    }
+    events.on(Events.FINISH_EARLY, onFinishEarly)
+    return () => {
+      events.off(Events.FINISH_EARLY, onFinishEarly)
+    }
+  }, [mode, gameIsInitialized, dispatch])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
