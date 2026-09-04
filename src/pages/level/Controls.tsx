@@ -78,15 +78,6 @@ const Base: FC<
       >
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
-          text="Clear"
-          icon={<DeleteIcon />}
-          onClick={() => {
-            clearPlayInterval()
-            onClear()
-          }}
-        />
-        <miniDrawers.ButtonItem
-          isDrawerOpen={isDrawerOpen}
           text={gameInPlay && playInterval ? "Pause" : "Play"}
           icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
           disabled={!gameIsDefined}
@@ -142,6 +133,15 @@ const Base: FC<
               ? settings.twoPanelLayout
               : settings.threePanelLayout
           }
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Clear"
+          icon={<DeleteIcon />}
+          onClick={() => {
+            clearPlayInterval()
+            onClear()
+          }}
         />
       </miniDrawers.MiniDrawer>
     </>
