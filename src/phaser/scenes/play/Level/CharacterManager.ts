@@ -54,6 +54,8 @@ export default class CharacterManager {
   private crashed = false
   /** The command index the van is currently acting on, for reporting a crash. */
   private currentCommandIndex = -1
+  /** The last command index actually applied, to detect/catch up on any skipped in between. */
+  private lastCommandIndex = -1
 
   constructor(level: Level) {
     this.level = level
@@ -95,6 +97,7 @@ export default class CharacterManager {
     this.tile = tile
     this.heading = heading
     this.crashed = false
+    this.lastCommandIndex = -1
 
     const { x, y } = this.boundaryPoint(tile, heading)
     this.level.characterSprite
@@ -126,21 +129,34 @@ export default class CharacterManager {
     // ever passing through -1 - so respawn on the start before continuing.
     if (this.crashed) this.spawn()
 
+    // React/redux can coalesce several index changes into a single push to
+    // Phaser (e.g. clicking Step twice quickly), skipping past intermediate
+    // indices entirely - apply any skipped commands' effects instantly (no
+    // animation, there's no time left to show them) so the van's position
+    // and crash detection stay correct, then animate only the latest.
+    for (let i = this.lastCommandIndex + 1; i < index && !this.crashed; i++) {
+      this.currentCommandIndex = i
+      const skipped = this.level.commands[i]
+      if (skipped) this.runCommand(skipped, true)
+    }
+    this.lastCommandIndex = index
+    if (this.crashed) return
+
     this.currentCommandIndex = index
     const command = this.level.commands[index]
     if (command) this.runCommand(command)
   }
 
-  private runCommand(command: GameCommand) {
+  private runCommand(command: GameCommand, instant = false) {
     switch (command) {
       case "move_forwards":
-        return this.moveForwards()
+        return this.moveForwards(instant)
       case "turn_left":
-        return this.turn(-90)
+        return this.turn(-90, instant)
       case "turn_right":
-        return this.turn(90)
+        return this.turn(90, instant)
       case "turn_around":
-        return this.turn(180)
+        return this.turn(180, instant)
       case "wait":
       case "deliver":
       case "sound_horn":
@@ -149,8 +165,15 @@ export default class CharacterManager {
     }
   }
 
-  private moveForwards() {
+  private moveForwards(instant: boolean) {
     const newTile = this.moveFromTile(this.tile, this.heading)
+
+    if (instant) {
+      this.tile = newTile
+      this.checkForCrash()
+      return
+    }
+
     const from = this.boundaryPoint(this.tile, this.heading)
     const to = this.boundaryPoint(newTile, this.heading)
 
@@ -160,13 +183,21 @@ export default class CharacterManager {
     })
   }
 
-  private turn(deltaDeg: -90 | 90 | 180) {
+  private turn(deltaDeg: -90 | 90 | 180, instant: boolean) {
     const newHeading = {
       [-90]: turnLeft(this.heading),
       90: turnRight(this.heading),
       180: turnAround(this.heading),
     }[deltaDeg]
     const newTile = this.moveFromTile(this.tile, this.heading)
+
+    if (instant) {
+      this.tile = newTile
+      this.heading = newHeading
+      this.checkForCrash()
+      return
+    }
+
     const pivot =
       deltaDeg === 180
         ? // Sweeps a tight 180-degree hairpin pivoting at the (un-offset)

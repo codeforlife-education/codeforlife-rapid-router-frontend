@@ -68,13 +68,17 @@ export function usePlayInterval() {
     }, 1000 / playSpeed)
   }, [clearPlayInterval, dispatch, playSpeed])
 
-  // Clear interval on game over or unmount.
+  // Clear interval on game over.
   useEffect(() => {
     if (gameOver) clearPlayInterval()
+  }, [gameOver, clearPlayInterval])
+
+  // Clear interval on unmount.
+  useEffect(() => {
     return () => {
       clearPlayInterval()
     }
-  }, [gameOver, clearPlayInterval])
+  }, [clearPlayInterval])
 
   // Update interval if playSpeed changes.
   useEffect(() => {
