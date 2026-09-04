@@ -78,7 +78,14 @@ export default class BasePreloader<
   ) {
     let scale = (
       {
+        DEE: 1, // TODO: Adjust scale if necessary.
+        ELECTRIC_VAN: 1, // TODO: Adjust scale if necessary.
+        KIRSTY: 1, // TODO: Adjust scale if necessary.
+        NIGEL: 1, // TODO: Adjust scale if necessary.
+        PHIL: 1, // TODO: Adjust scale if necessary.
+        SLEIGH: 1, // TODO: Adjust scale if necessary.
         VAN: 0.045,
+        WES: 1, // TODO: Adjust scale if necessary.
       } as Record<keyof typeof images.URLs.Character.Normal, number>
     )[normalKey]
 
@@ -93,6 +100,7 @@ export default class BasePreloader<
 
     scale = (
       {
+        SLEIGH: 1, // TODO: Adjust scale if necessary.
         VAN: 0.18675,
       } as Record<keyof typeof images.URLs.Character.Wreckage, number>
     )[wreckageKey]
