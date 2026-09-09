@@ -151,6 +151,11 @@ export type FactoryKwArgs<N extends Name, GID extends ID> = {
   density?: Density
   flipX?: boolean
   flipY?: boolean
+  // Road objects (endpoints/obstacles) are always placed on a single tile;
+  // record it so it can be read back without depending on how/where the
+  // object was created (editor placement, export/import, or a hand-authored
+  // tilemap fixture).
+  tileAligned?: boolean
 } & FactoryBaseKwArgs<N, GID>
 export type Factory<
   N extends Name,
@@ -168,6 +173,7 @@ export const factory = <
     name,
     depth = Depths.GROUND,
     density = Densities.SOLID,
+    tileAligned = false,
     flipX = false,
     flipY = false,
     x: baseX = 0,
@@ -191,25 +197,32 @@ export const factory = <
   baseY += baseRow * TILE_HEIGHT
 
   const base: FactoryBase<N, GID> = ({
-    x,
-    y,
-    col,
-    row,
-    properties,
+    x = 0,
+    y = 0,
+    col = 0,
+    row = 0,
+    properties = [],
     visible = baseVisible,
-    rotation,
+    rotation = 0,
     ...obj
   }) => ({
     gid,
     type: name,
     name,
-    x: (x ? baseX + x : baseX) + (col ? col * TILE_WIDTH : 0),
-    y: (y ? baseY + y : baseY) + (row ? row * TILE_HEIGHT : 0),
-    properties: properties
-      ? [...baseProperties, ...properties]
-      : baseProperties,
+    x: baseX + x + col * TILE_WIDTH,
+    y: baseY + y + row * TILE_HEIGHT,
+    properties: [
+      ...baseProperties,
+      ...(tileAligned
+        ? ([
+            { name: "tileRow", type: "int", value: baseRow + row },
+            { name: "tileCol", type: "int", value: baseCol + col },
+          ] as TiledProperty[])
+        : []),
+      ...properties,
+    ],
     visible,
-    rotation: rotation ? baseRotation + rotation : baseRotation,
+    rotation: baseRotation + rotation,
     ...objBase,
     ...obj,
   })

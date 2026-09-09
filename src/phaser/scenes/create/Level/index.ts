@@ -129,6 +129,11 @@ export default class extends BaseLevel<LevelData> {
           value: this.backgroundTileSprite.texture
             .key as keyof typeof images.URLs.Background,
         },
+        {
+          name: "character",
+          type: "string",
+          value: this.initData.character.normalKey,
+        },
       ],
       layers: [
         { data: this.road.toTiledData() },

@@ -28,9 +28,49 @@ declare module "phaser" {
     type AddEndpoint = (data: AddEndpointData) => void
 
     type SceneActivityChanged = (key: SceneKey, isActive: boolean) => void
+
+    /** The index of the command the game ended early on (e.g. the van crashed). */
+    type FinishEarly = (commandIndex: number) => void
   }
 
   namespace GameObjects {
+    interface CharacterSprite extends Phaser.GameObjects.Sprite {
+      /** The texture to use when the character is in its normal state. */
+      readonly normalTexture: string
+      /** The texture to use when the character is wrecked. */
+      readonly wreckageTexture?: string
+      /** The default duration of a move forwards animation, in milliseconds. */
+      readonly defaultMoveDurationMs: number
+      /** The default duration of a turn animation, in milliseconds. */
+      readonly defaultTurnDurationMs: number
+
+      /** Sets the texture of the character to either its normal or wreckage state. */
+      setTexture(
+        texture: Phaser.Types.GameObjects.CharacterSprite.Texture,
+      ): this
+
+      /** Immediately finishes the current animation, if any. */
+      finishAnimation(): void
+
+      /** Animates the character moving from one point to another. */
+      move(
+        from: Phaser.Types.Math.Vector2Like,
+        to: Phaser.Types.Math.Vector2Like,
+        onComplete?: () => void,
+        duration?: number,
+      ): void
+
+      /** Animates the character turning around a pivot point. */
+      turn(
+        pivot: Phaser.Types.Math.Vector2Like,
+        from: Phaser.Types.Math.Vector2Like,
+        fromAngleDeg: number,
+        deltaDeg: -90 | 90 | 180,
+        onComplete?: () => void,
+        duration?: number,
+      ): void
+    }
+
     interface Graphics extends Phaser.GameObjects.Graphics {
       defaultArrowShaftStyle: Phaser.Types.GameObjects.Graphics.RequiredLineStyle
       defaultArrowHeadStyle: Phaser.Types.GameObjects.Graphics.RequiredFillStyle
@@ -160,6 +200,17 @@ declare module "phaser" {
         target: Phaser.GameObjects.GameObject | Phaser.GameObjects.GameObject[],
         options?: Phaser.Types.GameObjects.Tooltip.Options,
       ): Phaser.GameObjects.Tooltip
+
+      /** Creates a new character sprite. */
+      characterSprite(
+        key:
+          | keyof typeof images.URLs.Character.Normal
+          | [
+              keyof typeof images.URLs.Character.Normal,
+              keyof typeof images.URLs.Character.Wreckage,
+            ],
+        options?: Phaser.Types.GameObjects.CharacterSprite.Options,
+      ): Phaser.GameObjects.CharacterSprite
     }
   }
 
@@ -197,6 +248,16 @@ declare module "phaser" {
     }
 
     namespace GameObjects {
+      namespace CharacterSprite {
+        type Options = {
+          x?: number
+          y?: number
+          defaultMoveDurationMs?: number
+          defaultTurnDurationMs?: number
+        }
+        type Texture = "normal" | "wreckage"
+      }
+
       namespace Graphics {
         type RequiredLineStyle = {
           width: number
