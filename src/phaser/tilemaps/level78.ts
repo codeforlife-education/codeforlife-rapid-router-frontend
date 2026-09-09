@@ -2,7 +2,7 @@ import * as layers from "../layers"
 import * as tilemaps from "./tilemaps"
 
 export default tilemaps.makeOrthogonal({
-  properties: { background: "PAVEMENT" }, // character: "PHIL"
+  properties: { background: "PAVEMENT", character: "SLEIGH" },
   layers: {
     tile: {
       road: {
