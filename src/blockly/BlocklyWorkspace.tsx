@@ -49,7 +49,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
-  const { ref, toolboxContents } = blocklyWorkspaceContext
+  const { ref, toolboxContents, maxInstances } = blocklyWorkspaceContext
 
   // Expose workspace methods to parent components.
   useImperativeHandle(
@@ -72,6 +72,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       divRef.current,
       startBlockType,
       toolboxContents,
+      maxInstances,
     )
     setBlockly(blockly)
 
@@ -90,7 +91,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [divRef, startBlockType, toolboxContents, dispatch])
+  }, [divRef, startBlockType, toolboxContents, maxInstances, dispatch])
 
   // Highlight the current block during game play.
   useEffect(() => {
