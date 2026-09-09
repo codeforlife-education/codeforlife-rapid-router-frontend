@@ -83,7 +83,7 @@ export default class BasePreloader<
         KIRSTY: 0.33,
         NIGEL: 0.33,
         PHIL: 0.25,
-        SLEIGH: 0.25, // TODO: Adjust scale if necessary.
+        SLEIGH: 0.25,
         VAN: 0.045,
         WES: 0.25,
       } as Record<keyof typeof images.URLs.Character.Normal, number>
