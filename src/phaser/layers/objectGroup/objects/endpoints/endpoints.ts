@@ -9,7 +9,7 @@ export type Name = (typeof Names)[number]
 export type FactoryKwArgs<
   N extends Name,
   GID extends tilesets.endpoints.ID,
-> = objects.FactoryKwArgs<N, GID>
+> = Omit<objects.FactoryKwArgs<N, GID>, "tileAligned">
 
 export type FactoryVariants = objects.MakeStraightRotationVariantsKwArgs
 
@@ -21,13 +21,16 @@ export const factory = <
   kwArgs: FactoryKwArgs<N, GID>,
   { top, bottom, left, right, tileOffset, ...variants }: V,
 ) =>
-  objects.factory(kwArgs, {
-    ...objects.makeStraightRotationVariants({
-      top,
-      bottom,
-      left,
-      right,
-      tileOffset,
-    }),
-    ...variants,
-  })
+  objects.factory(
+    { ...kwArgs, tileAligned: true },
+    {
+      ...objects.makeStraightRotationVariants({
+        top,
+        bottom,
+        left,
+        right,
+        tileOffset,
+      }),
+      ...variants,
+    },
+  )

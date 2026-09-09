@@ -55,6 +55,11 @@ export type OrthogonalTilemap = Omit<
       type: "string"
       value: keyof typeof images.URLs.Background
     },
+    {
+      name: "character"
+      type: "string"
+      value: keyof typeof images.URLs.Character.Normal
+    },
   ]
 }
 
@@ -80,7 +85,10 @@ export type MakeOrthogonalKwArgs<
   Partial<Pick<OrthogonalTilemap, MakeOrthogonalPartials>> & {
     width?: COLS
     height?: ROWS
-    properties: { background: keyof typeof images.URLs.Background }
+    properties: {
+      background: keyof typeof images.URLs.Background
+      character: keyof typeof images.URLs.Character.Normal
+    }
     layers: {
       tile: {
         road: MakeTileLayerKwArgs<
@@ -209,6 +217,7 @@ export const makeOrthogonal = <
     tileheight: mapTileHeight,
     properties: [
       { name: "background", type: "string", value: properties.background },
+      { name: "character", type: "string", value: properties.character },
     ],
     tilesets: _tilesets.map(
       ({
@@ -310,7 +319,7 @@ export type ExportedOrthogonalTilemap<
  * directly by Phaser's native tilemap/object-layer renderer (e.g. play mode).
  */
 export const importOrthogonal = ({
-  properties: [{ value: background }],
+  properties: [{ value: background }, { value: character }],
   layers: [roadLayer, obstaclesLayer, endpointsLayer, sceneryLayer],
 }: ExportedOrthogonalTilemap): OrthogonalTilemap => {
   // Reconstructs a full road object from its minimal exported data.
@@ -342,7 +351,7 @@ export const importOrthogonal = ({
   }
 
   return makeOrthogonal({
-    properties: { background },
+    properties: { background, character },
     layers: {
       tile: { road: { data: roadLayer.data } },
       objectGroup: {

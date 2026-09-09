@@ -44,7 +44,7 @@ export default class extends BasePreloader {
       }
     } else {
       tilemap = tilemaps.makeOrthogonal({
-        properties: { background: "GRASS" },
+        properties: { background: "GRASS", character: "VAN" },
         tilesets,
         layers: {
           tile: { road: { data: layers.tile.data.fillManyRows() } },
