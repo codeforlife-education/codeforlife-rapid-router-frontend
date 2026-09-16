@@ -12,6 +12,7 @@ import {
   clearWorkspace,
   getGameCommandsFromStartBlock,
   getNextBlocks,
+  getPythonCodeFromStartBlock,
   initializeBlockly,
   resizeWorkspace,
   saveWorkspaceState,
@@ -49,7 +50,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
-  const { ref, toolboxContents, maxInstances } = blocklyWorkspaceContext
+  const { ref, toolboxContents, maxInstances, setPythonCode } =
+    blocklyWorkspaceContext
 
   // Expose workspace methods to parent components.
   useImperativeHandle(
@@ -81,7 +83,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       saveWorkspaceState(blockly.workspace)
 
       const gameCommands = getGameCommandsFromStartBlock(blockly.startBlock)
-      dispatch(setGameCommands(gameCommands))
+      dispatch(setGameCommands({ commands: gameCommands, lines: [] }))
+      setPythonCode(getPythonCodeFromStartBlock(blockly.startBlock))
     }, 250)
 
     blockly.workspace.addChangeListener(onChange)
@@ -91,7 +94,14 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [divRef, startBlockType, toolboxContents, maxInstances, dispatch])
+  }, [
+    divRef,
+    startBlockType,
+    toolboxContents,
+    maxInstances,
+    dispatch,
+    setPythonCode,
+  ])
 
   // Highlight the current block during game play.
   useEffect(() => {
@@ -109,8 +119,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     // Only highlight the block if the game is in play or has finished early.
     if (!gameInPlay && !gameHasFinishedEarly) return
 
-    // Get and track the block to highlight.
+    // Get and track the block to highlight. There may be no matching block
+    // if the game commands came from elsewhere (e.g. the Python editor in
+    // blocklyAndPython mode) rather than this workspace's own block chain.
     const block = getNextBlocks(blockly.startBlock)[gameCommandIndex]
+    if (!block) return
     highlightedBlockRef.current = {
       id: block.id,
       originalColour: gameHasFinishedEarly ? block.getColour() : undefined,

@@ -14,6 +14,8 @@ export type GameCommand = (typeof GAME_COMMANDS)[number]
 
 export interface GameState {
   gameCommands: GameCommand[]
+  /** The Python source line (1-indexed) that produced each `gameCommands` entry. */
+  gameCommandLines: number[]
   gameCommandIndex: number
   gameOver: boolean
 }
@@ -21,6 +23,7 @@ export interface GameState {
 const startGameCommandIndex = -1 // indicates start before the first command
 const initialState: GameState = Object.freeze({
   gameCommands: [],
+  gameCommandLines: [],
   gameCommandIndex: startGameCommandIndex,
   gameOver: false,
 })
@@ -51,8 +54,12 @@ export const gameSlice = createSlice({
   initialState,
   reducers: create => ({
     setGameCommands: create.reducer(
-      (state, action: PayloadAction<GameCommand[]>) => {
-        state.gameCommands = action.payload
+      (
+        state,
+        action: PayloadAction<{ commands: GameCommand[]; lines: number[] }>,
+      ) => {
+        state.gameCommands = action.payload.commands
+        state.gameCommandLines = action.payload.lines
         _restartGame(state)
       },
     ),
@@ -76,6 +83,7 @@ export const gameSlice = createSlice({
   }),
   selectors: {
     selectGameCommands: state => state.gameCommands,
+    selectGameCommandLines: state => state.gameCommandLines,
     selectGameCommandIndex: state => state.gameCommandIndex,
     selectGameOver: state => state.gameOver,
     selectCurrentGameCommand: state =>
@@ -98,6 +106,7 @@ export const {
 } = gameSlice.actions
 export const {
   selectGameCommands,
+  selectGameCommandLines,
   selectGameCommandIndex,
   selectGameOver,
   selectCurrentGameCommand,

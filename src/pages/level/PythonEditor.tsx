@@ -1,19 +1,240 @@
-import { type FC } from "react"
-import { Typography } from "@mui/material"
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  Typography,
+  debounce,
+} from "@mui/material"
+import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror"
+import {
+  type FC,
+  type RefObject,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react"
+import { python } from "@codemirror/lang-python"
 
-const PythonEditor: FC = () => (
-  <>
-    <Typography variant="h2">Mock Python Editor content</Typography>
-    <Typography>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-      commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-      velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-      cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
-      est laborum.
-    </Typography>
-  </>
-)
+import {
+  PYTHON_STARTER_CODE,
+  type PythonWorkspaceRef,
+  usePyodideRunner,
+} from "../../pyodide"
+import {
+  dispatchHighlightedLine,
+  highlightLineExtension,
+} from "./pythonLineHighlight"
+import {
+  useAppDispatch,
+  useBlocklyWorkspaceContext,
+  useGameCommandIndex,
+  useGameCommandLines,
+  useGameHasFinishedEarly,
+  useGameInPlay,
+  useGameIsDefined,
+  usePlayIntervalContext,
+  usePythonWorkspaceContext,
+} from "../../app/hooks"
+import { setGameCommands } from "../../app/slices"
+
+const localStorageKey = (levelId: number) => `python-code-${levelId}`
+
+/** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
+const EditablePythonEditor: FC<{
+  ref: RefObject<PythonWorkspaceRef | null>
+  levelId: number
+}> = ({ ref, levelId }) => {
+  const dispatch = useAppDispatch()
+  const { run, ready } = usePyodideRunner()
+  const gameIsDefined = useGameIsDefined()
+  const gameInPlay = useGameInPlay()
+  const gameHasFinishedEarly = useGameHasFinishedEarly()
+  const gameCommandIndex = useGameCommandIndex()
+  const commandLines = useGameCommandLines()
+  const playIntervalContext = usePlayIntervalContext()
+  if (!playIntervalContext)
+    throw new ReferenceError("Play interval context not provided.")
+  const [, setPlayInterval, clearPlayInterval] = playIntervalContext
+  const editorRef = useRef<ReactCodeMirrorRef>(null)
+  // `localStorage` isn't available during SSR - start with the starter code
+  // and swap in any saved code once mounted in the browser (see below).
+  const [code, setCode] = useState(PYTHON_STARTER_CODE)
+  const [error, setError] = useState<string | null>(null)
+  const [commandsOpen, setCommandsOpen] = useState(false)
+
+  // Expose an imperative "clear" for the Controls panel's Clear button.
+  useImperativeHandle(
+    ref,
+    () => ({ clear: () => setCode(PYTHON_STARTER_CODE) }),
+    [],
+  )
+
+  const executeAndDispatchRef = useRef((nextCode: string) => {
+    localStorage.setItem(localStorageKey(levelId), nextCode)
+    void run(nextCode, levelId).then(result => {
+      if (result.ok) {
+        setError(null)
+        dispatch(
+          setGameCommands({
+            commands: result.commands,
+            lines: result.commandLines,
+          }),
+        )
+      } else {
+        setError(result.message)
+        dispatch(setGameCommands({ commands: [], lines: [] }))
+      }
+    })
+  })
+
+  // Debounced run-on-change, mirrors Blockly's onChange -> setGameCommands.
+  const debouncedExecute = useRef(
+    debounce(
+      (nextCode: string) => executeAndDispatchRef.current(nextCode),
+      250,
+    ),
+  ).current
+
+  // Run once on mount (client-only) so a level's saved/starter code plays
+  // immediately, loading any saved code from localStorage first.
+  useEffect(() => {
+    const savedCode = localStorage.getItem(localStorageKey(levelId))
+    if (savedCode !== null) setCode(savedCode)
+    executeAndDispatchRef.current(savedCode ?? code)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Highlight the line of code whose command is currently being animated,
+  // and scroll it into view for long scripts.
+  useEffect(() => {
+    const view = editorRef.current?.view
+    if (!view) return
+    const line =
+      (gameInPlay || gameHasFinishedEarly) && commandLines[gameCommandIndex]
+    dispatchHighlightedLine(view, line || null)
+  }, [gameCommandIndex, gameInPlay, gameHasFinishedEarly, commandLines])
+
+  const onChange = (nextCode: string) => {
+    setCode(nextCode)
+    debouncedExecute(nextCode)
+  }
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <Typography variant="h6" sx={{ px: 1, pt: 1 }}>
+        Python Program
+      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1,
+          px: 1,
+          pb: 1,
+        }}
+      >
+        <Typography variant="body2">
+          Use the Python editor below to design your program, then click Play to
+          try it out!
+        </Typography>
+        <Button
+          variant="outlined"
+          size="small"
+          sx={{ flexShrink: 0 }}
+          onClick={() => setCommandsOpen(true)}
+        >
+          Commands
+        </Button>
+      </Box>
+      {!ready && (
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: 1, px: 1, pb: 1 }}
+        >
+          <CircularProgress size={16} />
+          <Typography variant="body2">Loading Python...</Typography>
+        </Box>
+      )}
+      <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        <CodeMirror
+          ref={editorRef}
+          value={code}
+          extensions={[python(), highlightLineExtension]}
+          onChange={onChange}
+          height="100%"
+        />
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          bgcolor: "grey.900",
+          px: 1,
+          py: 0.5,
+        }}
+      >
+        <Button
+          variant="contained"
+          size="small"
+          disabled={!gameIsDefined}
+          onClick={() => {
+            if (!clearPlayInterval()) setPlayInterval()
+          }}
+        >
+          Run Program
+        </Button>
+      </Box>
+      <Typography variant="h6" sx={{ px: 1, pt: 1 }}>
+        Console Log
+      </Typography>
+      <Box sx={{ flexShrink: 0, maxHeight: "20%", overflow: "auto", p: 1 }}>
+        {error && (
+          <Alert severity="error" sx={{ whiteSpace: "pre-wrap" }}>
+            {error}
+          </Alert>
+        )}
+      </Box>
+      <Dialog open={commandsOpen} onClose={() => setCommandsOpen(false)}>
+        <DialogTitle>Commands</DialogTitle>
+      </Dialog>
+    </Box>
+  )
+}
+
+/** Mode "blocklyAndPython" - a read-only view of the code generated from
+ * the current Blockly blocks; the player can't type into it directly. */
+const ReadOnlyPythonEditor: FC = () => {
+  const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+
+  return (
+    <Box sx={{ height: "100%", overflow: "auto" }}>
+      <CodeMirror
+        value={blocklyWorkspaceContext?.pythonCode ?? PYTHON_STARTER_CODE}
+        extensions={[python()]}
+        editable={false}
+        height="100%"
+      />
+    </Box>
+  )
+}
+
+const PythonEditor: FC = () => {
+  const pythonWorkspaceContext = usePythonWorkspaceContext()
+  if (!pythonWorkspaceContext)
+    throw new ReferenceError("Python workspace context not provided.")
+
+  return pythonWorkspaceContext.mode === "python" ? (
+    <EditablePythonEditor
+      ref={pythonWorkspaceContext.ref}
+      levelId={pythonWorkspaceContext.levelId}
+    />
+  ) : (
+    <ReadOnlyPythonEditor />
+  )
+}
 
 export default PythonEditor

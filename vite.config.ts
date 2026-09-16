@@ -8,6 +8,7 @@ import {
   vitestConfig as workspaceVitestConfig,
 } from "@codeforlife/workspace/vite.config.ts"
 import { mergeConfig as mergeVitestConfig } from "vitest/config"
+import { viteStaticCopy } from "vite-plugin-static-copy"
 
 export default ({ isSsrBuild }: ViteConfigEnv) => {
   let viteConfig = defineViteConfig({
@@ -18,8 +19,31 @@ export default ({ isSsrBuild }: ViteConfigEnv) => {
       // which would lead to errors about missing modules or APIs. Instead,
       // Phaser will be treated as an external dependency that is only loaded
       // in the browser, allowing the SSR build to succeed without issues.
-      external: ["phaser"],
+      // Pyodide (a Python-in-WASM runtime) is excluded for the same reason.
+      external: ["phaser", "pyodide"],
     },
+    // The Pyodide worker dynamically imports level tilemap data (code
+    // splitting), which Rollup can't emit as the default IIFE worker format.
+    worker: { format: "es" },
+    plugins: [
+      viteStaticCopy({
+        // Self-host Pyodide's runtime (wasm/stdlib, several MB) so it's
+        // served from our own origin instead of fetching it from a CDN at
+        // runtime, so `loadPyodide({ indexURL: "/pyodide/" })` resolves
+        // same-origin in both dev and production builds.
+        targets: [
+          "pyodide.asm.mjs",
+          "pyodide.asm.wasm",
+          "pyodide.mjs",
+          "pyodide-lock.json",
+          "python_stdlib.zip",
+        ].map(fileName => ({
+          src: `node_modules/pyodide/${fileName}`,
+          dest: "pyodide",
+          rename: { stripBase: true },
+        })),
+      }),
+    ],
     build: {
       // Phaser is a massive game engine. Even when heavily minified, the core
       // engine often hovers around or above 500 KB (default) so setting to 1000
@@ -40,7 +64,9 @@ export default ({ isSsrBuild }: ViteConfigEnv) => {
           //  the massive engine block, the browser can parse and render the UI
           //  almost instantly, before it has even finished evaluating the heavy
           //  game engine logic.
-          manualChunks: isSsrBuild ? undefined : { phaser: ["phaser"] },
+          manualChunks: isSsrBuild
+            ? undefined
+            : { phaser: ["phaser"], pyodide: ["pyodide"] },
         },
       },
     },

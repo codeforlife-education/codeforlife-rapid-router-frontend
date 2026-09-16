@@ -28,7 +28,8 @@ import {
   useGameInPlay,
   useGameIsDefined,
   usePhaserGameContext,
-  usePlayInterval,
+  usePlayIntervalContext,
+  usePythonWorkspaceContext,
   useSettings,
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
@@ -48,7 +49,10 @@ const Base: FC<
   const gameIsDefined = useGameIsDefined()
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
-  const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
+  const playIntervalContext = usePlayIntervalContext()
+  if (!playIntervalContext)
+    throw new ReferenceError("Play interval context not provided.")
+  const [playInterval, setPlayInterval, clearPlayInterval] = playIntervalContext
   const { activeSceneKeys } = usePhaserGameContext()
 
   // Helper to map panel layout options to menu items.
@@ -168,23 +172,23 @@ const Blockly: FC = () => {
 }
 
 const Python: FC = () => {
-  // const clearPythonWorkspace = useClearPythonWorkspace()
+  const pythonWorkspaceContext = usePythonWorkspaceContext()
+  const clearPythonWorkspace = useCallback(() => {
+    pythonWorkspaceContext?.ref.current?.clear()
+  }, [pythonWorkspaceContext])
 
-  return (
-    <Base
-      panelCount={2}
-      onClear={() => {
-        console.log("Clear Python Workspace")
-      }}
-    />
-  )
+  return <Base panelCount={2} onClear={clearPythonWorkspace} />
 }
 
 const BlocklyAndPython: FC = () => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+  const pythonWorkspaceContext = usePythonWorkspaceContext()
   const clearBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
   }, [blocklyWorkspaceContext])
+  const clearPythonWorkspace = useCallback(() => {
+    pythonWorkspaceContext?.ref.current?.clear()
+  }, [pythonWorkspaceContext])
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
@@ -194,7 +198,7 @@ const BlocklyAndPython: FC = () => {
       panelCount={3}
       onClear={() => {
         clearBlocklyWorkspace()
-        // clearPythonWorkspace()
+        clearPythonWorkspace()
       }}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}

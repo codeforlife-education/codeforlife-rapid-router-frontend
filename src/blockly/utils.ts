@@ -1,5 +1,6 @@
 import * as Blockly from "blockly/core"
 import * as en_default from "blockly/msg/en"
+import { Order, pythonGenerator } from "blockly/python"
 import { debounce } from "@mui/material"
 
 import * as en_custom from "./messages/en"
@@ -13,6 +14,7 @@ import {
 import { type BlockToolboxEntry } from "../blockly/blocks"
 import { type BlockType } from "./blocks"
 import type { GameCommand } from "../app/slices"
+import { PYTHON_STARTER_CODE } from "../pyodide"
 
 export type BlockDefinition<T extends string> = {
   type: T
@@ -188,6 +190,63 @@ function initializeWorkspace(
 
 let DEFINED_CUSTOM_BLOCKS = false
 
+/** Maps a boolean block's dropdown `CHOICE` field value (e.g. `"FORWARD"`,
+ * `"RED"`) to the Python string argument the matching `Van` sensing method
+ * expects - the legacy `Van` API takes the same uppercase values Blockly's
+ * dropdowns already store, so no case conversion is needed. */
+const pythonChoiceArg = (block: Blockly.Block) =>
+  JSON.stringify(String(block.getFieldValue("CHOICE")))
+
+let DEFINED_PYTHON_GENERATORS = false
+
+/**
+ * Register the Python code each custom block generates, for use by
+ * `pythonGenerator.workspaceToCode` (see `getPythonCodeFromStartBlock`).
+ * Built-in blocks (e.g. `controls_if`/`controls_repeat`) already have
+ * generators registered by importing `blockly/python`. Safe to call
+ * multiple times.
+ */
+function registerPythonGenerators() {
+  if (DEFINED_PYTHON_GENERATORS) return
+
+  // The start block only contributes its `PYTHON_STARTER_CODE` preamble
+  // (added separately in `getPythonCodeFromStartBlock`), not its own line.
+  pythonGenerator.forBlock[START_BLOCK_TYPES[0]] = () => ""
+
+  for (const type of COMMAND_BLOCK_TYPES)
+    pythonGenerator.forBlock[type] = () => `my_van.${type}()
+`
+
+  pythonGenerator.forBlock.road_exists = block => [
+    `my_van.is_road(${pythonChoiceArg(block)})`,
+    Order.FUNCTION_CALL,
+  ]
+  pythonGenerator.forBlock.traffic_light = block => [
+    `my_van.at_traffic_light(${pythonChoiceArg(block)})`,
+    Order.FUNCTION_CALL,
+  ]
+  pythonGenerator.forBlock.dead_end = () => [
+    "my_van.at_dead_end()",
+    Order.FUNCTION_CALL,
+  ]
+  pythonGenerator.forBlock.at_destination = () => [
+    "my_van.at_destination()",
+    Order.FUNCTION_CALL,
+  ]
+  // The Python API only exposes a single generic "is animal crossing"
+  // check (no separate cow/pigeon methods), so both blocks map to it.
+  pythonGenerator.forBlock.cow_crossing = () => [
+    "my_van.is_animal_crossing()",
+    Order.FUNCTION_CALL,
+  ]
+  pythonGenerator.forBlock.pigeon_crossing = () => [
+    "my_van.is_animal_crossing()",
+    Order.FUNCTION_CALL,
+  ]
+
+  DEFINED_PYTHON_GENERATORS = true
+}
+
 /**
  * Set up locale and custom block definitions, and disable block selection
  * visuals. Safe to call multiple times.
@@ -203,6 +262,8 @@ function ensureBlocklyInitialized() {
     )
     DEFINED_CUSTOM_BLOCKS = true
   }
+
+  registerPythonGenerators()
 
   // Override block selection visuals to disable them.
   Blockly.BlockSvg.prototype.addSelect = () => {}
@@ -337,6 +398,23 @@ export function getGameCommandsFromStartBlock(
     const blockType = block.type as CommandBlockType
     return COMMAND_BLOCK_TYPES.includes(blockType) ? blockType : "wait"
   })
+}
+
+/**
+ * Convert the blocks connected to the given start block into their
+ * equivalent, read-only Python view, for "blocklyAndPython" mode. Uses
+ * Blockly's official `pythonGenerator`, which - via the `forBlock` entries
+ * registered in `registerPythonGenerators` for our custom blocks, plus its
+ * own built-in support for standard blocks (`controls_if`, `controls_repeat`,
+ * etc.) - handles indentation/loops/conditionals automatically.
+ * @param startBlock The starting block to convert from.
+ * @returns The Python source code equivalent to the given blocks.
+ */
+export function getPythonCodeFromStartBlock(
+  startBlock: Blockly.BlockSvg,
+): string {
+  const code = pythonGenerator.workspaceToCode(startBlock.workspace)
+  return PYTHON_STARTER_CODE + code
 }
 
 export function getNextBlocks(block: Blockly.BlockSvg) {

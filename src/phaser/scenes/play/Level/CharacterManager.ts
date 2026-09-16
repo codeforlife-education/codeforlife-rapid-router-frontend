@@ -1,17 +1,21 @@
 import Phaser from "phaser"
 
 import * as tilesets from "../../../tilesets"
+import {
+  type Direction,
+  STEP_BY_DIRECTION,
+  turnAround,
+  turnLeft,
+  turnRight,
+} from "../../../tilemaps/navigation"
 import { Events, TILE_WIDTH } from "../../../globals"
 import type { GameCommand } from "../../../../app/slices"
 import type Level from "."
 
-export type Direction = "top" | "right" | "bottom" | "left"
+export type { Direction }
 
 type Point = { x: number; y: number }
 type Tile = Phaser.Types.Tilemaps.Tile
-
-/** Clockwise order of directions - matches the endpoints' own rotation convention. */
-const DIRECTION_ORDER: readonly Direction[] = ["top", "right", "bottom", "left"]
 
 const ROTATION_BY_DIRECTION: Record<Direction, number> = {
   top: 0,
@@ -19,21 +23,6 @@ const ROTATION_BY_DIRECTION: Record<Direction, number> = {
   bottom: 180,
   left: 270,
 }
-
-/** Unit row/col step for each direction. */
-const STEP_BY_DIRECTION: Record<Direction, { row: number; col: number }> = {
-  top: { row: -1, col: 0 },
-  right: { row: 0, col: 1 },
-  bottom: { row: 1, col: 0 },
-  left: { row: 0, col: -1 },
-}
-
-const turnLeft = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 3) % 4]
-const turnRight = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 1) % 4]
-const turnAround = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 2) % 4]
 
 /** How far off the tile-boundary center the van sits, so it drives on the left. */
 const LANE_OFFSET = 0.125 * TILE_WIDTH

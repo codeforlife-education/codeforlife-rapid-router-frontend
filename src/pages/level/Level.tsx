@@ -13,6 +13,11 @@ import {
   useRetrieveLevelQuery,
 } from "../../api/level"
 import {
+  PYTHON_STARTER_CODE,
+  PythonWorkspaceContext,
+  type PythonWorkspaceRef,
+} from "../../pyodide"
+import {
   PhaserGameContext,
   type PhaserGameRef,
   type SceneKey,
@@ -20,16 +25,20 @@ import {
 import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
 import Controls from "./Controls"
 import Panels from "./Panels"
+import PlayIntervalContext from "../../app/PlayIntervalContext"
 import { paths } from "../../routes"
+import { usePlayInterval } from "../../app/hooks"
 
 const Base: FC<Pick<LevelModel, "id" | "mode">> = level => (
-  <Box sx={{ display: "flex" }}>
-    <Controls level={level} />
-    {/* TODO: fix style*/}
-    <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
-      <Panels level={level} />
+  <PlayIntervalContext.Provider value={usePlayInterval()}>
+    <Box sx={{ display: "flex" }}>
+      <Controls level={level} />
+      {/* TODO: fix style*/}
+      <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
+        <Panels level={level} />
+      </Box>
     </Box>
-  </Box>
+  </PlayIntervalContext.Provider>
 )
 
 type BlocklyProps = Pick<LevelModel, "blockly_toolbox_block_types">
@@ -39,6 +48,7 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
   children,
 }) => {
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
+  const [pythonCode, setPythonCode] = useState(PYTHON_STARTER_CODE)
 
   return (
     <BlocklyWorkspaceContext.Provider
@@ -46,6 +56,8 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
         ref: blocklyWorkspaceRef,
         toolboxContents: getToolboxContents(blockly_toolbox_block_types),
         maxInstances: getMaxInstances(blockly_toolbox_block_types),
+        pythonCode,
+        setPythonCode,
       }}
     >
       {children}
@@ -55,9 +67,23 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
 
 type PythonProps = {}
 
-const PythonContext: FC<PythonProps & { children: ReactNode }> = ({
-  children,
-}) => <>{children}</>
+const PythonContext: FC<
+  PythonProps &
+    Pick<LevelModel, "id"> & {
+      mode: "python" | "blocklyAndPython"
+      children: ReactNode
+    }
+> = ({ id, mode, children }) => {
+  const pythonWorkspaceRef = useRef<PythonWorkspaceRef>(null)
+
+  return (
+    <PythonWorkspaceContext.Provider
+      value={{ ref: pythonWorkspaceRef, levelId: id, mode }}
+    >
+      {children}
+    </PythonWorkspaceContext.Provider>
+  )
+}
 
 const InnerCustom: FC<Pick<LevelModel, "id">> = ({ id }) =>
   handleResultState(useRetrieveLevelQuery(id), level => <Base {...level} />)

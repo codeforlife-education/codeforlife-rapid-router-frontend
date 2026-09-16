@@ -1,6 +1,6 @@
 import { type Path, path as _ } from "codeforlife/utils/router"
 
-const LEVEL_COUNT = 79
+const LEVEL_COUNT = 128
 
 const levelIdPaths: Record<string, Path> = {}
 for (let id = 1; id <= LEVEL_COUNT; id++) levelIdPaths[id] = _({ id: `${id}` })
