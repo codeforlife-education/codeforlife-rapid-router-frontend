@@ -11,15 +11,15 @@ export default tilemaps.makeOrthogonal({
           ...layers.tile.data.fillManyRows({ rows: 2 }),
           // Row 3
           [
-            // 2 columns of horizontal straight road tiles
+            // 4 columns of horizontal straight road tiles
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
-              cols: 2,
+              cols: 4,
             }),
             // 1 column of a left-facing dead end road tile
             layers.tile.data.IDs.Road.Asphalt.DeadEnd.LEFT,
-            // 7 columns of empty tiles
-            ...layers.tile.data.fillRow({ cols: 7 }),
+            // 5 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 5 }),
           ],
           // Row 4 to 8 - 10 columns of empty tiles
           ...layers.tile.data.fillManyRows({ rows: 5 }),
@@ -33,7 +33,7 @@ export default tilemaps.makeOrthogonal({
             row: 2,
           }),
           layers.objectGroup.objects.endpoints.house.common.orange.top({
-            col: 2,
+            col: 4,
             row: 2,
           }),
         ],
@@ -41,8 +41,24 @@ export default tilemaps.makeOrthogonal({
       scenery: {
         objects: [
           layers.objectGroup.objects.scenery.nature.tree.oak({
-            x: 64,
+            x: 1,
+            y: 255,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 65,
             y: 256,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 130,
+            y: 257,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 196,
+            y: 255,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 258,
+            y: 258,
           }),
         ],
       },

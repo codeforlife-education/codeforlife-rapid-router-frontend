@@ -14,7 +14,6 @@ import {
   getNextBlocks,
   initializeBlockly,
   resizeWorkspace,
-  saveWorkspaceState,
 } from "./utils"
 import {
   useAppDispatch,
@@ -49,7 +48,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
-  const { ref, toolboxContents } = blocklyWorkspaceContext
+  const { ref, toolboxContents, maxInstances } = blocklyWorkspaceContext
 
   // Expose workspace methods to parent components.
   useImperativeHandle(
@@ -72,13 +71,12 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       divRef.current,
       startBlockType,
       toolboxContents,
+      maxInstances,
     )
     setBlockly(blockly)
 
     // Set up event listeners.
     const onChange = debounce(() => {
-      saveWorkspaceState(blockly.workspace)
-
       const gameCommands = getGameCommandsFromStartBlock(blockly.startBlock)
       dispatch(setGameCommands(gameCommands))
     }, 250)
@@ -86,11 +84,10 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     blockly.workspace.addChangeListener(onChange)
 
     return () => {
-      saveWorkspaceState(blockly.workspace)
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [divRef, startBlockType, toolboxContents, dispatch])
+  }, [divRef, startBlockType, toolboxContents, maxInstances, dispatch])
 
   // Highlight the current block during game play.
   useEffect(() => {

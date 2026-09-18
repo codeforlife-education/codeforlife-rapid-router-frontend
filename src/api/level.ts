@@ -9,7 +9,7 @@ import {
   tagData,
 } from "codeforlife/utils/api"
 
-import { type BlockType } from "../blockly/blocks"
+import { type BlockToolboxEntry } from "../blockly/blocks"
 import api from "."
 
 export type Level = Model<
@@ -17,7 +17,7 @@ export type Level = Model<
   {
     name: string
     mode: "blockly" | "blocklyAndPython" | "python"
-    blockly_toolbox_block_types: BlockType[]
+    blockly_toolbox_block_types: BlockToolboxEntry[]
   }
 >
 
