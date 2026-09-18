@@ -16,7 +16,7 @@ import {
   THREE_PANEL_LAYOUTS,
   TWO_PANEL_LAYOUTS,
   nextGameCommand,
-  restartGame,
+  setGameCommands,
   setPlaySpeed,
   setThreePanelLayout,
   setTwoPanelLayout,
@@ -28,7 +28,8 @@ import {
   useGameInPlay,
   useGameIsDefined,
   usePhaserGameContext,
-  usePlayInterval,
+  usePlayIntervalContext,
+  usePythonWorkspaceContext,
   useSettings,
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
@@ -40,15 +41,21 @@ const Base: FC<
   Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
     panelCount: number
     onClear: () => void
+    /** (Re-)runs the active mode's code - only called when Play/Run Program
+     * is pressed, never automatically on edit. */
+    onRun: () => void
   }
-> = ({ panelCount, onClear, onOpened, onClosed }) => {
+> = ({ panelCount, onClear, onRun, onOpened, onClosed }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
-  const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
+  const playIntervalContext = usePlayIntervalContext()
+  if (!playIntervalContext)
+    throw new ReferenceError("Play interval context not provided.")
+  const [playInterval, setPlayInterval, clearPlayInterval] = playIntervalContext
   const { activeSceneKeys } = usePhaserGameContext()
 
   // Helper to map panel layout options to menu items.
@@ -80,9 +87,11 @@ const Base: FC<
           isDrawerOpen={isDrawerOpen}
           text={gameInPlay && playInterval ? "Pause" : "Play"}
           icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
-          disabled={!gameIsDefined}
           onClick={() => {
-            if (!clearPlayInterval()) setPlayInterval()
+            if (!clearPlayInterval()) {
+              onRun()
+              setPlayInterval()
+            }
           }}
         />
         <miniDrawers.MenuItem
@@ -103,7 +112,7 @@ const Base: FC<
           disabled={!gameHasStarted}
           onClick={() => {
             clearPlayInterval()
-            dispatch(restartGame())
+            dispatch(setGameCommands({ commands: [], lines: [], blocks: [] }))
           }}
         />
         <miniDrawers.ButtonItem
@@ -156,11 +165,15 @@ const Blockly: FC = () => {
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
+  const runBlocklyWorkspace = useCallback(() => {
+    blocklyWorkspaceContext?.ref.current?.run()
+  }, [blocklyWorkspaceContext])
 
   return (
     <Base
       panelCount={2}
       onClear={clearBlocklyWorkspace}
+      onRun={runBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
     />
@@ -168,25 +181,40 @@ const Blockly: FC = () => {
 }
 
 const Python: FC = () => {
-  // const clearPythonWorkspace = useClearPythonWorkspace()
+  const pythonWorkspaceContext = usePythonWorkspaceContext()
+  const clearPythonWorkspace = useCallback(() => {
+    pythonWorkspaceContext?.ref.current?.clear()
+  }, [pythonWorkspaceContext])
+  const runPythonWorkspace = useCallback(() => {
+    pythonWorkspaceContext?.ref.current?.run()
+  }, [pythonWorkspaceContext])
 
   return (
     <Base
       panelCount={2}
-      onClear={() => {
-        console.log("Clear Python Workspace")
-      }}
+      onClear={clearPythonWorkspace}
+      onRun={runPythonWorkspace}
     />
   )
 }
 
 const BlocklyAndPython: FC = () => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
+  const pythonWorkspaceContext = usePythonWorkspaceContext()
   const clearBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
   }, [blocklyWorkspaceContext])
+  const clearPythonWorkspace = useCallback(() => {
+    pythonWorkspaceContext?.ref.current?.clear()
+  }, [pythonWorkspaceContext])
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
+  }, [blocklyWorkspaceContext])
+  // The Blockly workspace is the actual editor in this mode - the Python
+  // panel is just a read-only view of the code it generates - so Play only
+  // needs to (re-)run the Blockly-compiled code.
+  const runBlocklyWorkspace = useCallback(() => {
+    blocklyWorkspaceContext?.ref.current?.run()
   }, [blocklyWorkspaceContext])
 
   return (
@@ -194,8 +222,9 @@ const BlocklyAndPython: FC = () => {
       panelCount={3}
       onClear={() => {
         clearBlocklyWorkspace()
-        // clearPythonWorkspace()
+        clearPythonWorkspace()
       }}
+      onRun={runBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
     />

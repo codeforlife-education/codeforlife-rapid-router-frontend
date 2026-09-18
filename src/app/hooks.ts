@@ -12,7 +12,9 @@ import type { AppDispatch, RootState } from "./store"
 import {
   nextGameCommand,
   selectCurrentGameCommand,
+  selectGameCommandBlocks,
   selectGameCommandIndex,
+  selectGameCommandLines,
   selectGameCommands,
   selectGameHasFinished,
   selectGameHasFinishedEarly,
@@ -24,6 +26,8 @@ import {
 } from "./slices"
 import { BlocklyWorkspaceContext } from "../blockly"
 import { PhaserGameContext } from "../phaser"
+import PlayIntervalContext from "./PlayIntervalContext"
+import { PythonWorkspaceContext } from "../pyodide"
 
 export type ScreenOrientation = "portrait" | "landscape"
 
@@ -91,6 +95,8 @@ export function usePlayInterval() {
 // Slice selectors
 export const useSettings = () => useSelector(selectSettings)
 export const useGameCommands = () => useSelector(selectGameCommands)
+export const useGameCommandLines = () => useSelector(selectGameCommandLines)
+export const useGameCommandBlocks = () => useSelector(selectGameCommandBlocks)
 export const useGameCommandIndex = () => useSelector(selectGameCommandIndex)
 export const useGameOver = () => useSelector(selectGameOver)
 export const useCurrentGameCommand = () => useSelector(selectCurrentGameCommand)
@@ -105,3 +111,6 @@ export const useGameHasFinishedEarly = () =>
 export const useBlocklyWorkspaceContext = () =>
   useContext(BlocklyWorkspaceContext)
 export const usePhaserGameContext = () => useContext(PhaserGameContext)
+export const usePythonWorkspaceContext = () =>
+  useContext(PythonWorkspaceContext)
+export const usePlayIntervalContext = () => useContext(PlayIntervalContext)

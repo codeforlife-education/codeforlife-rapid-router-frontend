@@ -41,8 +41,8 @@ export default tilemaps.makeOrthogonal({
       scenery: {
         objects: [
           layers.objectGroup.objects.scenery.nature.tree.oak({
-            col: 1,
-            row: 3,
+            x: 64,
+            y: 256,
           }),
         ],
       },

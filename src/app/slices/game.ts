@@ -14,6 +14,11 @@ export type GameCommand = (typeof GAME_COMMANDS)[number]
 
 export interface GameState {
   gameCommands: GameCommand[]
+  /** The Python source line (1-indexed) that produced each `gameCommands` entry. */
+  gameCommandLines: number[]
+  /** The originating Blockly block ID for each `gameCommands` entry, when
+   * the commands came from a compiled Blockly workspace (`null` otherwise). */
+  gameCommandBlocks: (string | null)[]
   gameCommandIndex: number
   gameOver: boolean
 }
@@ -21,6 +26,8 @@ export interface GameState {
 const startGameCommandIndex = -1 // indicates start before the first command
 const initialState: GameState = Object.freeze({
   gameCommands: [],
+  gameCommandLines: [],
+  gameCommandBlocks: [],
   gameCommandIndex: startGameCommandIndex,
   gameOver: false,
 })
@@ -51,9 +58,38 @@ export const gameSlice = createSlice({
   initialState,
   reducers: create => ({
     setGameCommands: create.reducer(
-      (state, action: PayloadAction<GameCommand[]>) => {
-        state.gameCommands = action.payload
+      (
+        state,
+        action: PayloadAction<{
+          commands: GameCommand[]
+          lines: number[]
+          blocks?: (string | null)[]
+        }>,
+      ) => {
+        state.gameCommands = action.payload.commands
+        state.gameCommandLines = action.payload.lines
+        state.gameCommandBlocks = action.payload.blocks ?? []
         _restartGame(state)
+      },
+    ),
+    // Appends a single command as it's derived (streamed) from a script
+    // still running, without disturbing an already-in-progress playback.
+    appendGameCommand: create.reducer(
+      (
+        state,
+        action: PayloadAction<{
+          command: GameCommand
+          line: number
+          block: string | null
+        }>,
+      ) => {
+        // If playback had already caught up to the end (marked "finished"),
+        // this new command means it hasn't really finished after all.
+        const wasFinished = state.gameOver && gameHasFinished(state)
+        state.gameCommands.push(action.payload.command)
+        state.gameCommandLines.push(action.payload.line)
+        state.gameCommandBlocks.push(action.payload.block)
+        if (wasFinished && !gameHasFinished(state)) state.gameOver = false
       },
     ),
     nextGameCommand: create.reducer(state => {
@@ -76,6 +112,8 @@ export const gameSlice = createSlice({
   }),
   selectors: {
     selectGameCommands: state => state.gameCommands,
+    selectGameCommandLines: state => state.gameCommandLines,
+    selectGameCommandBlocks: state => state.gameCommandBlocks,
     selectGameCommandIndex: state => state.gameCommandIndex,
     selectGameOver: state => state.gameOver,
     selectCurrentGameCommand: state =>
@@ -92,12 +130,15 @@ export const gameSlice = createSlice({
 
 export const {
   setGameCommands,
+  appendGameCommand,
   nextGameCommand,
   restartGame,
   finishGameEarly,
 } = gameSlice.actions
 export const {
   selectGameCommands,
+  selectGameCommandLines,
+  selectGameCommandBlocks,
   selectGameCommandIndex,
   selectGameOver,
   selectCurrentGameCommand,
