@@ -14,7 +14,6 @@ import {
   getNextBlocks,
   initializeBlockly,
   resizeWorkspace,
-  saveWorkspaceState,
 } from "./utils"
 import {
   useAppDispatch,
@@ -78,8 +77,6 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     // Set up event listeners.
     const onChange = debounce(() => {
-      saveWorkspaceState(blockly.workspace)
-
       const gameCommands = getGameCommandsFromStartBlock(blockly.startBlock)
       dispatch(setGameCommands(gameCommands))
     }, 250)
@@ -87,7 +84,6 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     blockly.workspace.addChangeListener(onChange)
 
     return () => {
-      saveWorkspaceState(blockly.workspace)
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
