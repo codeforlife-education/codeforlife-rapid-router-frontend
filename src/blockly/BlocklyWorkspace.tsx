@@ -14,7 +14,6 @@ import {
   getPythonCodeFromStartBlock,
   initializeBlockly,
   resizeWorkspace,
-  saveWorkspaceState,
   stripHighlightCalls,
 } from "./utils"
 import {
@@ -132,7 +131,6 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     // Python text on edit - actually running it happens only via `run()`,
     // triggered by the player pressing Play.
     const onChange = debounce(() => {
-      saveWorkspaceState(blockly.workspace)
       setPythonCode(
         stripHighlightCalls(getPythonCodeFromStartBlock(blockly.startBlock)),
       )
@@ -141,7 +139,6 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     blockly.workspace.addChangeListener(onChange)
 
     return () => {
-      saveWorkspaceState(blockly.workspace)
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }

@@ -167,8 +167,6 @@ function initializeWorkspace(
     maxInstances,
   })
 
-  loadWorkspaceState(workspace)
-
   if (Object.keys(maxInstances).length > 0) {
     const update = () => updateFlyoutInstanceLabels(workspace, maxInstances)
 
@@ -359,23 +357,6 @@ export function initializeBlockPreview(
   Blockly.svgResize(workspace)
 
   return { workspace, size }
-}
-
-const LOCAL_STORAGE_KEY = "blockly-workspace-state"
-
-export function saveWorkspaceState(workspace: Blockly.WorkspaceSvg) {
-  const state = Blockly.serialization.workspaces.save(workspace)
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state))
-}
-
-export function loadWorkspaceState(workspace: Blockly.WorkspaceSvg) {
-  const rawState = localStorage.getItem(LOCAL_STORAGE_KEY)
-  if (!rawState) return
-
-  const state = JSON.parse(rawState) as ReturnType<
-    typeof Blockly.serialization.workspaces.save
-  >
-  Blockly.serialization.workspaces.load(state, workspace)
 }
 
 export function resizeWorkspace(
