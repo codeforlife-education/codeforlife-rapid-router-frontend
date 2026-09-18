@@ -409,6 +409,16 @@ export function getPythonCodeFromStartBlock(
   // but not yet attached to the start block.
   pythonGenerator.init(startBlock.workspace)
 
+  // `init()` declares every variable used anywhere in the workspace as
+  // `name = None` (see Blockly's `Variables.allUsedVarModels`), to protect
+  // against a `variables_get` reading an unset variable - but a Van program
+  // always assigns a variable with `variables_set` before ever reading it,
+  // so this preamble is just unwanted noise; drop it.
+  const generatorInternals = pythonGenerator as unknown as {
+    definitions_: Record<string, string>
+  }
+  generatorInternals.definitions_.variables = ""
+
   // Procedure definitions are their own top-level stack by design (they
   // can't be attached below another block), so they're never part of the
   // start block's chain and must be included separately here. `true` stops
