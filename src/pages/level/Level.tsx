@@ -1,5 +1,5 @@
 import * as yup from "yup"
-import { type FC, type ReactNode, useRef, useState } from "react"
+import { type FC, type ReactNode, useMemo, useRef, useState } from "react"
 import { Box } from "@mui/material"
 import { handleResultState } from "codeforlife/utils/api"
 import { useParamsRequired } from "codeforlife/hooks"
@@ -49,12 +49,24 @@ const BlocklyContext: FC<
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
   const [pythonCode, setPythonCode] = useState(PYTHON_STARTER_CODE)
 
+  // Stable references across re-renders (e.g. from `setPythonCode` itself) -
+  // otherwise `BlocklyWorkspace`'s init effect would see "new" values on
+  // every edit and recreate the workspace, wiping out the player's blocks.
+  const toolboxContents = useMemo(
+    () => getToolboxContents(blockly_toolbox_block_types),
+    [blockly_toolbox_block_types],
+  )
+  const maxInstances = useMemo(
+    () => getMaxInstances(blockly_toolbox_block_types),
+    [blockly_toolbox_block_types],
+  )
+
   return (
     <BlocklyWorkspaceContext.Provider
       value={{
         ref: blocklyWorkspaceRef,
-        toolboxContents: getToolboxContents(blockly_toolbox_block_types),
-        maxInstances: getMaxInstances(blockly_toolbox_block_types),
+        toolboxContents,
+        maxInstances,
         pythonCode,
         setPythonCode,
         levelId: id,
