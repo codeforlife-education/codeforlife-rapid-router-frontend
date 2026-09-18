@@ -43,10 +43,9 @@ const Base: FC<Pick<LevelModel, "id" | "mode">> = level => (
 
 type BlocklyProps = Pick<LevelModel, "blockly_toolbox_block_types">
 
-const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
-  blockly_toolbox_block_types,
-  children,
-}) => {
+const BlocklyContext: FC<
+  Pick<LevelModel, "id"> & BlocklyProps & { children: ReactNode }
+> = ({ id, blockly_toolbox_block_types, children }) => {
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
   const [pythonCode, setPythonCode] = useState(PYTHON_STARTER_CODE)
 
@@ -58,6 +57,7 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
         maxInstances: getMaxInstances(blockly_toolbox_block_types),
         pythonCode,
         setPythonCode,
+        levelId: id,
       }}
     >
       {children}

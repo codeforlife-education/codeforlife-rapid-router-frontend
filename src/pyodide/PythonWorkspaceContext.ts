@@ -2,6 +2,9 @@ import { type RefObject, createContext } from "react"
 
 export type PythonWorkspaceRef = {
   clear: () => void
+  /** Runs the current code, streaming fresh commands - only called when
+   * the player presses Play/Run Program. */
+  run: () => void
 }
 
 export type PythonWorkspaceContextValue = {

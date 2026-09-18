@@ -7,8 +7,8 @@
 import { type PyodideInterface, loadPyodide } from "pyodide"
 import type { PyProxy } from "pyodide/ffi"
 
-import LevelSimulator, { TooManyGameCommandsError } from "./LevelSimulator"
 import type { GameCommand } from "../app/slices"
+import LevelSimulator from "./LevelSimulator"
 import type { OrthogonalTilemap } from "../phaser/tilemaps"
 
 export type RunRequest = {
@@ -21,12 +21,14 @@ export type RunRequest = {
 export type WorkerResponse =
   | { type: "ready" }
   | {
-      type: "result"
+      type: "command"
       id: number
-      commands: GameCommand[]
-      commandLines: number[]
+      command: GameCommand
+      commandLine: number
+      commandBlock: string | null
     }
-  | { type: "error"; id: number; message: string }
+  | { type: "result"; id: number }
+  | { type: "error"; id: number; message: string; blockId: string | null }
 
 let pyodidePromise: Promise<PyodideInterface> | null = null
 function getPyodide() {
@@ -65,10 +67,22 @@ function getTilemap(levelId: number) {
 // so the editor's highlight visits every executed line, not just the ones
 // that call a Van method. Each Van command method still passes the CALLER's
 // line number (`f_back.f_lineno`) through, so its own JS call is tagged with
-// the exact line that issued it.
+// the exact line that issued it. `_current_block_id` tracks the Blockly
+// block currently executing, set via `_highlight_block` calls injected by
+// `pythonGenerator.STATEMENT_PREFIX` (see `blockly/utils.ts`) - `None` for
+// hand-typed Python, which never calls `_highlight_block`.
 const VAN_MODULE_PREAMBLE = `
 import sys as _sys
 import types as _types
+
+_current_block_id = None
+
+def _highlight_block(block_id):
+    global _current_block_id
+    _current_block_id = block_id
+    # Not real student code - don't let the tracer treat this line as one
+    # that "issued nothing" and synthesise a spurious "wait" for it.
+    _tracer.mark_issued()
 
 class _LineTracer:
     def __init__(self):
@@ -89,14 +103,14 @@ class _LineTracer:
             return None
         if event == "line":
             if self.last_line != -1 and not self.issued_on_line:
-                _wait(self.last_line)
+                _wait(self.last_line, _current_block_id)
             self.last_line = frame.f_lineno
             self.issued_on_line = False
         return self.trace
 
     def finish(self):
         if self.last_line != -1 and not self.issued_on_line:
-            _wait(self.last_line)
+            _wait(self.last_line, _current_block_id)
 
 _tracer = None
 
@@ -113,25 +127,25 @@ def _run_traced(source):
 class Van:
     def move_forwards(self):
         _tracer.mark_issued()
-        _move_forwards(_sys._getframe().f_back.f_lineno)
+        _move_forwards(_sys._getframe().f_back.f_lineno, _current_block_id)
     def turn_left(self):
         _tracer.mark_issued()
-        _turn_left(_sys._getframe().f_back.f_lineno)
+        _turn_left(_sys._getframe().f_back.f_lineno, _current_block_id)
     def turn_right(self):
         _tracer.mark_issued()
-        _turn_right(_sys._getframe().f_back.f_lineno)
+        _turn_right(_sys._getframe().f_back.f_lineno, _current_block_id)
     def turn_around(self):
         _tracer.mark_issued()
-        _turn_around(_sys._getframe().f_back.f_lineno)
+        _turn_around(_sys._getframe().f_back.f_lineno, _current_block_id)
     def wait(self):
         _tracer.mark_issued()
-        _wait(_sys._getframe().f_back.f_lineno)
+        _wait(_sys._getframe().f_back.f_lineno, _current_block_id)
     def deliver(self):
         _tracer.mark_issued()
-        _deliver(_sys._getframe().f_back.f_lineno)
+        _deliver(_sys._getframe().f_back.f_lineno, _current_block_id)
     def sound_horn(self):
         _tracer.mark_issued()
-        _sound_horn(_sys._getframe().f_back.f_lineno)
+        _sound_horn(_sys._getframe().f_back.f_lineno, _current_block_id)
     def is_road(self, direction):
         return _is_road(direction)
     def is_road_forward(self):
@@ -160,6 +174,7 @@ _sys.modules["van"] = _van_module
 
 self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
   const { id, code, levelId } = data
+  let globals: PyProxy | undefined
   try {
     const [pyodide, tilemap] = await Promise.all([
       getPyodide(),
@@ -167,15 +182,50 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     ])
     const simulator = new LevelSimulator(tilemap)
 
+    // Caps how fast commands can be derived, so a script that never
+    // terminates (e.g. `repeat until at_destination()` on a level it can
+    // never reach) can't flood the main thread with an unbounded burst of
+    // `postMessage`s - it just derives commands at a bounded pace forever,
+    // same as any other command. This blocks only the WORKER's own thread
+    // (a plain busy-wait - no SharedArrayBuffer/special headers needed),
+    // never the main thread, so the page stays fully responsive.
+    const PACE_MS = 5
+    function paceCommand() {
+      const start = Date.now()
+      while (Date.now() - start < PACE_MS) {
+        /* busy-wait */
+      }
+    }
+
+    // Wraps a command-producing `LevelSimulator` method so each command is
+    // streamed to the main thread as soon as it's derived, instead of
+    // waiting for the whole script to finish before any are available.
+    const streamed = <F extends (line?: number, blockId?: string) => void>(
+      fn: F,
+    ): F =>
+      ((line?: number, blockId?: string) => {
+        fn(line, blockId)
+        const i = simulator.commands.length - 1
+        const response: WorkerResponse = {
+          type: "command",
+          id,
+          command: simulator.commands[i],
+          commandLine: simulator.commandLines[i],
+          commandBlock: simulator.commandBlocks[i],
+        }
+        self.postMessage(response)
+        paceCommand()
+      }) as F
+
     // A fresh globals dict per run - keeps runs isolated from each other.
-    const globals = pyodide.toPy({
-      _move_forwards: simulator.moveForwards,
-      _turn_left: simulator.turnLeft,
-      _turn_right: simulator.turnRight,
-      _turn_around: simulator.turnAround,
-      _wait: simulator.wait,
-      _deliver: simulator.deliver,
-      _sound_horn: simulator.soundHorn,
+    globals = pyodide.toPy({
+      _move_forwards: streamed(simulator.moveForwards),
+      _turn_left: streamed(simulator.turnLeft),
+      _turn_right: streamed(simulator.turnRight),
+      _turn_around: streamed(simulator.turnAround),
+      _wait: streamed(simulator.wait),
+      _deliver: streamed(simulator.deliver),
+      _sound_horn: streamed(simulator.soundHorn),
       _is_road: simulator.isRoad,
       _is_road_forward: simulator.isRoadForward,
       _is_road_left: simulator.isRoadLeft,
@@ -191,21 +241,18 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     pyodide.runPython(VAN_MODULE_PREAMBLE, { globals })
     pyodide.runPython("_run_traced(_student_code)", { globals })
 
-    const response: WorkerResponse = {
-      type: "result",
-      id,
-      commands: simulator.commands,
-      commandLines: simulator.commandLines,
-    }
+    const response: WorkerResponse = { type: "result", id }
     self.postMessage(response)
   } catch (error) {
-    const message =
-      error instanceof TooManyGameCommandsError
-        ? error.message
-        : error instanceof Error
-          ? error.message
-          : String(error)
-    const response: WorkerResponse = { type: "error", id, message }
+    const message = error instanceof Error ? error.message : String(error)
+    // The block whose generated code was executing when the error was
+    // thrown, if the script was compiled from Blockly - lets the workspace
+    // highlight the offending block in red.
+    const globalsGet = globals as { get?: (key: string) => unknown } | undefined
+    const blockId =
+      (globalsGet?.get?.("_current_block_id") as string | null | undefined) ??
+      null
+    const response: WorkerResponse = { type: "error", id, message, blockId }
     self.postMessage(response)
   }
 }

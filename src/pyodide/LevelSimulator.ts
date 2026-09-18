@@ -6,22 +6,10 @@ import {
   turnLeft,
   turnRight,
 } from "../phaser/tilemaps/navigation"
+import { type RoadID, decode } from "../phaser/layers/tile/data"
 import type { GameCommand } from "../app/slices"
 import type { OrthogonalTilemap } from "../phaser/tilemaps"
-
-/** Hard cap on emitted commands, so a script with an infinite loop (e.g. a
- * `while True: move_forwards()` on a closed road loop) can't hang forever. */
-export const MAX_GAME_COMMANDS = 1000
-
-export class TooManyGameCommandsError extends Error {
-  constructor() {
-    super(
-      `Your program ran for too long (over ${MAX_GAME_COMMANDS} commands). ` +
-        "Check for an infinite loop.",
-    )
-    this.name = "TooManyGameCommandsError"
-  }
-}
+import { roadOpenSides } from "../phaser/tilemaps/roadConnectivity"
 
 export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"
@@ -74,6 +62,10 @@ export default class LevelSimulator {
   readonly commands: GameCommand[] = []
   /** The Python source line (1-indexed) that produced each entry in `commands`. */
   readonly commandLines: number[] = []
+  /** The originating Blockly block ID for each entry in `commands`, when the
+   * script was compiled from a Blockly workspace (`null` for hand-typed
+   * Python, or any command not preceded by a `_highlight_block` call). */
+  readonly commandBlocks: (string | null)[] = []
 
   constructor(tilemap: OrthogonalTilemap) {
     const roadLayer = tilemap.layers[0]
@@ -119,58 +111,92 @@ export default class LevelSimulator {
     return { row: tile.row + step.row, col: tile.col + step.col }
   }
 
-  /** `false` for any tile off the road, including off the edge of the map. */
-  private hasRoad(tile: Tile): boolean {
+  /** The compass directions the tile at `tile` actually opens onto, or
+   * `undefined` if it isn't a road tile at all (including off the map). */
+  private openSides(tile: Tile): Set<Direction> | undefined {
     if (
       tile.row < 0 ||
       tile.row >= this.roadHeight ||
       tile.col < 0 ||
       tile.col >= this.roadWidth
     )
-      return false
-    return this.roadData[tile.row * this.roadWidth + tile.col] !== 0
+      return undefined
+    const rawId = this.roadData[tile.row * this.roadWidth + tile.col]
+    if (rawId === 0) return undefined
+    const { index, rotation } = decode(rawId as RoadID)
+    return roadOpenSides(index, rotation)
   }
 
-  private pushCommand(command: GameCommand, line?: number) {
+  /** True only if `fromTile` opens onto `dir` AND the neighbouring tile in
+   * `dir` opens back onto `fromTile` - a tile merely being road isn't
+   * enough, since e.g. a dead end or turn tile only connects 1-2 sides. */
+  private roadConnects(fromTile: Tile, dir: Direction): boolean {
+    if (!this.openSides(fromTile)?.has(dir)) return false
+    const toTile = this.moveFromTile(fromTile, dir)
+    return this.openSides(toTile)?.has(turnAround(dir)) ?? false
+  }
+
+  /** Records a command against `this.commands`/`commandLines`/`commandBlocks`. */
+  private pushCommand(command: GameCommand, line?: number, blockId?: string) {
     this.commands.push(command)
     this.commandLines.push(line ?? 0)
-    if (this.commands.length > MAX_GAME_COMMANDS)
-      throw new TooManyGameCommandsError()
+    this.commandBlocks.push(blockId ?? null)
   }
 
   private turnTo(
     command: GameCommand,
     newHeading: (dir: Direction) => Direction,
     line?: number,
+    blockId?: string,
   ) {
-    this.pushCommand(command, line)
+    this.pushCommand(command, line, blockId)
     this.tile = this.moveFromTile(this.tile, this.heading)
     this.heading = newHeading(this.heading)
   }
 
   // Commands - exposed to Python as the game-command functions. Each takes
   // the calling line number (see `VAN_MODULE_PREAMBLE` in pyodide.worker.ts)
-  // so the editor can highlight the line currently being animated.
-  moveForwards = (line?: number) => {
-    this.pushCommand("move_forwards", line)
+  // so the editor can highlight the line currently being animated, plus the
+  // originating Blockly block ID (if the script was compiled from blocks).
+  moveForwards = (line?: number, blockId?: string) => {
+    this.pushCommand("move_forwards", line, blockId)
     this.tile = this.moveFromTile(this.tile, this.heading)
   }
-  turnLeft = (line?: number) => this.turnTo("turn_left", turnLeft, line)
-  turnRight = (line?: number) => this.turnTo("turn_right", turnRight, line)
-  turnAround = (line?: number) => this.turnTo("turn_around", turnAround, line)
-  wait = (line?: number) => this.pushCommand("wait", line)
-  deliver = (line?: number) => this.pushCommand("deliver", line)
-  soundHorn = (line?: number) => this.pushCommand("sound_horn", line)
+  turnLeft = (line?: number, blockId?: string) =>
+    this.turnTo("turn_left", turnLeft, line, blockId)
+  turnRight = (line?: number, blockId?: string) =>
+    this.turnTo("turn_right", turnRight, line, blockId)
+  turnAround = (line?: number, blockId?: string) =>
+    this.turnTo("turn_around", turnAround, line, blockId)
+  wait = (line?: number, blockId?: string) =>
+    this.pushCommand("wait", line, blockId)
+  deliver = (line?: number, blockId?: string) =>
+    this.pushCommand("deliver", line, blockId)
+  soundHorn = (line?: number, blockId?: string) =>
+    this.pushCommand("sound_horn", line, blockId)
 
   // Sensing - exposed to Python as boolean-returning functions.
+  // Mirrors `CharacterManager.isValidState`: a move/turn is only actually
+  // safe if BOTH tiles it would leave the van straddling are road AND
+  // actually connected to each other - the immediate next tile (reached by
+  // moving forward in the CURRENT heading, same for every command) and the
+  // tile beyond that in the RESULTING heading (unchanged for a plain move,
+  // turned for a turn). Checking only tile presence is wrong on two counts:
+  // at a turn junction, the immediate tile is itself a valid (turning) road
+  // tile, so "is there a road forward" must also confirm the road actually
+  // continues straight past it; and a tile like a dead end or turn only
+  // opens onto 1-2 of its 4 sides, so it must not be treated as connected
+  // on a side it doesn't actually open onto.
   roadExists = (direction: RelativeDirection): boolean => {
-    const absoluteDirection =
+    if (!this.roadConnects(this.tile, this.heading)) return false
+    const nextTile = this.moveFromTile(this.tile, this.heading)
+    const resultingHeading =
       direction === "forward"
         ? this.heading
         : direction === "left"
           ? turnLeft(this.heading)
           : turnRight(this.heading)
-    return this.hasRoad(this.moveFromTile(this.tile, absoluteDirection))
+    return this.roadConnects(nextTile, resultingHeading)
   }
   isRoad = (direction: "FORWARD" | "LEFT" | "RIGHT"): boolean =>
     this.roadExists(direction.toLowerCase() as RelativeDirection)
@@ -179,8 +205,14 @@ export default class LevelSimulator {
   isRoadRight = (): boolean => this.roadExists("right")
   atDeadEnd = (): boolean =>
     (["forward", "left", "right"] as const).every(d => !this.roadExists(d))
-  atDestination = (): boolean =>
-    this.destinationTiles.some(t => this.tileEquals(t, this.tile))
+  // The van straddles the boundary between `this.tile` (back half) and
+  // `moveFromTile(this.tile, heading)` (front half) - it "arrives" once its
+  // front half reaches the destination tile, matching the real van sprite's
+  // position (see `CharacterManager`'s `boundaryPoint`).
+  atDestination = (): boolean => {
+    const aheadTile = this.moveFromTile(this.tile, this.heading)
+    return this.destinationTiles.some(t => this.tileEquals(t, aheadTile))
+  }
   // Obstacles are checked one tile ahead (in the van's current heading),
   // never on the van's own tile - the game's rules forbid the van ever
   // sharing a tile with a traffic light or animal.

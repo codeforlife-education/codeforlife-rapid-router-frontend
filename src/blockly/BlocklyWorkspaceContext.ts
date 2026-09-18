@@ -9,6 +9,9 @@ import {
 export type BlocklyWorkspaceRef = {
   resize: () => void
   clear: () => void
+  /** (Re-)generates Python from the current blocks and runs it, streaming
+   * fresh commands - only called when the player presses Play. */
+  run: () => void
 }
 
 export type BlocklyWorkspaceContextValue = {
@@ -19,6 +22,8 @@ export type BlocklyWorkspaceContextValue = {
    * Python view in "blocklyAndPython" mode. */
   pythonCode: string
   setPythonCode: Dispatch<SetStateAction<string>>
+  /** Needed to run the generated Python through Pyodide. */
+  levelId: number
 }
 
 const BlocklyWorkspaceContext =

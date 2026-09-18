@@ -6,7 +6,6 @@ import {
   Dialog,
   DialogTitle,
   Typography,
-  debounce,
 } from "@mui/material"
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror"
 import {
@@ -24,6 +23,7 @@ import {
   type PythonWorkspaceRef,
   usePyodideRunner,
 } from "../../pyodide"
+import { appendGameCommand, setGameCommands } from "../../app/slices"
 import {
   dispatchHighlightedLine,
   highlightLineExtension,
@@ -35,11 +35,9 @@ import {
   useGameCommandLines,
   useGameHasFinishedEarly,
   useGameInPlay,
-  useGameIsDefined,
   usePlayIntervalContext,
   usePythonWorkspaceContext,
 } from "../../app/hooks"
-import { setGameCommands } from "../../app/slices"
 
 const localStorageKey = (levelId: number) => `python-code-${levelId}`
 
@@ -50,7 +48,6 @@ const EditablePythonEditor: FC<{
 }> = ({ ref, levelId }) => {
   const dispatch = useAppDispatch()
   const { run, ready } = usePyodideRunner()
-  const gameIsDefined = useGameIsDefined()
   const gameInPlay = useGameInPlay()
   const gameHasFinishedEarly = useGameHasFinishedEarly()
   const gameCommandIndex = useGameCommandIndex()
@@ -66,45 +63,38 @@ const EditablePythonEditor: FC<{
   const [error, setError] = useState<string | null>(null)
   const [commandsOpen, setCommandsOpen] = useState(false)
 
-  // Expose an imperative "clear" for the Controls panel's Clear button.
+  // Runs the current code through Pyodide, streaming fresh commands - only
+  // invoked when the player presses Play/Run Program, never automatically
+  // on edit.
+  const codeRef = useRef(code)
+  codeRef.current = code
+  const runRef = useRef(() => {})
+  runRef.current = () => {
+    const nextCode = codeRef.current
+    localStorage.setItem(localStorageKey(levelId), nextCode)
+    setError(null)
+    dispatch(setGameCommands({ commands: [], lines: [] }))
+    void run(nextCode, levelId, (command, line, block) => {
+      dispatch(appendGameCommand({ command, line, block }))
+    }).then(result => {
+      if (!result.ok) setError(result.message)
+    })
+  }
+
+  // Expose an imperative "clear"/"run" for the Controls panel.
   useImperativeHandle(
     ref,
-    () => ({ clear: () => setCode(PYTHON_STARTER_CODE) }),
+    () => ({
+      clear: () => setCode(PYTHON_STARTER_CODE),
+      run: () => runRef.current(),
+    }),
     [],
   )
 
-  const executeAndDispatchRef = useRef((nextCode: string) => {
-    localStorage.setItem(localStorageKey(levelId), nextCode)
-    void run(nextCode, levelId).then(result => {
-      if (result.ok) {
-        setError(null)
-        dispatch(
-          setGameCommands({
-            commands: result.commands,
-            lines: result.commandLines,
-          }),
-        )
-      } else {
-        setError(result.message)
-        dispatch(setGameCommands({ commands: [], lines: [] }))
-      }
-    })
-  })
-
-  // Debounced run-on-change, mirrors Blockly's onChange -> setGameCommands.
-  const debouncedExecute = useRef(
-    debounce(
-      (nextCode: string) => executeAndDispatchRef.current(nextCode),
-      250,
-    ),
-  ).current
-
-  // Run once on mount (client-only) so a level's saved/starter code plays
-  // immediately, loading any saved code from localStorage first.
+  // Load any saved code from localStorage once mounted (client-only).
   useEffect(() => {
     const savedCode = localStorage.getItem(localStorageKey(levelId))
     if (savedCode !== null) setCode(savedCode)
-    executeAndDispatchRef.current(savedCode ?? code)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -120,7 +110,6 @@ const EditablePythonEditor: FC<{
 
   const onChange = (nextCode: string) => {
     setCode(nextCode)
-    debouncedExecute(nextCode)
   }
 
   return (
@@ -180,9 +169,11 @@ const EditablePythonEditor: FC<{
         <Button
           variant="contained"
           size="small"
-          disabled={!gameIsDefined}
           onClick={() => {
-            if (!clearPlayInterval()) setPlayInterval()
+            if (!clearPlayInterval()) {
+              runRef.current()
+              setPlayInterval()
+            }
           }}
         >
           Run Program

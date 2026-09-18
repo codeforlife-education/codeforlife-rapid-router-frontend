@@ -3,33 +3,36 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { RunRequest, WorkerResponse } from "./pyodide.worker"
 import type { GameCommand } from "../app/slices"
 
-/** A pure computation cap gives up fast; this catches busy loops that never
- * call an exposed game-command/sensing function at all. */
-const RUN_TIMEOUT_MS = 10_000
+/** Called for each command as it's derived (streamed), so the caller can
+ * play back a script live instead of waiting for it to finish entirely -
+ * there's no cap on how long a script may run for; the game's fuel meter
+ * is what eventually stops a non-terminating one, during real playback. */
+export type OnCommand = (
+  command: GameCommand,
+  line: number,
+  block: string | null,
+) => void
 
 export type PyodideRunResult =
-  | { ok: true; commands: GameCommand[]; commandLines: number[] }
-  | { ok: false; message: string }
+  | { ok: true }
+  | { ok: false; message: string; blockId: string | null }
 
 type Pending = {
   resolve: (result: PyodideRunResult) => void
-  timeoutId: ReturnType<typeof setTimeout>
+  onCommand: OnCommand
 }
 
 /**
  * Owns a single Pyodide Web Worker for the lifetime of the calling
- * component, and exposes a promise-based `run(code, levelId)` to execute a
- * student's Python script. If a run doesn't finish within `RUN_TIMEOUT_MS`
- * (e.g. a script stuck in a tight infinite loop that never calls an exposed
- * function), the worker is forcibly terminated and replaced.
+ * component, and exposes a promise-based `run(code, levelId, onCommand)` to
+ * execute a student's Python script. `onCommand` fires for each command as
+ * it's derived; the returned promise resolves once the script actually
+ * finishes (or errors).
  */
 export function usePyodideRunner() {
   const workerRef = useRef<Worker | null>(null)
   const pendingRef = useRef(new Map<number, Pending>())
   const nextRequestIdRef = useRef(0)
-  // Resolves once the current worker's Pyodide has finished loading - `run`
-  // awaits this first so the (possibly slow, first-load) time spent loading
-  // Pyodide itself is never counted against `RUN_TIMEOUT_MS`.
   const readyRef = useRef<{
     promise: Promise<void>
     resolve: () => void
@@ -54,27 +57,20 @@ export function usePyodideRunner() {
       }
       const pending = pendingRef.current.get(data.id)
       if (!pending) return
+      if (data.type === "command") {
+        pending.onCommand(data.command, data.commandLine, data.commandBlock)
+        return
+      }
       pendingRef.current.delete(data.id)
-      clearTimeout(pending.timeoutId)
       pending.resolve(
         data.type === "result"
-          ? {
-              ok: true,
-              commands: data.commands,
-              commandLines: data.commandLines,
-            }
-          : { ok: false, message: data.message },
+          ? { ok: true }
+          : { ok: false, message: data.message, blockId: data.blockId },
       )
     }
     workerRef.current = worker
     return worker
   }, [])
-
-  const restartWorker = useCallback(() => {
-    workerRef.current?.terminate()
-    setReady(false)
-    spawnWorker()
-  }, [spawnWorker])
 
   useEffect(() => {
     const worker = spawnWorker()
@@ -82,30 +78,30 @@ export function usePyodideRunner() {
   }, [spawnWorker])
 
   const run = useCallback(
-    async (code: string, levelId: number): Promise<PyodideRunResult> => {
+    async (
+      code: string,
+      levelId: number,
+      onCommand: OnCommand,
+    ): Promise<PyodideRunResult> => {
       await readyRef.current?.promise
       const worker = workerRef.current
       if (!worker) {
-        return { ok: false, message: "Python runtime is not ready yet." }
+        return {
+          ok: false,
+          message: "Python runtime is not ready yet.",
+          blockId: null,
+        }
       }
 
       return new Promise(resolve => {
         const id = ++nextRequestIdRef.current
-        const timeoutId = setTimeout(() => {
-          pendingRef.current.delete(id)
-          restartWorker()
-          resolve({
-            ok: false,
-            message: "Your program took too long to run and was stopped.",
-          })
-        }, RUN_TIMEOUT_MS)
-        pendingRef.current.set(id, { resolve, timeoutId })
+        pendingRef.current.set(id, { resolve, onCommand })
 
         const request: RunRequest = { type: "run", id, code, levelId }
         worker.postMessage(request)
       })
     },
-    [restartWorker],
+    [],
   )
 
   return { run, ready }
