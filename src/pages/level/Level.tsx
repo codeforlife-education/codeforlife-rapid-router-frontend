@@ -17,6 +17,7 @@ import {
   type PhaserGameRef,
   type SceneKey,
 } from "../../phaser"
+import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
 import Controls from "./Controls"
 import Panels from "./Panels"
 import { paths } from "../../routes"
@@ -43,10 +44,8 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
     <BlocklyWorkspaceContext.Provider
       value={{
         ref: blocklyWorkspaceRef,
-        toolboxContents: blockly_toolbox_block_types.map(type => ({
-          kind: "block",
-          type,
-        })),
+        toolboxContents: getToolboxContents(blockly_toolbox_block_types),
+        maxInstances: getMaxInstances(blockly_toolbox_block_types),
       }}
     >
       {children}
