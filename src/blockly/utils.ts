@@ -425,6 +425,16 @@ export function initializeBlockPreview(
   }
 
   const block = workspace.newBlock(blockType)
+
+  // Blockly defaults a freshly created procedure block's name to
+  // `Blockly.Msg["UNNAMED_KEY"]` ("unnamed"), rather than the friendlier
+  // default it uses for its own toolbox entries (see `getToolboxContents()`).
+  if (blockType === defaults.PROCEDURES_DEFINE_BLOCK_TYPE)
+    block.setFieldValue(
+      Blockly.Msg["PROCEDURES_DEFNORETURN_PROCEDURE"],
+      "NAME",
+    )
+
   block.initSvg()
   block.render()
 

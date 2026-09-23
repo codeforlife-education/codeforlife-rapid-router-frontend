@@ -38,6 +38,18 @@ export type DeletableBlockType =
   | loops.LoopBlockType
   | defaults.DefaultBlockType
 
+// Default blocks that are also selectable/deletable in the level creator.
+// Kept separate from `DELETABLE_CUSTOM_BLOCKS` so they're never passed to
+// `Blockly.common.defineBlocks()` (see `defaults.PROCEDURES_DEFINE_BLOCK`).
+export const DELETABLE_DEFAULT_BLOCKS = [
+  defaults.PROCEDURES_DEFINE_BLOCK,
+] as const satisfies BlockDefinition<string>[]
+
+export const ALL_DELETABLE_BLOCKS = [
+  ...DELETABLE_CUSTOM_BLOCKS,
+  ...DELETABLE_DEFAULT_BLOCKS,
+] as const satisfies BlockDefinition<string>[]
+
 export const CUSTOM_BLOCKS = [
   ...DELETABLE_CUSTOM_BLOCKS,
   // starts

@@ -1,3 +1,5 @@
+import { type BlockDefinition } from "../utils"
+
 // https://github.com/RaspberryPiFoundation/blockly/blob/blockly-v12.3.1/blocks/logic.ts
 
 // Block for if/elseif/else condition.
@@ -21,6 +23,21 @@ export const PROCEDURES_DEFINE_BLOCK_TYPE = "procedures_defnoreturn"
 
 // Block for calling a procedure with no return value.
 export const PROCEDURES_CALL_BLOCK_TYPE = "procedures_callnoreturn"
+
+/**
+ * A stand-in for the level creator's block-selection UI only: never passed
+ * to `Blockly.common.defineBlocks()`, since this block type is already
+ * registered by Blockly itself (see `import "blockly/blocks"` in
+ * `BlocklyWorkspace.tsx`), and re-registering it here would overwrite its
+ * real mutator-driven definition.
+ */
+export const PROCEDURES_DEFINE_BLOCK: BlockDefinition<
+  typeof PROCEDURES_DEFINE_BLOCK_TYPE
+> = {
+  type: PROCEDURES_DEFINE_BLOCK_TYPE,
+  message0: "to %1",
+  args0: [{ type: "field_label", text: "do something" }],
+}
 
 export const DEFAULT_BLOCK_TYPES = [
   IF_BLOCK_TYPE,

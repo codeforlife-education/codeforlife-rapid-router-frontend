@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 595.28 841.89" transform="matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,0)">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="11.13 57.58 711.16 408.40">
   <defs>
     <style>
       .cls-1 {
@@ -527,6 +527,7 @@
     </mask>
     <linearGradient id="linear-gradient-6" x1="289.44" y1="140" x2="297.26" y2="140" gradientTransform="translate(140.52 -148.27) rotate(36.8)" xlink:href="#linear-gradient"></linearGradient>
   </defs>
+  <g transform="translate(841.89,0) rotate(90)">
   <!-- Generator: Adobe Illustrator 28.6.0, SVG Export Plug-In . SVG Version: 1.2.0 Build 709)  -->
   <g>
     <g id="Trace" class="cls-61">
@@ -680,5 +681,6 @@
         <path class="cls-41" d="M301.25,137.38s-2.7-1-4.28-.45-2.09.9-2.09.9c0,0-2.59.99-3.31,1.51s-2.8,1.68-2.8,1.68c0,0-1.33,3.03-1.18,4.9,0,0,.51.74.9-.47s1.99-4.48,4.75-4.45c0,0-.29-1.43,1.51-2.14s4.75-2,6.51-1.47Z"></path>
       </g>
     </g>
+  </g>
   </g>
 </svg>

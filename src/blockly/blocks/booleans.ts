@@ -105,7 +105,7 @@ export const COW_CROSSING_BLOCK = defineBooleanBlock({
     {
       type: "field_image",
       src: cowIcon,
-      width: 15,
+      width: 30,
       height: 15,
       alt: "*",
       flipRtl: "FALSE",
@@ -123,7 +123,7 @@ export const PIGEON_CROSSING_BLOCK = defineBooleanBlock({
     {
       type: "field_image",
       src: pigeonIcon,
-      width: 15,
+      width: 30,
       height: 15,
       alt: "*",
       flipRtl: "FALSE",
