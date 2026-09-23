@@ -23,7 +23,7 @@ const levels = [
   {
     id: 4,
     mode: "blockly",
-    blockly_toolbox_block_types: ["move_forwards", "turn_right"],
+    blockly_toolbox_block_types: ["move_forwards", "turn_left"],
   },
   {
     id: 5,
@@ -223,7 +223,7 @@ const levels = [
       "turn_right",
       "turn_left",
       "at_destination",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -234,7 +234,7 @@ const levels = [
       "turn_right",
       "turn_left",
       "at_destination",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -245,7 +245,7 @@ const levels = [
       "turn_right",
       "turn_left",
       "at_destination",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -256,7 +256,7 @@ const levels = [
       "turn_right",
       "turn_left",
       "at_destination",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -269,7 +269,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -282,7 +282,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -295,7 +295,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -308,7 +308,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -321,7 +321,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -336,7 +336,7 @@ const levels = [
       "at_destination",
       "road_exists",
       "cow_crossing",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -354,7 +354,7 @@ const levels = [
       "dead_end",
       "cow_crossing",
       "controls_repeat",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -370,7 +370,7 @@ const levels = [
       "road_exists",
       "dead_end",
       "controls_repeat",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -386,7 +386,7 @@ const levels = [
       "road_exists",
       "dead_end",
       "controls_repeat",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -402,7 +402,7 @@ const levels = [
       "road_exists",
       "dead_end",
       "controls_repeat",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -418,7 +418,7 @@ const levels = [
       "road_exists",
       "dead_end",
       "controls_repeat",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -508,7 +508,6 @@ const levels = [
       "turn_right",
       "turn_around",
       "wait",
-      "deliver",
       "controls_if",
       "at_destination",
       "road_exists",
@@ -527,7 +526,6 @@ const levels = [
       "turn_right",
       "turn_around",
       "wait",
-      "deliver",
       "controls_if",
       "at_destination",
       "road_exists",
@@ -542,8 +540,8 @@ const levels = [
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
-      ["turn_left", 3],
-      ["turn_right", 2],
+      ["turn_left", 2],
+      ["turn_right", 3],
     ],
   },
   {
@@ -583,7 +581,7 @@ const levels = [
       "controls_if",
       "at_destination",
       ["road_exists", 1],
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -596,7 +594,7 @@ const levels = [
       "controls_if",
       "at_destination",
       ["road_exists", 2],
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -610,7 +608,7 @@ const levels = [
       ["logic_negate", 1],
       ["at_destination", 1],
       ["road_exists", 2],
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_while
     ],
   },
   {
@@ -623,7 +621,7 @@ const levels = [
       ["logic_negate", 1],
       ["at_destination", 1],
       ["controls_repeat", 4],
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_while
     ],
   },
   {
@@ -633,7 +631,7 @@ const levels = [
       ["turn_left", 2],
       ["turn_around", 1],
       ["at_destination", 1],
-      ["controls_whileUntil", 1],
+      ["controls_whileUntil", 1], // TODO: switch to repeat_until
     ],
   },
   {
@@ -668,7 +666,7 @@ const levels = [
       "at_destination",
       "traffic_light",
       "procedures_callnoreturn",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -734,7 +732,7 @@ const levels = [
       ["turn_around", 1],
       "road_exists",
       ["dead_end", 1],
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_while
     ],
   },
   {
@@ -748,7 +746,7 @@ const levels = [
       ["wait", 1],
       "road_exists",
       ["dead_end", 1],
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_while
     ],
   },
   {
@@ -759,7 +757,7 @@ const levels = [
       ["turn_right", 2],
       ["turn_around", 1],
       ["at_destination", 1],
-      ["controls_whileUntil", 1],
+      ["controls_whileUntil", 1], // TODO: switch to repeat_while and [repeat_until, 1]
     ],
   },
   {
@@ -772,7 +770,7 @@ const levels = [
       "controls_if",
       "at_destination",
       ["road_exists", 1],
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -785,7 +783,7 @@ const levels = [
       ["turn_around", 2],
       "at_destination",
       "road_exists",
-      ["controls_whileUntil", 2],
+      ["controls_whileUntil", 2], // TODO: switch to repeat_until
     ],
   },
   {
@@ -801,7 +799,7 @@ const levels = [
       "dead_end",
       "traffic_light",
       "procedures_callnoreturn",
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -827,7 +825,7 @@ const levels = [
       "road_exists",
       "dead_end",
       ["controls_repeat", 1],
-      "controls_whileUntil",
+      "controls_whileUntil", // TODO: switch to repeat_until
     ],
   },
   {
@@ -841,7 +839,7 @@ const levels = [
       "logic_negate",
       "at_destination",
       "road_exists",
-      ["controls_whileUntil", 1],
+      ["controls_whileUntil", 1], // TODO: switch to repeat_while
     ],
   },
   {
@@ -869,7 +867,7 @@ const levels = [
       ["at_destination", 1],
       ["road_exists", 2],
       ["dead_end", 2],
-      ["controls_whileUntil", 5],
+      ["controls_whileUntil", 5], // TODO: switch to [repeat_while, 4] and [repeat_until, 1]
     ],
   },
   {

@@ -163,6 +163,15 @@ function initializeWorkspace(
   const workspace = Blockly.inject(div, {
     toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
     trashcan: true,
+    zoom: {
+      controls: true,
+      wheel: true,
+      pinch: true,
+      startScale: 1.0,
+      maxScale: 2,
+      minScale: 0.5,
+      scaleSpeed: 1.5,
+    },
     maxInstances,
   })
 
