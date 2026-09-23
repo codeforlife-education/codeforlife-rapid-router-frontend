@@ -17,7 +17,10 @@ import type { GameCommand } from "../app/slices"
 export type BlockDefinition<T extends string> = {
   type: T
   tooltip?: string
-  colour: number
+  colour?: number
+  /** A named block style (e.g. Blockly's built-in `"loop_blocks"`), as an
+   * alternative to a raw `colour`. */
+  style?: string
   message0: string
   args0: Array<
     | {
@@ -41,7 +44,14 @@ export type BlockDefinition<T extends string> = {
         name: string
         options: Array<[string, string]>
       }
+    | {
+        type: "input_value"
+        name: string
+        check?: string
+      }
   >
+  message1?: string
+  args1?: Array<{ type: "input_statement"; name: string }>
   output?: string
   previousStatement?: string | null
   nextStatement?: string | null
