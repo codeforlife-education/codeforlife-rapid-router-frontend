@@ -66,6 +66,10 @@ export default class LevelSimulator {
    * script was compiled from a Blockly workspace (`null` for hand-typed
    * Python, or any command not preceded by a `_highlight_block` call). */
   readonly commandBlocks: (string | null)[] = []
+  /** True for entries the line tracer synthesised purely so the editor can
+   * highlight a loop/if header or sensing-only line - not a real command the
+   * player issued (see `syntheticWait`). These must never cost fuel. */
+  readonly commandSynthetic: boolean[] = []
 
   constructor(tilemap: OrthogonalTilemap) {
     const roadLayer = tilemap.layers[0]
@@ -136,11 +140,18 @@ export default class LevelSimulator {
     return this.openSides(toTile)?.has(turnAround(dir)) ?? false
   }
 
-  /** Records a command against `this.commands`/`commandLines`/`commandBlocks`. */
-  private pushCommand(command: GameCommand, line?: number, blockId?: string) {
+  /** Records a command against `this.commands`/`commandLines`/`commandBlocks`/
+   * `commandSynthetic`. */
+  private pushCommand(
+    command: GameCommand,
+    line?: number,
+    blockId?: string,
+    synthetic = false,
+  ) {
     this.commands.push(command)
     this.commandLines.push(line ?? 0)
     this.commandBlocks.push(blockId ?? null)
+    this.commandSynthetic.push(synthetic)
   }
 
   private turnTo(
@@ -170,6 +181,11 @@ export default class LevelSimulator {
     this.turnTo("turn_around", turnAround, line, blockId)
   wait = (line?: number, blockId?: string) =>
     this.pushCommand("wait", line, blockId)
+  /** Same as `wait`, but flagged as synthetic - injected by the line tracer
+   * purely so the editor can highlight a loop/if header or sensing-only
+   * line, not a real command the player issued. Must not cost fuel. */
+  syntheticWait = (line?: number, blockId?: string) =>
+    this.pushCommand("wait", line, blockId, true)
   deliver = (line?: number, blockId?: string) =>
     this.pushCommand("deliver", line, blockId)
   soundHorn = (line?: number, blockId?: string) =>

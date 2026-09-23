@@ -20,6 +20,7 @@ import { Events, type Variable } from "./globals"
 import {
   useAppDispatch,
   useGameCommandIndex,
+  useGameCommandSynthetic,
   useGameCommands,
   usePhaserGameContext,
 } from "../app/hooks"
@@ -36,6 +37,7 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const dispatch = useAppDispatch()
   const gameCommands = useGameCommands()
   const gameCommandIndex = useGameCommandIndex()
+  const gameCommandSynthetic = useGameCommandSynthetic()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Phaser.Game>(null)
@@ -184,6 +186,13 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   useEffect(() => {
     if (mode === "play") setVariable("commands", gameCommands)
   }, [mode, gameCommands, setVariable])
+
+  // Pass which commands are synthetic (editor-highlight-only, not real
+  // player-issued commands) to Phaser when in play mode - the fuel meter
+  // must not charge for these.
+  useEffect(() => {
+    if (mode === "play") setVariable("commandsSynthetic", gameCommandSynthetic)
+  }, [mode, gameCommandSynthetic, setVariable])
 
   // Pass the current game command index to Phaser when in play mode.
   useEffect(() => {

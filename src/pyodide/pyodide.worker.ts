@@ -26,6 +26,9 @@ export type WorkerResponse =
       command: GameCommand
       commandLine: number
       commandBlock: string | null
+      /** True for the line tracer's filler waits (editor highlighting only) -
+       * these must not cost fuel. See `LevelSimulator.commandSynthetic`. */
+      synthetic: boolean
     }
   | { type: "result"; id: number }
   | { type: "error"; id: number; message: string; blockId: string | null }
@@ -103,14 +106,14 @@ class _LineTracer:
             return None
         if event == "line":
             if self.last_line != -1 and not self.issued_on_line:
-                _wait(self.last_line, _current_block_id)
+                _synthetic_wait(self.last_line, _current_block_id)
             self.last_line = frame.f_lineno
             self.issued_on_line = False
         return self.trace
 
     def finish(self):
         if self.last_line != -1 and not self.issued_on_line:
-            _wait(self.last_line, _current_block_id)
+            _synthetic_wait(self.last_line, _current_block_id)
 
 _tracer = None
 
@@ -212,6 +215,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
           command: simulator.commands[i],
           commandLine: simulator.commandLines[i],
           commandBlock: simulator.commandBlocks[i],
+          synthetic: simulator.commandSynthetic[i],
         }
         self.postMessage(response)
         paceCommand()
@@ -224,6 +228,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       _turn_right: streamed(simulator.turnRight),
       _turn_around: streamed(simulator.turnAround),
       _wait: streamed(simulator.wait),
+      _synthetic_wait: streamed(simulator.syntheticWait),
       _deliver: streamed(simulator.deliver),
       _sound_horn: streamed(simulator.soundHorn),
       _is_road: simulator.isRoad,

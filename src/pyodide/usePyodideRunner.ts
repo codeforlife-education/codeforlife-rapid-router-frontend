@@ -11,6 +11,7 @@ export type OnCommand = (
   command: GameCommand,
   line: number,
   block: string | null,
+  synthetic: boolean,
 ) => void
 
 export type PyodideRunResult =
@@ -58,7 +59,12 @@ export function usePyodideRunner() {
       const pending = pendingRef.current.get(data.id)
       if (!pending) return
       if (data.type === "command") {
-        pending.onCommand(data.command, data.commandLine, data.commandBlock)
+        pending.onCommand(
+          data.command,
+          data.commandLine,
+          data.commandBlock,
+          data.synthetic,
+        )
         return
       }
       pendingRef.current.delete(data.id)

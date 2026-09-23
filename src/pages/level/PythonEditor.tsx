@@ -74,8 +74,8 @@ const EditablePythonEditor: FC<{
     localStorage.setItem(localStorageKey(levelId), nextCode)
     setError(null)
     dispatch(setGameCommands({ commands: [], lines: [] }))
-    void run(nextCode, levelId, (command, line, block) => {
-      dispatch(appendGameCommand({ command, line, block }))
+    void run(nextCode, levelId, (command, line, block, synthetic) => {
+      dispatch(appendGameCommand({ command, line, block, synthetic }))
     }).then(result => {
       if (!result.ok) setError(result.message)
     })

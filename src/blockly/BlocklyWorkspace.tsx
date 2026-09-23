@@ -84,8 +84,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     // the blocks. Commands stream in as they're derived (there's no
     // "does this solve the level" check), so reset first, then append.
     dispatch(setGameCommands({ commands: [], lines: [], blocks: [] }))
-    void run(code, levelId, (command, line, block) => {
-      dispatch(appendGameCommand({ command, line, block }))
+    void run(code, levelId, (command, line, block, synthetic) => {
+      dispatch(appendGameCommand({ command, line, block, synthetic }))
     }).then(result => {
       if (!result.ok) {
         const block =

@@ -12,6 +12,17 @@ export const GAME_COMMANDS = [
 ] as const
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
+/** The amount of fuel each command costs to execute. */
+export const FUEL_COST: Record<GameCommand, number> = {
+  move_forwards: 1,
+  turn_left: 1,
+  turn_right: 1,
+  turn_around: 1,
+  wait: 1,
+  deliver: 1,
+  sound_horn: 1,
+}
+
 export interface GameState {
   gameCommands: GameCommand[]
   /** The Python source line (1-indexed) that produced each `gameCommands` entry. */
@@ -19,6 +30,10 @@ export interface GameState {
   /** The originating Blockly block ID for each `gameCommands` entry, when
    * the commands came from a compiled Blockly workspace (`null` otherwise). */
   gameCommandBlocks: (string | null)[]
+  /** True for `gameCommands` entries synthesised purely for editor
+   * highlighting (e.g. a loop/if header line) - not a real command the
+   * player issued, so it must not cost fuel (see `FUEL_COST`). */
+  gameCommandSynthetic: boolean[]
   gameCommandIndex: number
   gameOver: boolean
 }
@@ -28,6 +43,7 @@ const initialState: GameState = Object.freeze({
   gameCommands: [],
   gameCommandLines: [],
   gameCommandBlocks: [],
+  gameCommandSynthetic: [],
   gameCommandIndex: startGameCommandIndex,
   gameOver: false,
 })
@@ -64,11 +80,13 @@ export const gameSlice = createSlice({
           commands: GameCommand[]
           lines: number[]
           blocks?: (string | null)[]
+          synthetic?: boolean[]
         }>,
       ) => {
         state.gameCommands = action.payload.commands
         state.gameCommandLines = action.payload.lines
         state.gameCommandBlocks = action.payload.blocks ?? []
+        state.gameCommandSynthetic = action.payload.synthetic ?? []
         _restartGame(state)
       },
     ),
@@ -81,6 +99,7 @@ export const gameSlice = createSlice({
           command: GameCommand
           line: number
           block: string | null
+          synthetic: boolean
         }>,
       ) => {
         // If playback had already caught up to the end (marked "finished"),
@@ -89,6 +108,7 @@ export const gameSlice = createSlice({
         state.gameCommands.push(action.payload.command)
         state.gameCommandLines.push(action.payload.line)
         state.gameCommandBlocks.push(action.payload.block)
+        state.gameCommandSynthetic.push(action.payload.synthetic)
         if (wasFinished && !gameHasFinished(state)) state.gameOver = false
       },
     ),
@@ -114,6 +134,7 @@ export const gameSlice = createSlice({
     selectGameCommands: state => state.gameCommands,
     selectGameCommandLines: state => state.gameCommandLines,
     selectGameCommandBlocks: state => state.gameCommandBlocks,
+    selectGameCommandSynthetic: state => state.gameCommandSynthetic,
     selectGameCommandIndex: state => state.gameCommandIndex,
     selectGameOver: state => state.gameOver,
     selectCurrentGameCommand: state =>
@@ -139,6 +160,7 @@ export const {
   selectGameCommands,
   selectGameCommandLines,
   selectGameCommandBlocks,
+  selectGameCommandSynthetic,
   selectGameCommandIndex,
   selectGameOver,
   selectCurrentGameCommand,
