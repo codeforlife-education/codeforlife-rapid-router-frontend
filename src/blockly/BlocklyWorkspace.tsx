@@ -77,6 +77,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     // Set up event listeners.
     const onChange = debounce(() => {
+      // TODO: Implement saving local changes to session storage so that a user's
+      // workspace changes are saved when they return that level.
       const gameCommands = getGameCommandsFromStartBlock(blockly.startBlock)
       dispatch(setGameCommands(gameCommands))
     }, 250)

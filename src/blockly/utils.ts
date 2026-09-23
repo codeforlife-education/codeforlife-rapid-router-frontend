@@ -124,6 +124,22 @@ function getOrCreateInstanceCountLabel(svgRoot: SVGGElement) {
 }
 
 /**
+ * Measure the width a label would render at, unaffected by any scale
+ * transform applied by an ancestor SVG (e.g. the flyout's workspace scale).
+ */
+function measureLabelWidth(label: HTMLDivElement) {
+  const clone = label.cloneNode(true) as HTMLDivElement
+  Object.assign(clone.style, { position: "absolute", visibility: "hidden" })
+  document.body.appendChild(clone)
+  const width = clone.getBoundingClientRect().width
+  clone.remove()
+  return width
+}
+
+/** Each flyout block's width before it's widened to fit its label. */
+const naturalBlockWidths = new WeakMap<Blockly.BlockSvg, number>()
+
+/**
  * Show a label on each flyout block that has a max instance limit,
  * showing how many more of that block can still be placed in the workspace.
  */
@@ -131,8 +147,11 @@ function updateFlyoutInstanceLabels(
   workspace: Blockly.WorkspaceSvg,
   maxInstances: Record<string, number>,
 ) {
-  const flyoutWorkspace = workspace.getFlyout()?.getWorkspace()
-  if (!flyoutWorkspace) return
+  const flyout = workspace.getFlyout()
+  const flyoutWorkspace = flyout?.getWorkspace()
+  if (!flyout || !flyoutWorkspace) return
+
+  let needsReflow = false
 
   for (const block of flyoutWorkspace.getTopBlocks(false)) {
     const max = maxInstances[block.type]
@@ -149,10 +168,30 @@ function updateFlyoutInstanceLabels(
     label.textContent = `x${remaining}`
     label.style.color = block.getColour()
 
-    const { width, height } = block.getHeightWidth()
-    foreignObject.setAttribute("x", String(width + INSTANCE_COUNT_LABEL_GAP))
+    let naturalWidth = naturalBlockWidths.get(block)
+    if (naturalWidth === undefined) {
+      naturalWidth = block.getHeightWidth().width
+      naturalBlockWidths.set(block, naturalWidth)
+    }
+
+    const { height } = block.getHeightWidth()
+    foreignObject.setAttribute(
+      "x",
+      String(naturalWidth + INSTANCE_COUNT_LABEL_GAP),
+    )
     foreignObject.setAttribute("height", String(height))
+
+    // Widen the block (used by the flyout to size itself) if the label
+    // would otherwise overflow past the flyout's right edge.
+    const requiredWidth =
+      naturalWidth + INSTANCE_COUNT_LABEL_GAP + measureLabelWidth(label)
+    if (requiredWidth > block.width) {
+      block.width = requiredWidth
+      needsReflow = true
+    }
   }
+
+  if (needsReflow) flyout.reflow()
 }
 
 function initializeWorkspace(

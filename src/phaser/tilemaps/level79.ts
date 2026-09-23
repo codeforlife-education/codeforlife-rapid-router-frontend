@@ -364,11 +364,8 @@ export default tilemaps.makeOrthogonal({
             }),
             // 1 column of a top-facing dead end road tile (incl. house)
             layers.tile.data.IDs.Road.Dirt.DeadEnd.TOP,
-            // 1 column of vertical straight road tile (CFC)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            // 1 column of a top-facing dead end road tile (CFC)
+            layers.tile.data.IDs.Road.Dirt.DeadEnd.TOP,
           ],
         ],
       },

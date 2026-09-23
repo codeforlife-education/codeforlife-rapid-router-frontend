@@ -13,11 +13,8 @@ export default tilemaps.makeOrthogonal({
           [
             // 4 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 4 }),
-            // 1 column of vertical straight road tile (CFC)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            // 1 column of a bottom-facing dead end road tile (CFC)
+            layers.tile.data.IDs.Road.Asphalt.DeadEnd.BOTTOM,
             // 5 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 5 }),
           ],
