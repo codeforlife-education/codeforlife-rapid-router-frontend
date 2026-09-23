@@ -9,6 +9,7 @@ import {
   type CommandBlockType,
   START_BLOCK_TYPES,
   type StartBlockType,
+  defaults,
 } from "./blocks"
 import { type BlockToolboxEntry } from "../blockly/blocks"
 import { type BlockType } from "./blocks"
@@ -224,31 +225,91 @@ function initializeWorkspace(
     maxInstances,
   })
 
-  if (Object.keys(maxInstances).length > 0) {
-    const update = () => updateFlyoutInstanceLabels(workspace, maxInstances)
+  const hasMaxInstances = Object.keys(maxInstances).length > 0
+  const updateInstanceLabels = () =>
+    updateFlyoutInstanceLabels(workspace, maxInstances)
 
-    // Flyout blocks are rendered asynchronously after injection.
+  // Only levels that let the player define a procedure need the toolbox's
+  // call blocks kept in sync with it; other levels never show either block.
+  const hasProceduresDefineBlock = toolboxContents.some(
+    item =>
+      "type" in item && item.type === defaults.PROCEDURES_DEFINE_BLOCK_TYPE,
+  )
+
+  if (hasProceduresDefineBlock) {
+    const update = () => {
+      updateProcedureCallBlocks(workspace, toolboxContents)
+
+      // `updateToolbox()` above recreates the flyout's blocks (rendered
+      // asynchronously), wiping any instance-count labels, so they must be
+      // reapplied afterwards rather than left to the separate listener
+      // below, or they'd flicker: shown, then wiped once this update fires.
+      if (hasMaxInstances) setTimeout(updateInstanceLabels, 0)
+    }
+
     setTimeout(update, 0)
+
+    const debouncedUpdate = debounce(update, 100)
+    workspace.addChangeListener(event => {
+      if (
+        event instanceof Blockly.Events.BlockCreate ||
+        event instanceof Blockly.Events.BlockDelete ||
+        event instanceof Blockly.Events.BlockChange
+      )
+        debouncedUpdate()
+    })
+  } else if (hasMaxInstances) {
+    // Flyout blocks are rendered asynchronously after injection.
+    setTimeout(updateInstanceLabels, 0)
 
     workspace.addChangeListener(event => {
       if (
         event instanceof Blockly.Events.BlockCreate ||
         event instanceof Blockly.Events.BlockDelete
       )
-        update()
+        updateInstanceLabels()
     })
   }
 
   return workspace
 }
 
+/**
+ * Refresh the toolbox's procedure call blocks to match the procedures
+ * currently defined on the workspace: one correctly-named call block per
+ * defined procedure, instead of Blockly's default of a single, permanently
+ * blank call block. This replicates `Blockly.Procedures.flyoutCategory()`
+ * (Blockly's own recommended mechanism, normally used for a dynamic toolbox
+ * category) for our flat, non-categorised toolbox.
+ */
+function updateProcedureCallBlocks(
+  workspace: Blockly.WorkspaceSvg,
+  staticToolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
+) {
+  const [proceduresNoReturn] = Blockly.Procedures.allProcedures(workspace)
+
+  const callBlocks = proceduresNoReturn.map(([name, params]) => ({
+    kind: "block",
+    type: defaults.PROCEDURES_CALL_BLOCK_TYPE,
+    extraState: { name, params },
+  }))
+
+  workspace.updateToolbox({
+    kind: "flyoutToolbox",
+    contents: [...staticToolboxContents, ...callBlocks],
+  })
+}
+
 let DEFINED_CUSTOM_BLOCKS = false
 
 /**
  * Set up locale and custom block definitions, and disable block selection
- * visuals. Safe to call multiple times.
+ * visuals. Safe to call multiple times. No-ops during SSR, since Blockly
+ * only works in a browser environment.
  */
 function ensureBlocklyInitialized() {
+  if (typeof window === "undefined") return
+
   // @ts-expect-error Locale type isn't inferred correctly after export
   Blockly.setLocale({ ...en_default, ...en_custom })
 
@@ -289,10 +350,39 @@ function isBlockToolboxTuple(
 export function getToolboxContents(
   entries: BlockToolboxEntry[],
 ): Blockly.utils.toolbox.ToolboxItemInfo[] {
-  return entries.map(entry => ({
-    kind: "block",
-    type: isBlockToolboxTuple(entry) ? entry[0] : entry,
-  }))
+  // Ensures the locale is set (so `Blockly.Msg` below is populated) even if
+  // this runs before `initializeBlockly()`, e.g. while building context that
+  // will later be passed down to a `BlocklyWorkspace`.
+  ensureBlocklyInitialized()
+
+  return entries
+    .map(entry => (isBlockToolboxTuple(entry) ? entry[0] : entry))
+    .filter(
+      // The call block is never shown statically: it's dynamically
+      // populated with one correctly-named entry per defined procedure by
+      // `updateProcedureCallBlocks()`, since Blockly otherwise renders it
+      // with a permanently blank name field.
+      type => type !== defaults.PROCEDURES_CALL_BLOCK_TYPE,
+    )
+    .map(type =>
+      type === defaults.PROCEDURES_DEFINE_BLOCK_TYPE
+        ? {
+            kind: "block",
+            type,
+            // Blockly renders this block with a blank name field unless a
+            // default is supplied explicitly, matching what Blockly's own
+            // dynamic procedure category does (see
+            // `Blockly.Procedures.flyoutCategory()`). Falls back to
+            // Blockly's own English default during SSR, where the locale
+            // isn't set up (see `ensureBlocklyInitialized()`).
+            fields: {
+              NAME:
+                Blockly.Msg?.["PROCEDURES_DEFNORETURN_PROCEDURE"] ??
+                "do something",
+            },
+          }
+        : { kind: "block", type },
+    )
 }
 
 export function getMaxInstances(
