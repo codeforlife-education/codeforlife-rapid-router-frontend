@@ -7,12 +7,8 @@ export default tilemaps.makeOrthogonal({
     tile: {
       road: {
         data: [
-          // Row 1 - 10 columns of empty tiles
-          layers.tile.data.fillRow(),
-          // Row 2 - 10 columns of empty tiles
-          layers.tile.data.fillRow(),
-          // Row 3 - 10 columns of empty tiles
-          layers.tile.data.fillRow(),
+          // Row 1 to 3 - 10 columns of empty tiles
+          ...layers.tile.data.fillManyRows({ rows: 3 }),
           // Row 4
           [
             // 2 columns of empty tiles
@@ -83,10 +79,8 @@ export default tilemaps.makeOrthogonal({
             // 5 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 5 }),
           ],
-          // Row 7 - 10 columns of empty tiles
-          layers.tile.data.fillRow(),
-          // Row 8 - 10 columns of empty tiles
-          layers.tile.data.fillRow(),
+          // Row 7 to 8 - 10 columns of empty tiles
+          ...layers.tile.data.fillManyRows({ rows: 2 }),
         ],
       },
     },

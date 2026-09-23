@@ -108,10 +108,8 @@ export default tilemaps.makeOrthogonal({
             // 3 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 3 }),
           ],
-          // Row 7
-          layers.tile.data.fillRow(),
-          // Row 8
-          layers.tile.data.fillRow(),
+          // Row 7 to 8 - 10 columns of empty tiles
+          ...layers.tile.data.fillManyRows({ rows: 2 }),
         ],
       },
     },

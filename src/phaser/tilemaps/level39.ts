@@ -104,10 +104,8 @@ export default tilemaps.makeOrthogonal({
             // 1 column of a left-facing dead end road tile
             layers.tile.data.IDs.Road.Asphalt.DeadEnd.LEFT,
           ],
-          // Row 7 - 10 columns of empty tiles
-          layers.tile.data.fillRow(),
-          // Row 8 - 10 columns of empty tiles
-          layers.tile.data.fillRow(),
+          // Row 7 to 8 - 10 columns of empty tiles
+          ...layers.tile.data.fillManyRows({ rows: 2 }),
         ],
       },
     },

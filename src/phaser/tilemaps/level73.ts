@@ -131,12 +131,8 @@ export default tilemaps.makeOrthogonal({
             // 4 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 4 }),
           ],
-          // Row 6
-          layers.tile.data.fillRow(),
-          // Row 7
-          layers.tile.data.fillRow(),
-          // Row 8
-          layers.tile.data.fillRow(),
+          // Row 6 to 8 - 10 columns of empty tiles
+          ...layers.tile.data.fillManyRows({ rows: 3 }),
         ],
       },
     },
