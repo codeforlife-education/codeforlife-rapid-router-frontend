@@ -8,7 +8,7 @@ export default tilemaps.makeOrthogonal({
       road: {
         data: [
           // Row 1 - 10 columns of empty tiles
-          ...layers.tile.data.fillManyRows({ rows: 1 }),
+          layers.tile.data.fillRow(),
           // Row 2
           [
             // 4 columns of empty tiles
