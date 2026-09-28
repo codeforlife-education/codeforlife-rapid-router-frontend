@@ -6,7 +6,7 @@ import * as items from "./items"
 import CharacterModal, { type Character } from "./CharacterModal"
 import CodeModal, { type Code } from "./CodeModal"
 import DescriptionModal, { type Description } from "./DescriptionModal"
-import { DELETABLE_CUSTOM_BLOCKS } from "../../blockly/blocks"
+import { ALL_DELETABLE_BLOCKS } from "../../blockly/blocks"
 import { MiniDrawer } from "../../components/miniDrawers"
 import { ZoomControls } from "../../phaser"
 import { usePhaserGameContext } from "../../app/hooks"
@@ -22,7 +22,7 @@ const Controls: FC = () => {
   const [code, setCode] = useState<Code>({
     language: "Blockly",
     maxMoves: 50,
-    blocks: DELETABLE_CUSTOM_BLOCKS.reduce(
+    blocks: ALL_DELETABLE_BLOCKS.reduce(
       (blocks, { type }) => ({
         ...blocks,
         [type]: { count: "infinite", enabled: true },

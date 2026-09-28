@@ -131,6 +131,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     // Python text on edit - actually running it happens only via `run()`,
     // triggered by the player pressing Play.
     const onChange = debounce(() => {
+      // TODO: Implement saving local changes to session storage so that a user's
+      // workspace changes are saved when they return that level.
       setPythonCode(
         stripHighlightCalls(getPythonCodeFromStartBlock(blockly.startBlock)),
       )
