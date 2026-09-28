@@ -1,0 +1,143 @@
+import * as layers from "../layers"
+import * as tilemaps from "./tilemaps"
+
+export default tilemaps.makeOrthogonal({
+  properties: { background: "GRASS", character: "VAN" },
+  layers: {
+    tile: {
+      road: {
+        data: [
+          // Row 1
+          layers.tile.data.fillRow(),
+          // Row 2
+          [
+            // 2 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 2 }),
+            // 1 column of a right-facing dead end road tile (CFC)
+            layers.tile.data.IDs.Road.Asphalt.DeadEnd.RIGHT,
+            // 1 column of horizontal straight road tile
+            layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
+            // 1 column of a t-junction road tile (left, right, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.LEFT_RIGHT_BOTTOM,
+            // 1 column of a bottom-left turn road tile
+            layers.tile.data.IDs.Road.Asphalt.Turn.BOTTOM_LEFT,
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+          ],
+          // Row 3
+          [
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+            // 1 column of a t-junction road tile (top, right, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_RIGHT_BOTTOM,
+            // 1 column of a t-junction road tile (top, left, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_LEFT_BOTTOM,
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+          ],
+          // Row 4
+          [
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+            // 1 column of a t-junction road tile (top, right, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_RIGHT_BOTTOM,
+            // 1 column of a t-junction road tile (top, left, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_LEFT_BOTTOM,
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+          ],
+          // Row 5
+          [
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+            // 1 column of a t-junction road tile (top, right, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_RIGHT_BOTTOM,
+            // 1 column of a t-junction road tile (top, left, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_LEFT_BOTTOM,
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+          ],
+          // Row 6
+          [
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+            // 1 column of a t-junction road tile (top, right, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_RIGHT_BOTTOM,
+            // 1 column of a t-junction road tile (top, left, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_LEFT_BOTTOM,
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+          ],
+          // Row 7
+          [
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+            // 1 column of a t-junction road tile (top, right, bottom)
+            layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_RIGHT_BOTTOM,
+            // 1 column of a crossroads road tile
+            layers.tile.data.IDs.Road.Asphalt.CROSSROADS,
+            // 1 column of horizontal straight road tile
+            layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
+            // 1 column of a left-facing dead end road tile (incl. house)
+            layers.tile.data.IDs.Road.Asphalt.DeadEnd.LEFT,
+            // 2 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 2 }),
+          ],
+          // Row 8
+          [
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+            // 1 column of a top-right turn road tile
+            layers.tile.data.IDs.Road.Asphalt.Turn.TOP_RIGHT,
+            // 1 column of a top-left turn road tile
+            layers.tile.data.IDs.Road.Asphalt.Turn.TOP_LEFT,
+            // 4 columns of empty tiles
+            ...layers.tile.data.fillRow({ cols: 4 }),
+          ],
+        ],
+      },
+    },
+    objectGroup: {
+      endpoints: {
+        objects: [
+          layers.objectGroup.objects.endpoints.cfc.barn.red.right({
+            col: 2,
+            row: 1,
+          }),
+          layers.objectGroup.objects.endpoints.house.common.straw.top({
+            col: 7,
+            row: 6,
+          }),
+        ],
+      },
+      scenery: {
+        objects: [
+          layers.objectGroup.objects.scenery.building.logCabin({
+            x: 177,
+            y: 204,
+          }),
+          layers.objectGroup.objects.scenery.building.logCabin({
+            x: 79,
+            y: 204,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 468,
+            y: 98,
+          }),
+          layers.objectGroup.objects.scenery.nature.tree.oak({
+            x: 409,
+            y: 302,
+          }),
+          layers.objectGroup.objects.scenery.nature.hay({
+            x: 129,
+            y: 254,
+          }),
+          layers.objectGroup.objects.scenery.nature.crops({
+            x: 109,
+            y: 326,
+          }),
+        ],
+      },
+    },
+  },
+})

@@ -20,23 +20,28 @@
     <circle cx="160" cy="160" r="2"></circle>
   </g>
   <g stroke="#707070" stroke-width="4" stroke-linecap="square" opacity="0.2">
+    <line x1="0" y1="0" x2="200" y2="0"></line>
     <line x1="0" y1="50" x2="200" y2="50"></line>
     <line x1="0" y1="100" x2="200" y2="100"></line>
     <line x1="0" y1="150" x2="200" y2="150"></line>
+    <line x1="0" y1="200" x2="200" y2="200"></line>
+    <line x1="0" y1="0" x2="0" y2="50"></line>
     <line x1="50" y1="0" x2="50" y2="50"></line>
     <line x1="100" y1="0" x2="100" y2="50"></line>
     <line x1="150" y1="0" x2="150" y2="50"></line>
+    <line x1="200" y1="0" x2="200" y2="50"></line>
     <line x1="25" y1="50" x2="25" y2="100"></line>
     <line x1="75" y1="50" x2="75" y2="100"></line>
     <line x1="125" y1="50" x2="125" y2="100"></line>
     <line x1="175" y1="50" x2="175" y2="100"></line>
+    <line x1="0" y1="100" x2="0" y2="150"></line>
     <line x1="50" y1="100" x2="50" y2="150"></line>
     <line x1="100" y1="100" x2="100" y2="150"></line>
     <line x1="150" y1="100" x2="150" y2="150"></line>
+    <line x1="200" y1="100" x2="200" y2="150"></line>
     <line x1="25" y1="150" x2="25" y2="200"></line>
     <line x1="75" y1="150" x2="75" y2="200"></line>
     <line x1="125" y1="150" x2="125" y2="200"></line>
     <line x1="175" y1="150" x2="175" y2="200"></line>
-    <polyline points="0,0 200,0 200,200 0,200 0,0" fill="none"></polyline>
   </g>
 </svg>

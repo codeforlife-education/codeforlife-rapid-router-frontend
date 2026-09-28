@@ -11,10 +11,11 @@
     "🚫 Don't add `dependencies` that are inherited from the CFL package.",
     "✅ Do add `dependencies` that are unique to this service.",
     "🚫 Don't add `devDependencies` that are inherited from the CFL workspace.",
-    "✅ Do add `devDependencies` that are unique to this service."
+    "✅ Do add `devDependencies` that are unique to this service.",
+    "TODO: Remove `resolutions` once fixes have been deployed to the sub-dependencies."
   ],
   "dependencies": {
-    "blockly": "12.3.1",
+    "blockly": "12.5.1",
     "codeforlife": "2.15.10",
     "phaser": "4.1.0",
     "react-resizable-panels": "4.11.2"
@@ -22,5 +23,11 @@
   "devDependencies": {
     "@codeforlife/workspace": "link:.workspace/frontend",
     "tiled-types": "1.3.0"
+  },
+  "resolutions": {
+    "lodash": "4.18.1",
+    "lodash-es": "4.18.1",
+    "ws": "8.21.3",
+    "yaml": "2.9.1"
   }
 }
