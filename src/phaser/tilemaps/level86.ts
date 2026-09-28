@@ -7,11 +7,11 @@ export default tilemaps.makeOrthogonal({
     tile: {
       road: {
         data: [
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          [...layers.tile.data.fillRow({ cols: 10 })],
+          layers.tile.data.fillRow(),
+          layers.tile.data.fillRow(),
+          layers.tile.data.fillRow(),
           [
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
             layers.tile.data.IDs.Road.Asphalt.DeadEnd.RIGHT,
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
@@ -20,10 +20,10 @@ export default tilemaps.makeOrthogonal({
             layers.tile.data.IDs.Road.Asphalt.DeadEnd.LEFT,
             ...layers.tile.data.fillRow({ cols: 3 }),
           ],
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          [...layers.tile.data.fillRow({ cols: 10 })],
+          layers.tile.data.fillRow(),
+          layers.tile.data.fillRow(),
+          layers.tile.data.fillRow(),
+          layers.tile.data.fillRow(),
         ],
       },
     },
