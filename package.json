@@ -16,8 +16,8 @@
   ],
   "dependencies": {
     "@codemirror/lang-python": "6.2.1",
-    "@codemirror/state": "6.7.4",
-    "@codemirror/view": "6.43.11",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.13",
     "@uiw/react-codemirror": "4.25.11",
     "blockly": "12.5.1",
     "codeforlife": "2.15.10",

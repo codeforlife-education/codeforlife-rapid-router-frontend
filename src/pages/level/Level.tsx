@@ -65,8 +65,8 @@ const BlocklyContext: FC<
     <BlocklyWorkspaceContext.Provider
       value={{
         ref: blocklyWorkspaceRef,
-        toolboxContents: getToolboxContents(blockly_toolbox_block_types),
-        maxInstances: getMaxInstances(blockly_toolbox_block_types),
+        toolboxContents,
+        maxInstances,
         pythonCode,
         setPythonCode,
         levelId: id,

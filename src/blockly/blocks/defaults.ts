@@ -1,3 +1,5 @@
+import { type BlockDefinition } from "../utils"
+
 // https://github.com/RaspberryPiFoundation/blockly/blob/blockly-v12.3.1/blocks/logic.ts
 
 // Block for if/elseif/else condition.
