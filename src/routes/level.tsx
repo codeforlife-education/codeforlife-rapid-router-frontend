@@ -913,14 +913,17 @@ const levels = [
   {
     id: 83,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 84,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 85,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 86,
@@ -967,18 +970,22 @@ const levels = [
   {
     id: 89,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 90,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 91,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 92,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 93,
@@ -1016,14 +1023,17 @@ const levels = [
   {
     id: 95,
     mode: "python",
+    commands: ["turn_left", "turn_right", "is_animal_crossing", "sound_horn"],
   },
   {
     id: 96,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right", "is_road_left"],
   },
   {
     id: 97,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "is_road_left"],
   },
   {
     id: 98,
@@ -1045,10 +1055,18 @@ const levels = [
   {
     id: 99,
     mode: "python",
+    commands: ["turn_left", "turn_right", "is_road_left"],
   },
   {
     id: 100,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "turn_right",
+      "deliver",
+      "is_road_left",
+    ],
   },
   {
     id: 101,
@@ -1087,10 +1105,26 @@ const levels = [
   {
     id: 103,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "turn_right",
+      "is_road_forward",
+      "is_road_left",
+    ],
   },
   {
     id: 104,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "turn_right",
+      "wait",
+      "is_road_forward",
+      "is_road_left",
+      "at_red_traffic_light",
+    ],
   },
   {
     id: 105,
@@ -1140,6 +1174,7 @@ const levels = [
   {
     id: 109,
     mode: "python",
+    commands: ["turn_left", "turn_right", "at_destination"],
   },
   {
     id: 110,
@@ -1170,10 +1205,17 @@ const levels = [
   {
     id: 112,
     mode: "python",
+    commands: ["turn_left", "turn_right", "is_road_left", "at_destination"],
   },
   {
     id: 113,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_right",
+      "is_road_right",
+      "at_destination",
+    ],
   },
   {
     id: 114,
@@ -1208,18 +1250,59 @@ const levels = [
   {
     id: 116,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "turn_right",
+      "at_destination",
+      "is_road_forward",
+      "is_road_right",
+      "is_road_left",
+    ],
   },
   {
     id: 117,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_around",
+      "turn_right",
+      "at_destination",
+      "is_road_forward",
+      "at_dead_end",
+      "is_animal_crossing",
+      "sound_horn",
+    ],
   },
   {
     id: 118,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "at_destination",
+      "is_road_forward",
+      "is_animal_crossing",
+      "sound_horn",
+    ],
   },
   {
     id: 119,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_around",
+      "turn_left",
+      "turn_right",
+      "wait",
+      "deliver",
+      "at_red_traffic_light",
+      "at_destination",
+      "is_road_forward",
+      "is_road_left",
+      "is_road_right",
+      "at_dead_end",
+    ],
   },
   {
     id: 120,
@@ -1234,10 +1317,12 @@ const levels = [
   {
     id: 121,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 122,
     mode: "python",
+    commands: ["move_forwards", "turn_left"],
   },
   {
     id: 123,
@@ -1252,22 +1337,27 @@ const levels = [
   {
     id: 124,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 125,
     mode: "python",
+    commands: ["move_forwards", "turn_right", "at_destination"],
   },
   {
     id: 126,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
     id: 127,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
     id: 128,
     mode: "python",
+    commands: ["move_forwards", "turn_right", "turn_left", "at_destination"],
   },
 ] as const satisfies LevelProps[]
 

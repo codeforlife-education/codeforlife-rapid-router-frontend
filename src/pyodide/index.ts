@@ -1,5 +1,7 @@
 export {
   default as PythonWorkspaceContext,
+  COMMAND_NAMES,
+  type CommandName,
   type PythonWorkspaceContextValue,
   type PythonWorkspaceRef,
 } from "./PythonWorkspaceContext"

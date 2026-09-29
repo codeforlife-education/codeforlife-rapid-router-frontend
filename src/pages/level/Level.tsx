@@ -9,14 +9,15 @@ import {
   type BlocklyWorkspaceRef,
 } from "../../blockly"
 import {
-  type Level as LevelModel,
-  useRetrieveLevelQuery,
-} from "../../api/level"
-import {
+  type CommandName,
   PYTHON_STARTER_CODE,
   PythonWorkspaceContext,
   type PythonWorkspaceRef,
 } from "../../pyodide"
+import {
+  type Level as LevelModel,
+  useRetrieveLevelQuery,
+} from "../../api/level"
 import {
   PhaserGameContext,
   type PhaserGameRef,
@@ -83,14 +84,15 @@ const PythonContext: FC<
   PythonProps &
     Pick<LevelModel, "id"> & {
       mode: "python" | "blocklyAndPython"
+      commands?: CommandName[]
       children: ReactNode
     }
-> = ({ id, mode, children }) => {
+> = ({ id, mode, commands, children }) => {
   const pythonWorkspaceRef = useRef<PythonWorkspaceRef>(null)
 
   return (
     <PythonWorkspaceContext.Provider
-      value={{ ref: pythonWorkspaceRef, levelId: id, mode }}
+      value={{ ref: pythonWorkspaceRef, levelId: id, mode, commands }}
     >
       {children}
     </PythonWorkspaceContext.Provider>
@@ -120,7 +122,7 @@ export type LevelProps =
   | (Pick<LevelModel, "id"> &
       (
         | (BlocklyProps & { mode: "blockly" })
-        | (PythonProps & { mode: "python" })
+        | (PythonProps & { mode: "python"; commands: CommandName[] })
         | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
       ))
   | {}

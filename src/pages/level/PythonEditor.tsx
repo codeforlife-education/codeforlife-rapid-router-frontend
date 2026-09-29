@@ -1,12 +1,4 @@
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogTitle,
-  Typography,
-} from "@mui/material"
+import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material"
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror"
 import {
   type FC,
@@ -19,6 +11,7 @@ import {
 import { python } from "@codemirror/lang-python"
 
 import {
+  type CommandName,
   PYTHON_STARTER_CODE,
   type PythonWorkspaceRef,
   usePyodideRunner,
@@ -38,6 +31,7 @@ import {
   usePlayIntervalContext,
   usePythonWorkspaceContext,
 } from "../../app/hooks"
+import CommandsModal from "./CommandsModal"
 
 const localStorageKey = (levelId: number) => `python-code-${levelId}`
 
@@ -45,7 +39,8 @@ const localStorageKey = (levelId: number) => `python-code-${levelId}`
 const EditablePythonEditor: FC<{
   ref: RefObject<PythonWorkspaceRef | null>
   levelId: number
-}> = ({ ref, levelId }) => {
+  commands?: CommandName[]
+}> = ({ ref, levelId, commands }) => {
   const dispatch = useAppDispatch()
   const { run, ready } = usePyodideRunner()
   const gameInPlay = useGameInPlay()
@@ -189,9 +184,11 @@ const EditablePythonEditor: FC<{
           </Alert>
         )}
       </Box>
-      <Dialog open={commandsOpen} onClose={() => setCommandsOpen(false)}>
-        <DialogTitle>Commands</DialogTitle>
-      </Dialog>
+      <CommandsModal
+        open={commandsOpen}
+        commands={commands ?? []}
+        onClose={() => setCommandsOpen(false)}
+      />
     </Box>
   )
 }
@@ -222,6 +219,7 @@ const PythonEditor: FC = () => {
     <EditablePythonEditor
       ref={pythonWorkspaceContext.ref}
       levelId={pythonWorkspaceContext.levelId}
+      commands={pythonWorkspaceContext.commands}
     />
   ) : (
     <ReadOnlyPythonEditor />
