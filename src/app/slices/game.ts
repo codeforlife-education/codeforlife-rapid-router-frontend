@@ -9,6 +9,13 @@ export const GAME_COMMANDS = [
   "wait",
   "deliver",
   "sound_horn",
+  "at_dead_end",
+  "at_destination",
+  "at_red_traffic_light",
+  "is_road_forward",
+  "is_road_left",
+  "is_road_right",
+  "is_animal_crossing",
 ] as const
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
@@ -72,26 +79,6 @@ export const gameSlice = createSlice({
         _restartGame(state)
       },
     ),
-    // Appends a single command as it's derived (streamed) from a script
-    // still running, without disturbing an already-in-progress playback.
-    appendGameCommand: create.reducer(
-      (
-        state,
-        action: PayloadAction<{
-          command: GameCommand
-          line: number
-          block: string | null
-        }>,
-      ) => {
-        // If playback had already caught up to the end (marked "finished"),
-        // this new command means it hasn't really finished after all.
-        const wasFinished = state.gameOver && gameHasFinished(state)
-        state.gameCommands.push(action.payload.command)
-        state.gameCommandLines.push(action.payload.line)
-        state.gameCommandBlocks.push(action.payload.block)
-        if (wasFinished && !gameHasFinished(state)) state.gameOver = false
-      },
-    ),
     nextGameCommand: create.reducer(state => {
       if (!gameIsDefined(state)) return
       if (state.gameOver) _restartGame(state)
@@ -130,7 +117,6 @@ export const gameSlice = createSlice({
 
 export const {
   setGameCommands,
-  appendGameCommand,
   nextGameCommand,
   restartGame,
   finishGameEarly,

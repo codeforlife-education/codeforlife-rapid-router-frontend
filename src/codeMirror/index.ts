@@ -1,7 +1,5 @@
 export {
   default as PythonWorkspaceContext,
-  COMMAND_NAMES,
-  type CommandName,
   type PythonWorkspaceContextValue,
   type PythonWorkspaceRef,
 } from "./PythonWorkspaceContext"
@@ -10,10 +8,6 @@ export {
   type RelativeDirection,
   type TrafficLightColour,
 } from "./LevelSimulator"
-export {
-  usePyodideRunner,
-  type OnCommand,
-  type PyodideRunResult,
-} from "./usePyodideRunner"
+export { usePyodideRunner, type PyodideRunResult } from "./usePyodideRunner"
 export { PYTHON_STARTER_CODE } from "./pythonStarterCode"
 export { default as PythonEditor } from "./PythonEditor"

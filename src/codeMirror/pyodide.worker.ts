@@ -36,13 +36,12 @@ export type RunRequest = {
 export type WorkerResponse =
   | { type: "ready" }
   | {
-      type: "command"
+      type: "result"
       id: number
-      command: GameCommand
-      commandLine: number
-      commandBlock: string | null
+      commands: GameCommand[]
+      commandLines: number[]
+      commandBlocks: (string | null)[]
     }
-  | { type: "result"; id: number }
   | { type: "error"; id: number; message: string; blockId: string | null }
 
 let pyodidePromise: Promise<PyodideInterface> | null = null
@@ -83,50 +82,15 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     ])
     const simulator = new LevelSimulator(tilemap)
 
-    // Caps how fast commands can be derived, so a script that never
-    // terminates (e.g. `repeat until at_destination()` on a level it can
-    // never reach) can't flood the main thread with an unbounded burst of
-    // `postMessage`s - it just derives commands at a bounded pace forever,
-    // same as any other command. This blocks only the WORKER's own thread
-    // (a plain busy-wait - no SharedArrayBuffer/special headers needed),
-    // never the main thread, so the page stays fully responsive.
-    const PACE_MS = 5
-    function paceCommand() {
-      const start = Date.now()
-      while (Date.now() - start < PACE_MS) {
-        /* busy-wait */
-      }
-    }
-
-    // Wraps a command-producing `LevelSimulator` method so each command is
-    // streamed to the main thread as soon as it's derived, instead of
-    // waiting for the whole script to finish before any are available.
-    const streamed = <F extends (line?: number, blockId?: string) => void>(
-      fn: F,
-    ): F =>
-      ((line?: number, blockId?: string) => {
-        fn(line, blockId)
-        const i = simulator.commands.length - 1
-        const response: WorkerResponse = {
-          type: "command",
-          id,
-          command: simulator.commands[i],
-          commandLine: simulator.commandLines[i],
-          commandBlock: simulator.commandBlocks[i],
-        }
-        self.postMessage(response)
-        paceCommand()
-      }) as F
-
     // A fresh globals dict per run - keeps runs isolated from each other.
     globals = pyodide.toPy({
-      _move_forwards: streamed(simulator.moveForwards),
-      _turn_left: streamed(simulator.turnLeft),
-      _turn_right: streamed(simulator.turnRight),
-      _turn_around: streamed(simulator.turnAround),
-      _wait: streamed(simulator.wait),
-      _deliver: streamed(simulator.deliver),
-      _sound_horn: streamed(simulator.soundHorn),
+      _move_forwards: simulator.moveForwards,
+      _turn_left: simulator.turnLeft,
+      _turn_right: simulator.turnRight,
+      _turn_around: simulator.turnAround,
+      _wait: simulator.wait,
+      _deliver: simulator.deliver,
+      _sound_horn: simulator.soundHorn,
       _is_road: simulator.isRoad,
       _is_road_forward: simulator.isRoadForward,
       _is_road_left: simulator.isRoadLeft,
@@ -142,7 +106,13 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     pyodide.runPython(VAN_MODULE_PREAMBLE, { globals })
     pyodide.runPython("_run_traced(_student_code)", { globals })
 
-    const response: WorkerResponse = { type: "result", id }
+    const response: WorkerResponse = {
+      type: "result",
+      id,
+      commands: simulator.commands,
+      commandLines: simulator.commandLines,
+      commandBlocks: simulator.commandBlocks,
+    }
     self.postMessage(response)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)

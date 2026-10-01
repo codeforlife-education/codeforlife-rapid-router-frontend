@@ -9,15 +9,14 @@ import {
   type BlocklyWorkspaceRef,
 } from "../../blockly"
 import {
-  type CommandName,
+  type Level as LevelModel,
+  useRetrieveLevelQuery,
+} from "../../api/level"
+import {
   PYTHON_STARTER_CODE,
   PythonWorkspaceContext,
   type PythonWorkspaceRef,
 } from "../../codeMirror"
-import {
-  type Level as LevelModel,
-  useRetrieveLevelQuery,
-} from "../../api/level"
 import {
   PhaserGameContext,
   type PhaserGameRef,
@@ -25,6 +24,7 @@ import {
 } from "../../phaser"
 import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
 import Controls from "./Controls"
+import type { GameCommand } from "../../app/slices"
 import Panels from "./Panels"
 import PlayIntervalContext from "../../app/PlayIntervalContext"
 import { paths } from "../../routes"
@@ -84,7 +84,7 @@ const PythonContext: FC<
   PythonProps &
     Pick<LevelModel, "id"> & {
       mode: "python" | "blocklyAndPython"
-      commands?: CommandName[]
+      commands?: GameCommand[]
       children: ReactNode
     }
 > = ({ id, mode, commands, children }) => {
@@ -122,7 +122,7 @@ export type LevelProps =
   | (Pick<LevelModel, "id"> &
       (
         | (BlocklyProps & { mode: "blockly" })
-        | (PythonProps & { mode: "python"; commands: CommandName[] })
+        | (PythonProps & { mode: "python"; commands: GameCommand[] })
         | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
       ))
   | {}

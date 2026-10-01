@@ -1,13 +1,14 @@
 import { Box, Button, IconButton, Modal, Typography } from "@mui/material"
 import { Close as CloseIcon } from "@mui/icons-material"
+import { CopyIconButton } from "codeforlife/components"
 import { type FC } from "react"
 
-import type { CommandName } from "./PythonWorkspaceContext"
+import type { GameCommand } from "../app/slices"
 
 type CommandCategory = "Movement" | "Position" | "Animals"
 
 const COMMANDS: Record<
-  CommandName,
+  GameCommand,
   { category: CommandCategory; signature: string }
 > = {
   move_forwards: { category: "Movement", signature: "my_van.move_forwards()" },
@@ -50,8 +51,8 @@ const CATEGORY_ORDER: readonly CommandCategory[] = [
 /** Groups the given commands by category, in a fixed display order, for
  * rendering in the Commands modal. */
 function groupCommandsByCategory(
-  commands: readonly CommandName[],
-): { category: CommandCategory; commands: CommandName[] }[] {
+  commands: readonly GameCommand[],
+): { category: CommandCategory; commands: GameCommand[] }[] {
   return CATEGORY_ORDER.map(category => ({
     category,
     commands: commands.filter(
@@ -62,7 +63,7 @@ function groupCommandsByCategory(
 
 export interface CommandsModalProps {
   open: boolean
-  commands: CommandName[]
+  commands: GameCommand[]
   onClose: () => void
 }
 
@@ -113,14 +114,22 @@ const CommandsModal: FC<CommandsModalProps> = ({ open, commands, onClose }) => (
                 {category}
               </Typography>
               {categoryCommands.map(commandName => (
-                <Typography
+                <Box
                   key={commandName}
-                  component="code"
-                  variant="h6"
-                  sx={{ display: "block", fontFamily: "monospace", mb: 1.5 }}
+                  sx={{ display: "flex", alignItems: "center", mb: 1.5 }}
                 >
-                  {COMMANDS[commandName].signature}
-                </Typography>
+                  <Typography
+                    component="code"
+                    variant="h6"
+                    sx={{ fontFamily: "monospace" }}
+                  >
+                    {COMMANDS[commandName].signature}
+                  </Typography>
+                  <CopyIconButton
+                    content={COMMANDS[commandName].signature}
+                    size="small"
+                  />
+                </Box>
               ))}
             </Box>
           ),
