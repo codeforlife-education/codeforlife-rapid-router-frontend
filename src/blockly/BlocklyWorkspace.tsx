@@ -25,7 +25,7 @@ import {
   useGameInPlay,
 } from "../app/hooks"
 import { type StartBlockType } from "./blocks"
-import { usePyodideRunner } from "../pyodide"
+import { usePyodideRunner } from "../codeMirror"
 
 export interface BlocklyWorkspaceProps {
   startBlockType?: StartBlockType

@@ -16,3 +16,4 @@ export {
   type PyodideRunResult,
 } from "./usePyodideRunner"
 export { PYTHON_STARTER_CODE } from "./pythonStarterCode"
+export { default as PythonEditor } from "./PythonEditor"

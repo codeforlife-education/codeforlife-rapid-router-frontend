@@ -15,8 +15,8 @@ import {
   PYTHON_STARTER_CODE,
   type PythonWorkspaceRef,
   usePyodideRunner,
-} from "../../pyodide"
-import { appendGameCommand, setGameCommands } from "../../app/slices"
+} from "."
+import { appendGameCommand, setGameCommands } from "../app/slices"
 import {
   dispatchHighlightedLine,
   highlightLineExtension,
@@ -30,7 +30,7 @@ import {
   useGameInPlay,
   usePlayIntervalContext,
   usePythonWorkspaceContext,
-} from "../../app/hooks"
+} from "../app/hooks"
 import CommandsModal from "./CommandsModal"
 
 const localStorageKey = (levelId: number) => `python-code-${levelId}`

@@ -13,7 +13,7 @@ import {
   PYTHON_STARTER_CODE,
   PythonWorkspaceContext,
   type PythonWorkspaceRef,
-} from "../../pyodide"
+} from "../../codeMirror"
 import {
   type Level as LevelModel,
   useRetrieveLevelQuery,
