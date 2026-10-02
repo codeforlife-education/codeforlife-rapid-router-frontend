@@ -41,6 +41,10 @@ export type WorkerResponse =
       commands: GameCommand[]
       commandLines: number[]
       commandBlocks: (string | null)[]
+      /** True for entries the line tracer synthesised purely for editor
+       * highlighting (not a real command the player issued) - must not cost
+       * fuel. See `LevelSimulator.commandSynthetic`. */
+      commandSynthetic: boolean[]
     }
   | { type: "error"; id: number; message: string; blockId: string | null }
 
@@ -89,6 +93,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       _turn_right: simulator.turnRight,
       _turn_around: simulator.turnAround,
       _wait: simulator.wait,
+      _synthetic_wait: simulator.syntheticWait,
       _deliver: simulator.deliver,
       _sound_horn: simulator.soundHorn,
       _is_road: simulator.isRoad,
@@ -112,6 +117,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       commands: simulator.commands,
       commandLines: simulator.commandLines,
       commandBlocks: simulator.commandBlocks,
+      commandSynthetic: simulator.commandSynthetic,
     }
     self.postMessage(response)
   } catch (error) {

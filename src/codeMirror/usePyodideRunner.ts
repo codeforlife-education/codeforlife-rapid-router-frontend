@@ -9,6 +9,7 @@ export type PyodideRunResult =
       commands: GameCommand[]
       commandLines: number[]
       commandBlocks: (string | null)[]
+      commandSynthetic: boolean[]
     }
   | { ok: false; message: string; blockId: string | null }
 
@@ -58,6 +59,7 @@ export function usePyodideRunner() {
               commands: data.commands,
               commandLines: data.commandLines,
               commandBlocks: data.commandBlocks,
+              commandSynthetic: data.commandSynthetic,
             }
           : { ok: false, message: data.message, blockId: data.blockId },
       )

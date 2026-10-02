@@ -19,7 +19,8 @@ export const GAME_COMMANDS = [
 ] as const
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
-/** The amount of fuel each command costs to execute. */
+/** The amount of fuel each command costs to execute. Sensing/boolean
+ * commands never cost fuel - only real movement/action commands do. */
 export const FUEL_COST: Record<GameCommand, number> = {
   move_forwards: 1,
   turn_left: 1,
@@ -28,6 +29,13 @@ export const FUEL_COST: Record<GameCommand, number> = {
   wait: 1,
   deliver: 1,
   sound_horn: 1,
+  at_dead_end: 0,
+  at_destination: 0,
+  at_red_traffic_light: 0,
+  is_road_forward: 0,
+  is_road_left: 0,
+  is_road_right: 0,
+  is_animal_crossing: 0,
 }
 
 export interface GameState {

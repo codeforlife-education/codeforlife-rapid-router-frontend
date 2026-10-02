@@ -96,6 +96,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
             commands: result.commands,
             lines: result.commandLines,
             blocks: result.commandBlocks,
+            synthetic: result.commandSynthetic,
           }),
         )
         setPlayInterval()

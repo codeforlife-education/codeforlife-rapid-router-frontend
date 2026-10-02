@@ -70,6 +70,7 @@ const EditablePythonEditor: FC<{
           setGameCommands({
             commands: result.commands,
             lines: result.commandLines,
+            synthetic: result.commandSynthetic,
           }),
         )
         setPlayInterval()

@@ -29,14 +29,14 @@ class _LineTracer:
             return None
         if event == "line":
             if self.last_line != -1 and not self.issued_on_line:
-                _wait(self.last_line, _current_block_id)
+                _synthetic_wait(self.last_line, _current_block_id)
             self.last_line = frame.f_lineno
             self.issued_on_line = False
         return self.trace
 
     def finish(self):
         if self.last_line != -1 and not self.issued_on_line:
-            _wait(self.last_line, _current_block_id)
+            _synthetic_wait(self.last_line, _current_block_id)
 
 _tracer = None
 
