@@ -1,8 +1,6 @@
 import * as Blockly from "blockly/core"
-import * as en_default from "blockly/msg/en"
 import { debounce } from "@mui/material"
 
-import * as en_custom from "./messages/en"
 import {
   COMMAND_BLOCK_TYPES,
   CUSTOM_BLOCKS,
@@ -11,9 +9,15 @@ import {
   type StartBlockType,
   defaults,
 } from "./blocks"
+import {
+  DEFAULT_LANGUAGE,
+  type Language,
+  getBlocklyMessages,
+} from "./messages/languages"
 import { type BlockToolboxEntry } from "../blockly/blocks"
 import { type BlockType } from "./blocks"
 import type { GameCommand } from "../app/slices"
+import { getSettingsCookie } from "../app/utils"
 
 export type BlockDefinition<T extends string> = {
   type: T
@@ -275,6 +279,40 @@ function initializeWorkspace(
 }
 
 /**
+ * Blockly's own default name for a procedure-definition block ("do
+ * something" in English). Needed explicitly in a few places because,
+ * unlike other block text (which uses live `%{BKY_...}` references), it's
+ * written in as plain, editable field data - so it has to be read/re-applied
+ * by hand wherever it's used, instead of resolving itself automatically.
+ * Falls back to the English default if the locale isn't set up yet (e.g.
+ * during SSR).
+ */
+function getDefaultProcedureName() {
+  return Blockly.Msg?.["PROCEDURES_DEFNORETURN_PROCEDURE"] ?? "do something"
+}
+
+/**
+ * The toolbox's procedure-definition entry bakes its default name in (see
+ * `getToolboxContents()`), so it never re-resolves itself against a newly
+ * switched locale. Re-applied every time the toolbox is rebuilt (not just
+ * right after a language switch), since `updateProcedureCallBlocks()` below
+ * also rebuilds it independently, on its own schedule, from its own
+ * (otherwise stale) closure.
+ */
+function withCurrentProcedureDefaultName(
+  toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
+): Blockly.utils.toolbox.ToolboxItemInfo[] {
+  return toolboxContents.map(item =>
+    "type" in item && item.type === defaults.PROCEDURES_DEFINE_BLOCK_TYPE
+      ? {
+          ...item,
+          fields: { ...item.fields, NAME: getDefaultProcedureName() },
+        }
+      : item,
+  )
+}
+
+/**
  * Refresh the toolbox's procedure call blocks to match the procedures
  * currently defined on the workspace: one correctly-named call block per
  * defined procedure, instead of Blockly's default of a single, permanently
@@ -296,7 +334,10 @@ function updateProcedureCallBlocks(
 
   workspace.updateToolbox({
     kind: "flyoutToolbox",
-    contents: [...staticToolboxContents, ...callBlocks],
+    contents: [
+      ...withCurrentProcedureDefaultName(staticToolboxContents),
+      ...callBlocks,
+    ],
   })
 }
 
@@ -310,8 +351,9 @@ let DEFINED_CUSTOM_BLOCKS = false
 function ensureBlocklyInitialized() {
   if (typeof window === "undefined") return
 
-  // @ts-expect-error Locale type isn't inferred correctly after export
-  Blockly.setLocale({ ...en_default, ...en_custom })
+  Blockly.setLocale(
+    getBlocklyMessages(getSettingsCookie()?.language ?? DEFAULT_LANGUAGE),
+  )
 
   // Define custom blocks.
   if (!DEFINED_CUSTOM_BLOCKS) {
@@ -339,6 +381,49 @@ export function initializeBlockly(
   const startBlock = initializeStartBlock(workspace, startBlockType)
 
   return { workspace, startBlock }
+}
+
+/**
+ * Switch Blockly's active locale and reload the given workspace (and its
+ * toolbox) so every already-placed block picks up the new language's text.
+ */
+export function setBlocklyLanguage(
+  language: Language,
+  workspace: Blockly.WorkspaceSvg,
+  startBlockType: StartBlockType,
+  toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
+) {
+  // Both the old and new locale's default procedure names are needed to
+  // migrate any already-placed block still using the old one (see below).
+  const oldDefaultProcedureName = getDefaultProcedureName()
+
+  Blockly.setLocale(getBlocklyMessages(language))
+
+  const newDefaultProcedureName = getDefaultProcedureName()
+
+  // Re-creates every block from its serialized state, so each one re-runs
+  // its JSON `message0`/tooltip `%{BKY_...}` resolution against the new
+  // locale's `Blockly.Msg` (plain field text is otherwise baked in once at
+  // creation time and won't update on its own).
+  const state = Blockly.serialization.workspaces.save(workspace)
+  workspace.clear()
+  Blockly.serialization.workspaces.load(state, workspace)
+
+  // Any procedure-definition block still showing the old locale's default
+  // name (i.e. the player hasn't renamed it) should pick up the new one too.
+  for (const block of workspace.getBlocksByType(
+    defaults.PROCEDURES_DEFINE_BLOCK_TYPE,
+    false,
+  ))
+    if (block.getFieldValue("NAME") === oldDefaultProcedureName)
+      block.setFieldValue(newDefaultProcedureName, "NAME")
+
+  workspace.updateToolbox({
+    kind: "flyoutToolbox",
+    contents: withCurrentProcedureDefaultName(toolboxContents),
+  })
+
+  return initializeStartBlock(workspace, startBlockType)
 }
 
 function isBlockToolboxTuple(
@@ -375,11 +460,7 @@ export function getToolboxContents(
             // `Blockly.Procedures.flyoutCategory()`). Falls back to
             // Blockly's own English default during SSR, where the locale
             // isn't set up (see `ensureBlocklyInitialized()`).
-            fields: {
-              NAME:
-                Blockly.Msg?.["PROCEDURES_DEFNORETURN_PROCEDURE"] ??
-                "do something",
-            },
+            fields: { NAME: getDefaultProcedureName() },
           }
         : { kind: "block", type },
     )
@@ -430,7 +511,7 @@ export function initializeBlockPreview(
   // `Blockly.Msg["UNNAMED_KEY"]` ("unnamed"), rather than the friendlier
   // default it uses for its own toolbox entries (see `getToolboxContents()`).
   if (blockType === defaults.PROCEDURES_DEFINE_BLOCK_TYPE)
-    block.setFieldValue(Blockly.Msg["PROCEDURES_DEFNORETURN_PROCEDURE"], "NAME")
+    block.setFieldValue(getDefaultProcedureName(), "NAME")
 
   block.initSvg()
   block.render()

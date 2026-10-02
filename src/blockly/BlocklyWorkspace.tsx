@@ -14,6 +14,7 @@ import {
   getNextBlocks,
   initializeBlockly,
   resizeWorkspace,
+  setBlocklyLanguage,
 } from "./utils"
 import {
   useAppDispatch,
@@ -22,6 +23,7 @@ import {
   useGameHasFinishedEarly,
   useGameInPlay,
 } from "../app/hooks"
+import { type Language } from "./messages/languages"
 import { type StartBlockType } from "./blocks"
 import { setGameCommands } from "../app/slices"
 
@@ -58,9 +60,18 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
         ? {
             resize: resizeWorkspace(blockly.workspace),
             clear: () => clearWorkspace(blockly.workspace, blockly.startBlock),
+            setLanguage: (language: Language) => {
+              const startBlock = setBlocklyLanguage(
+                language,
+                blockly.workspace,
+                startBlockType,
+                toolboxContents,
+              )
+              setBlockly({ workspace: blockly.workspace, startBlock })
+            },
           }
-        : { resize: () => {}, clear: () => {} },
-    [blockly],
+        : { resize: () => {}, clear: () => {}, setLanguage: () => {} },
+    [blockly, startBlockType, toolboxContents],
   )
 
   // Workspace initialization and disposal.

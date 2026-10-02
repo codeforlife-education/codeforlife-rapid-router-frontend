@@ -1,6 +1,7 @@
 import {
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
   Delete as DeleteIcon,
+  Language as LanguageIcon,
   Pause as PauseIcon,
   PlayArrow as PlayArrowIcon,
   Redo as RedoIcon,
@@ -12,11 +13,17 @@ import type { PayloadAction } from "@reduxjs/toolkit"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import {
+  LANGUAGES,
+  LANGUAGE_NAMES,
+  type Language,
+} from "../../blockly/messages/languages"
+import {
   PLAY_SPEEDS,
   THREE_PANEL_LAYOUTS,
   TWO_PANEL_LAYOUTS,
   nextGameCommand,
   restartGame,
+  setLanguage,
   setPlaySpeed,
   setThreePanelLayout,
   setTwoPanelLayout,
@@ -40,8 +47,9 @@ const Base: FC<
   Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
     panelCount: number
     onClear: () => void
+    onLanguageChange?: (language: Language) => void
   }
-> = ({ panelCount, onClear, onOpened, onClosed }) => {
+> = ({ panelCount, onClear, onOpened, onClosed, onLanguageChange }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
@@ -85,6 +93,23 @@ const Base: FC<
             if (!clearPlayInterval()) setPlayInterval()
           }}
         />
+        {onLanguageChange && (
+          <miniDrawers.MenuItem
+            isDrawerOpen={isDrawerOpen}
+            icon={<LanguageIcon />}
+            text="Language"
+            menuItems={LANGUAGES.map(language => ({
+              value: language,
+              key: language,
+              title: LANGUAGE_NAMES[language],
+              onClick: () => {
+                dispatch(setLanguage(language))
+                onLanguageChange(language)
+              },
+            }))}
+            selectedValue={settings.language}
+          />
+        )}
         <miniDrawers.MenuItem
           isDrawerOpen={isDrawerOpen}
           icon={<SpeedIcon />}
@@ -156,6 +181,12 @@ const Blockly: FC = () => {
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
+  const changeBlocklyLanguage = useCallback(
+    (language: Language) => {
+      blocklyWorkspaceContext?.ref.current?.setLanguage(language)
+    },
+    [blocklyWorkspaceContext],
+  )
 
   return (
     <Base
@@ -163,6 +194,7 @@ const Blockly: FC = () => {
       onClear={clearBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
+      onLanguageChange={changeBlocklyLanguage}
     />
   )
 }
@@ -188,6 +220,12 @@ const BlocklyAndPython: FC = () => {
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
+  const changeBlocklyLanguage = useCallback(
+    (language: Language) => {
+      blocklyWorkspaceContext?.ref.current?.setLanguage(language)
+    },
+    [blocklyWorkspaceContext],
+  )
 
   return (
     <Base
@@ -198,6 +236,7 @@ const BlocklyAndPython: FC = () => {
       }}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
+      onLanguageChange={changeBlocklyLanguage}
     />
   )
 }
