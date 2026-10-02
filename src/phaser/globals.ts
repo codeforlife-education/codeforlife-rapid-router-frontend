@@ -14,6 +14,9 @@ export const TILE_HEIGHT = 64
 export const MAP_WIDTH = COLS * TILE_WIDTH
 export const MAP_HEIGHT = ROWS * TILE_HEIGHT
 
+/** The amount of fuel a character starts a level with. */
+export const MAX_FUEL = 100
+
 export const Events = createIdRegistry({
   "add-road": "ADD_ROAD",
   "delete-road": "DELETE_ROAD",
@@ -30,12 +33,14 @@ export type Event = (typeof Events)[keyof typeof Events]
 
 export const Variables = createIdRegistry({
   commands: "COMMANDS",
+  commandsSynthetic: "COMMANDS_SYNTHETIC",
   commandIndex: "COMMAND_INDEX",
   levelId: "LEVEL_ID",
   toolbox: "TOOLBOX",
   maxSceneryObjectCount: "MAX_SCENERY_OBJECT_COUNT",
   sceneryObjectCount: "SCENERY_OBJECT_COUNT",
   exportedLevel: "EXPORTED_LEVEL",
+  fuel: "FUEL",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
 

@@ -27,7 +27,7 @@ export const URLs = createIdRegistry({
   ...character("normal/wes.svg", { Normal: "WES" }),
   ...character("wreckage/sleigh.svg", { Wreckage: "SLEIGH" }),
   ...character("wreckage/van.svg", { Wreckage: "VAN" }),
-  ...hud("fuelGauge/fuel_gauge.svg", { FuelGauge: "FUEL_GAUGE" }),
+  ...hud("fuelGauge/fuelGauge.svg", { FuelGauge: "FUEL_GAUGE" }),
   ...hud("fuelGauge/pointer.svg", { FuelGauge: "POINTER" }),
   ...hud("trashcan/lid/closed.svg", { Trashcan: { Lid: "CLOSED" } }),
   ...hud("trashcan/lid/open.svg", { Trashcan: { Lid: "OPEN" } }),

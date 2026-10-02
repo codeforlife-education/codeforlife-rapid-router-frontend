@@ -1,17 +1,22 @@
 import Phaser from "phaser"
 
 import * as tilesets from "../../../tilesets"
+import {
+  type Direction,
+  STEP_BY_DIRECTION,
+  turnAround,
+  turnLeft,
+  turnRight,
+} from "../../../tilemaps/navigation"
 import { Events, TILE_WIDTH } from "../../../globals"
 import type { GameCommand } from "../../../../app/slices"
 import type Level from "."
+import { roadOpenSides } from "../../../tilemaps/roadConnectivity"
 
-export type Direction = "top" | "right" | "bottom" | "left"
+export type { Direction }
 
 type Point = { x: number; y: number }
 type Tile = Phaser.Types.Tilemaps.Tile
-
-/** Clockwise order of directions - matches the endpoints' own rotation convention. */
-const DIRECTION_ORDER: readonly Direction[] = ["top", "right", "bottom", "left"]
 
 const ROTATION_BY_DIRECTION: Record<Direction, number> = {
   top: 0,
@@ -19,21 +24,6 @@ const ROTATION_BY_DIRECTION: Record<Direction, number> = {
   bottom: 180,
   left: 270,
 }
-
-/** Unit row/col step for each direction. */
-const STEP_BY_DIRECTION: Record<Direction, { row: number; col: number }> = {
-  top: { row: -1, col: 0 },
-  right: { row: 0, col: 1 },
-  bottom: { row: 1, col: 0 },
-  left: { row: 0, col: -1 },
-}
-
-const turnLeft = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 3) % 4]
-const turnRight = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 1) % 4]
-const turnAround = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 2) % 4]
 
 /** How far off the tile-boundary center the van sits, so it drives on the left. */
 const LANE_OFFSET = 0.125 * TILE_WIDTH
@@ -228,16 +218,32 @@ export default class CharacterManager {
     return { row: tile.row + step.row, col: tile.col + step.col }
   }
 
-  /** `false` for any tile off the road, including off the edge of the map. */
-  private hasRoad(tile: Tile): boolean {
-    return (
-      this.level.tilemap.hasTileAt(tile.col, tile.row, "Tile.ROAD") === true
+  /** The compass directions the tile at `tile` actually opens onto, or
+   * `undefined` if it isn't a road tile at all (including off the map). */
+  private openSides(tile: Tile): Set<Direction> | undefined {
+    const roadTile = this.level.tilemap.getTileAt(
+      tile.col,
+      tile.row,
+      false,
+      "Tile.ROAD",
     )
+    if (!roadTile) return undefined
+    return roadOpenSides(roadTile.index, roadTile.rotation)
   }
 
-  /** The van is on the road only while both tiles it straddles are road. */
+  /** True only if `fromTile` opens onto `dir` AND the neighbouring tile in
+   * `dir` opens back onto `fromTile` - a tile merely being road isn't
+   * enough, since e.g. a dead end or turn tile only connects 1-2 sides. */
+  private roadConnects(fromTile: Tile, dir: Direction): boolean {
+    if (!this.openSides(fromTile)?.has(dir)) return false
+    const toTile = this.moveFromTile(fromTile, dir)
+    return this.openSides(toTile)?.has(turnAround(dir)) ?? false
+  }
+
+  /** The van is on the road only while both tiles it straddles are road AND
+   * actually connected to each other in its current heading. */
   private isValidState(tile: Tile, heading: Direction): boolean {
-    return this.hasRoad(tile) && this.hasRoad(this.moveFromTile(tile, heading))
+    return this.roadConnects(tile, heading)
   }
 
   /** Crashes if the van's current position has driven off the road. */

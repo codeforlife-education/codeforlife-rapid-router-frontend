@@ -9,11 +9,46 @@ export const GAME_COMMANDS = [
   "wait",
   "deliver",
   "sound_horn",
+  "at_dead_end",
+  "at_destination",
+  "at_red_traffic_light",
+  "is_road_forward",
+  "is_road_left",
+  "is_road_right",
+  "is_animal_crossing",
 ] as const
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
+/** The amount of fuel each command costs to execute. Sensing/boolean
+ * commands never cost fuel - only real movement/action commands do. */
+export const FUEL_COST: Record<GameCommand, number> = {
+  move_forwards: 1,
+  turn_left: 1,
+  turn_right: 1,
+  turn_around: 1,
+  wait: 1,
+  deliver: 1,
+  sound_horn: 1,
+  at_dead_end: 0,
+  at_destination: 0,
+  at_red_traffic_light: 0,
+  is_road_forward: 0,
+  is_road_left: 0,
+  is_road_right: 0,
+  is_animal_crossing: 0,
+}
+
 export interface GameState {
   gameCommands: GameCommand[]
+  /** The Python source line (1-indexed) that produced each `gameCommands` entry. */
+  gameCommandLines: number[]
+  /** The originating Blockly block ID for each `gameCommands` entry, when
+   * the commands came from a compiled Blockly workspace (`null` otherwise). */
+  gameCommandBlocks: (string | null)[]
+  /** True for `gameCommands` entries synthesised purely for editor
+   * highlighting (e.g. a loop/if header line) - not a real command the
+   * player issued, so it must not cost fuel (see `FUEL_COST`). */
+  gameCommandSynthetic: boolean[]
   gameCommandIndex: number
   gameOver: boolean
 }
@@ -21,6 +56,9 @@ export interface GameState {
 const startGameCommandIndex = -1 // indicates start before the first command
 const initialState: GameState = Object.freeze({
   gameCommands: [],
+  gameCommandLines: [],
+  gameCommandBlocks: [],
+  gameCommandSynthetic: [],
   gameCommandIndex: startGameCommandIndex,
   gameOver: false,
 })
@@ -51,8 +89,19 @@ export const gameSlice = createSlice({
   initialState,
   reducers: create => ({
     setGameCommands: create.reducer(
-      (state, action: PayloadAction<GameCommand[]>) => {
-        state.gameCommands = action.payload
+      (
+        state,
+        action: PayloadAction<{
+          commands: GameCommand[]
+          lines: number[]
+          blocks?: (string | null)[]
+          synthetic?: boolean[]
+        }>,
+      ) => {
+        state.gameCommands = action.payload.commands
+        state.gameCommandLines = action.payload.lines
+        state.gameCommandBlocks = action.payload.blocks ?? []
+        state.gameCommandSynthetic = action.payload.synthetic ?? []
         _restartGame(state)
       },
     ),
@@ -76,6 +125,9 @@ export const gameSlice = createSlice({
   }),
   selectors: {
     selectGameCommands: state => state.gameCommands,
+    selectGameCommandLines: state => state.gameCommandLines,
+    selectGameCommandBlocks: state => state.gameCommandBlocks,
+    selectGameCommandSynthetic: state => state.gameCommandSynthetic,
     selectGameCommandIndex: state => state.gameCommandIndex,
     selectGameOver: state => state.gameOver,
     selectCurrentGameCommand: state =>
@@ -98,6 +150,9 @@ export const {
 } = gameSlice.actions
 export const {
   selectGameCommands,
+  selectGameCommandLines,
+  selectGameCommandBlocks,
+  selectGameCommandSynthetic,
   selectGameCommandIndex,
   selectGameOver,
   selectCurrentGameCommand,
