@@ -1,5 +1,7 @@
 import { type RefObject, createContext } from "react"
 
+import type { GameCommand } from "../app/slices"
+
 export type PythonWorkspaceRef = {
   clear: () => void
   /** Runs the current code, streaming fresh commands - only called when
@@ -14,6 +16,9 @@ export type PythonWorkspaceContextValue = {
   /** "python" is a real editor that runs via Pyodide; "blocklyAndPython" is
    * a read-only view of the equivalent code generated from the blocks. */
   mode: "python" | "blocklyAndPython"
+  /** The `my_van` commands relevant to this level, shown in the Commands
+   * modal. Only set for "python" mode levels. */
+  commands?: GameCommand[]
 }
 
 const PythonWorkspaceContext =

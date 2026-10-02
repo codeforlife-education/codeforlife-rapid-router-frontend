@@ -1,12 +1,4 @@
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogTitle,
-  Typography,
-} from "@mui/material"
+import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material"
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror"
 import {
   type FC,
@@ -18,12 +10,12 @@ import {
 } from "react"
 import { python } from "@codemirror/lang-python"
 
+import { type GameCommand, setGameCommands } from "../app/slices"
 import {
   PYTHON_STARTER_CODE,
   type PythonWorkspaceRef,
   usePyodideRunner,
-} from "../../pyodide"
-import { appendGameCommand, setGameCommands } from "../../app/slices"
+} from "."
 import {
   dispatchHighlightedLine,
   highlightLineExtension,
@@ -37,15 +29,15 @@ import {
   useGameInPlay,
   usePlayIntervalContext,
   usePythonWorkspaceContext,
-} from "../../app/hooks"
-
-const localStorageKey = (levelId: number) => `python-code-${levelId}`
+} from "../app/hooks"
+import CommandsModal from "./CommandsModal"
 
 /** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
 const EditablePythonEditor: FC<{
   ref: RefObject<PythonWorkspaceRef | null>
   levelId: number
-}> = ({ ref, levelId }) => {
+  commands?: GameCommand[]
+}> = ({ ref, levelId, commands }) => {
   const dispatch = useAppDispatch()
   const { run, ready } = usePyodideRunner()
   const gameInPlay = useGameInPlay()
@@ -57,27 +49,33 @@ const EditablePythonEditor: FC<{
     throw new ReferenceError("Play interval context not provided.")
   const [, setPlayInterval, clearPlayInterval] = playIntervalContext
   const editorRef = useRef<ReactCodeMirrorRef>(null)
-  // `localStorage` isn't available during SSR - start with the starter code
-  // and swap in any saved code once mounted in the browser (see below).
   const [code, setCode] = useState(PYTHON_STARTER_CODE)
   const [error, setError] = useState<string | null>(null)
   const [commandsOpen, setCommandsOpen] = useState(false)
 
-  // Runs the current code through Pyodide, streaming fresh commands - only
-  // invoked when the player presses Play/Run Program, never automatically
-  // on edit.
+  // Runs the current code through Pyodide - only invoked when the player
+  // presses Play/Run Program, never automatically on edit. The editor is
+  // locked (see `editable` below) for the whole time the game is in play,
+  // so playback only starts once the full command list is ready.
   const codeRef = useRef(code)
   codeRef.current = code
   const runRef = useRef(() => {})
   runRef.current = () => {
     const nextCode = codeRef.current
-    localStorage.setItem(localStorageKey(levelId), nextCode)
     setError(null)
     dispatch(setGameCommands({ commands: [], lines: [] }))
-    void run(nextCode, levelId, (command, line, block, synthetic) => {
-      dispatch(appendGameCommand({ command, line, block, synthetic }))
-    }).then(result => {
-      if (!result.ok) setError(result.message)
+    void run(nextCode, levelId).then(result => {
+      if (result.ok) {
+        dispatch(
+          setGameCommands({
+            commands: result.commands,
+            lines: result.commandLines,
+          }),
+        )
+        setPlayInterval()
+      } else {
+        setError(result.message)
+      }
     })
   }
 
@@ -90,13 +88,6 @@ const EditablePythonEditor: FC<{
     }),
     [],
   )
-
-  // Load any saved code from localStorage once mounted (client-only).
-  useEffect(() => {
-    const savedCode = localStorage.getItem(localStorageKey(levelId))
-    if (savedCode !== null) setCode(savedCode)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   // Highlight the line of code whose command is currently being animated,
   // and scroll it into view for long scripts.
@@ -152,6 +143,7 @@ const EditablePythonEditor: FC<{
         <CodeMirror
           ref={editorRef}
           value={code}
+          editable={!gameInPlay}
           extensions={[python(), highlightLineExtension]}
           onChange={onChange}
           height="100%"
@@ -170,10 +162,7 @@ const EditablePythonEditor: FC<{
           variant="contained"
           size="small"
           onClick={() => {
-            if (!clearPlayInterval()) {
-              runRef.current()
-              setPlayInterval()
-            }
+            if (!clearPlayInterval()) runRef.current()
           }}
         >
           Run Program
@@ -189,9 +178,11 @@ const EditablePythonEditor: FC<{
           </Alert>
         )}
       </Box>
-      <Dialog open={commandsOpen} onClose={() => setCommandsOpen(false)}>
-        <DialogTitle>Commands</DialogTitle>
-      </Dialog>
+      <CommandsModal
+        open={commandsOpen}
+        commands={commands ?? []}
+        onClose={() => setCommandsOpen(false)}
+      />
     </Box>
   )
 }
@@ -222,6 +213,7 @@ const PythonEditor: FC = () => {
     <EditablePythonEditor
       ref={pythonWorkspaceContext.ref}
       levelId={pythonWorkspaceContext.levelId}
+      commands={pythonWorkspaceContext.commands}
     />
   ) : (
     <ReadOnlyPythonEditor />

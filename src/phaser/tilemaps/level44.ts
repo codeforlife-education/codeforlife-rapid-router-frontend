@@ -7,32 +7,24 @@ export default tilemaps.makeOrthogonal({
     tile: {
       road: {
         data: [
-          // Row 1
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          // Row 2
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          // Row 3
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          // Row 4
-          [...layers.tile.data.fillRow({ cols: 10 })],
+          // Row 1 to 4 - 10 columns of empty tiles
+          ...layers.tile.data.fillManyRows({ rows: 4 }),
           // Row 5
           [
-            // 7 columns of horizontal straight road tiles (incl. CFC)
+            // 1 column of a right-facing dead end road tile (CFC)
+            layers.tile.data.IDs.Road.Asphalt.DeadEnd.RIGHT,
+            // 5 columns of horizontal straight road tiles
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
-              cols: 6,
+              cols: 5,
             }),
             // 1 column of a left-facing dead end road tile (incl. house)
             layers.tile.data.IDs.Road.Asphalt.DeadEnd.LEFT,
             // 3 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 3 }),
           ],
-          // Row 6
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          // Row 7
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          // Row 8
-          [...layers.tile.data.fillRow({ cols: 10 })],
+          // Row 6 to 8 - 10 columns of empty tiles
+          ...layers.tile.data.fillManyRows({ rows: 3 }),
         ],
       },
     },

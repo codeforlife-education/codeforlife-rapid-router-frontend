@@ -17,11 +17,11 @@ import { type FC, useCallback, useEffect, useState } from "react"
 import { Close as CloseIcon } from "@mui/icons-material"
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 
-import BlockListItem, { type BlockCount } from "./BlockListItem"
 import {
-  DELETABLE_CUSTOM_BLOCKS,
+  ALL_DELETABLE_BLOCKS,
   type DeletableBlockType,
 } from "../../blockly/blocks"
+import BlockListItem, { type BlockCount } from "./BlockListItem"
 
 const LANGUAGE_OPTIONS = {
   Blockly: "Solve your level using Blockly blocks only.",
@@ -64,8 +64,8 @@ const LanguageOptionLabel: FC<{ label: string; tooltip: string }> = ({
 // Used to fill the multi-column grid layouts column-by-column (top to
 // bottom in the first column, then top to bottom in the next, and so on)
 // instead of the grid's default row-by-row fill order.
-const BLOCK_ROWS_TWO_COLUMNS = Math.ceil(DELETABLE_CUSTOM_BLOCKS.length / 2)
-const BLOCK_ROWS_THREE_COLUMNS = Math.ceil(DELETABLE_CUSTOM_BLOCKS.length / 3)
+const BLOCK_ROWS_TWO_COLUMNS = Math.ceil(ALL_DELETABLE_BLOCKS.length / 2)
+const BLOCK_ROWS_THREE_COLUMNS = Math.ceil(ALL_DELETABLE_BLOCKS.length / 3)
 
 export interface CodeModalProps {
   open: boolean
@@ -96,7 +96,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
   const enabledCount = Object.values(code.blocks).filter(
     ({ enabled }) => enabled,
   ).length
-  const allEnabled = enabledCount === DELETABLE_CUSTOM_BLOCKS.length
+  const allEnabled = enabledCount === ALL_DELETABLE_BLOCKS.length
   const someEnabled = enabledCount > 0 && !allEnabled
 
   const handleSelectAllChange = (
@@ -106,7 +106,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
     setCode(prev => ({
       ...prev,
       blocks: Object.fromEntries(
-        DELETABLE_CUSTOM_BLOCKS.map(({ type }) => [
+        ALL_DELETABLE_BLOCKS.map(({ type }) => [
           type,
           { ...prev.blocks[type], enabled },
         ]),
@@ -227,7 +227,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
                   lg: "repeat(3, 1fr)",
                 },
                 gridTemplateRows: {
-                  xs: `repeat(${DELETABLE_CUSTOM_BLOCKS.length}, auto)`,
+                  xs: `repeat(${ALL_DELETABLE_BLOCKS.length}, auto)`,
                   md: `repeat(${BLOCK_ROWS_TWO_COLUMNS}, auto)`,
                   lg: `repeat(${BLOCK_ROWS_THREE_COLUMNS}, auto)`,
                 },
@@ -236,7 +236,7 @@ const CodeModal: FC<CodeModalProps> = ({ open, value, onClose, onSubmit }) => {
                 columnGap: 4,
               }}
             >
-              {DELETABLE_CUSTOM_BLOCKS.map(block => (
+              {ALL_DELETABLE_BLOCKS.map(block => (
                 <BlockListItem
                   key={block.type}
                   block={block}

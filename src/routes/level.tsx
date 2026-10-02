@@ -23,7 +23,7 @@ const levels = [
   {
     id: 4,
     mode: "blockly",
-    blockly_toolbox_block_types: ["move_forwards", "turn_right"],
+    blockly_toolbox_block_types: ["move_forwards", "turn_left"],
   },
   {
     id: 5,
@@ -223,7 +223,7 @@ const levels = [
       "turn_right",
       "turn_left",
       "at_destination",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -234,7 +234,7 @@ const levels = [
       "turn_right",
       "turn_left",
       "at_destination",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -245,7 +245,7 @@ const levels = [
       "turn_right",
       "turn_left",
       "at_destination",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -256,7 +256,7 @@ const levels = [
       "turn_right",
       "turn_left",
       "at_destination",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -269,7 +269,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -282,7 +282,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -295,7 +295,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -308,7 +308,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -321,7 +321,7 @@ const levels = [
       "controls_if",
       "at_destination",
       "road_exists",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -336,7 +336,7 @@ const levels = [
       "at_destination",
       "road_exists",
       "cow_crossing",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -354,7 +354,7 @@ const levels = [
       "dead_end",
       "cow_crossing",
       "controls_repeat",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -370,7 +370,7 @@ const levels = [
       "road_exists",
       "dead_end",
       "controls_repeat",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -386,7 +386,7 @@ const levels = [
       "road_exists",
       "dead_end",
       "controls_repeat",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -402,7 +402,7 @@ const levels = [
       "road_exists",
       "dead_end",
       "controls_repeat",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -418,7 +418,7 @@ const levels = [
       "road_exists",
       "dead_end",
       "controls_repeat",
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -508,7 +508,6 @@ const levels = [
       "turn_right",
       "turn_around",
       "wait",
-      "deliver",
       "controls_if",
       "at_destination",
       "road_exists",
@@ -527,7 +526,6 @@ const levels = [
       "turn_right",
       "turn_around",
       "wait",
-      "deliver",
       "controls_if",
       "at_destination",
       "road_exists",
@@ -542,8 +540,8 @@ const levels = [
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
-      ["turn_left", 3],
-      ["turn_right", 2],
+      ["turn_left", 2],
+      ["turn_right", 3],
     ],
   },
   {
@@ -583,7 +581,7 @@ const levels = [
       "controls_if",
       "at_destination",
       ["road_exists", 1],
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -596,7 +594,7 @@ const levels = [
       "controls_if",
       "at_destination",
       ["road_exists", 2],
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -610,7 +608,7 @@ const levels = [
       ["logic_negate", 1],
       ["at_destination", 1],
       ["road_exists", 2],
-      "controls_whileUntil",
+      "repeat_while",
     ],
   },
   {
@@ -623,7 +621,7 @@ const levels = [
       ["logic_negate", 1],
       ["at_destination", 1],
       ["controls_repeat", 4],
-      "controls_whileUntil",
+      "repeat_while",
     ],
   },
   {
@@ -633,7 +631,7 @@ const levels = [
       ["turn_left", 2],
       ["turn_around", 1],
       ["at_destination", 1],
-      ["controls_whileUntil", 1],
+      ["repeat_until", 1],
     ],
   },
   {
@@ -654,6 +652,7 @@ const levels = [
       "turn_left",
       "turn_right",
       "procedures_callnoreturn",
+      "procedures_defnoreturn",
       "controls_repeat",
     ],
   },
@@ -668,7 +667,8 @@ const levels = [
       "at_destination",
       "traffic_light",
       "procedures_callnoreturn",
-      "controls_whileUntil",
+      "procedures_defnoreturn",
+      "repeat_until",
     ],
   },
   {
@@ -679,6 +679,7 @@ const levels = [
       "turn_left",
       "turn_right",
       "procedures_callnoreturn",
+      "procedures_defnoreturn",
     ],
   },
   {
@@ -689,6 +690,7 @@ const levels = [
       "turn_left",
       "turn_right",
       "procedures_callnoreturn",
+      "procedures_defnoreturn",
       "controls_repeat",
     ],
   },
@@ -700,6 +702,7 @@ const levels = [
       "turn_left",
       "turn_right",
       "procedures_callnoreturn",
+      "procedures_defnoreturn",
       "controls_repeat",
     ],
   },
@@ -711,6 +714,7 @@ const levels = [
       "turn_left",
       "turn_right",
       "procedures_callnoreturn",
+      "procedures_defnoreturn",
       "controls_repeat",
     ],
   },
@@ -722,6 +726,7 @@ const levels = [
       "turn_left",
       "turn_right",
       "procedures_callnoreturn",
+      "procedures_defnoreturn",
       "controls_repeat",
     ],
   },
@@ -734,7 +739,7 @@ const levels = [
       ["turn_around", 1],
       "road_exists",
       ["dead_end", 1],
-      "controls_whileUntil",
+      "repeat_while",
     ],
   },
   {
@@ -748,7 +753,7 @@ const levels = [
       ["wait", 1],
       "road_exists",
       ["dead_end", 1],
-      "controls_whileUntil",
+      "repeat_while",
     ],
   },
   {
@@ -759,7 +764,8 @@ const levels = [
       ["turn_right", 2],
       ["turn_around", 1],
       ["at_destination", 1],
-      ["controls_whileUntil", 1],
+      "repeat_while",
+      ["repeat_until", 1],
     ],
   },
   {
@@ -772,7 +778,7 @@ const levels = [
       "controls_if",
       "at_destination",
       ["road_exists", 1],
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -785,7 +791,7 @@ const levels = [
       ["turn_around", 2],
       "at_destination",
       "road_exists",
-      ["controls_whileUntil", 2],
+      ["repeat_until", 2],
     ],
   },
   {
@@ -801,7 +807,8 @@ const levels = [
       "dead_end",
       "traffic_light",
       "procedures_callnoreturn",
-      "controls_whileUntil",
+      "procedures_defnoreturn",
+      "repeat_until",
     ],
   },
   {
@@ -813,6 +820,7 @@ const levels = [
       ["turn_right", 1],
       ["turn_around", 2],
       "procedures_callnoreturn",
+      "procedures_defnoreturn",
       ["controls_repeat", 1],
     ],
   },
@@ -827,7 +835,7 @@ const levels = [
       "road_exists",
       "dead_end",
       ["controls_repeat", 1],
-      "controls_whileUntil",
+      "repeat_until",
     ],
   },
   {
@@ -841,7 +849,7 @@ const levels = [
       "logic_negate",
       "at_destination",
       "road_exists",
-      ["controls_whileUntil", 1],
+      ["repeat_while", 1],
     ],
   },
   {
@@ -869,7 +877,8 @@ const levels = [
       ["at_destination", 1],
       ["road_exists", 2],
       ["dead_end", 2],
-      ["controls_whileUntil", 5],
+      ["repeat_while", 4],
+      ["repeat_until", 1],
     ],
   },
   {
@@ -904,14 +913,17 @@ const levels = [
   {
     id: 83,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 84,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 85,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 86,
@@ -958,18 +970,22 @@ const levels = [
   {
     id: 89,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 90,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 91,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 92,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 93,
@@ -1007,14 +1023,17 @@ const levels = [
   {
     id: 95,
     mode: "python",
+    commands: ["turn_left", "turn_right", "is_animal_crossing", "sound_horn"],
   },
   {
     id: 96,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right", "is_road_left"],
   },
   {
     id: 97,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "is_road_left"],
   },
   {
     id: 98,
@@ -1036,10 +1055,18 @@ const levels = [
   {
     id: 99,
     mode: "python",
+    commands: ["turn_left", "turn_right", "is_road_left"],
   },
   {
     id: 100,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "turn_right",
+      "deliver",
+      "is_road_left",
+    ],
   },
   {
     id: 101,
@@ -1078,10 +1105,26 @@ const levels = [
   {
     id: 103,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "turn_right",
+      "is_road_forward",
+      "is_road_left",
+    ],
   },
   {
     id: 104,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "turn_right",
+      "wait",
+      "is_road_forward",
+      "is_road_left",
+      "at_red_traffic_light",
+    ],
   },
   {
     id: 105,
@@ -1131,6 +1174,7 @@ const levels = [
   {
     id: 109,
     mode: "python",
+    commands: ["turn_left", "turn_right", "at_destination"],
   },
   {
     id: 110,
@@ -1161,10 +1205,17 @@ const levels = [
   {
     id: 112,
     mode: "python",
+    commands: ["turn_left", "turn_right", "is_road_left", "at_destination"],
   },
   {
     id: 113,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_right",
+      "is_road_right",
+      "at_destination",
+    ],
   },
   {
     id: 114,
@@ -1199,18 +1250,59 @@ const levels = [
   {
     id: 116,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "turn_right",
+      "at_destination",
+      "is_road_forward",
+      "is_road_right",
+      "is_road_left",
+    ],
   },
   {
     id: 117,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_around",
+      "turn_right",
+      "at_destination",
+      "is_road_forward",
+      "at_dead_end",
+      "is_animal_crossing",
+      "sound_horn",
+    ],
   },
   {
     id: 118,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_left",
+      "at_destination",
+      "is_road_forward",
+      "is_animal_crossing",
+      "sound_horn",
+    ],
   },
   {
     id: 119,
     mode: "python",
+    commands: [
+      "move_forwards",
+      "turn_around",
+      "turn_left",
+      "turn_right",
+      "wait",
+      "deliver",
+      "at_red_traffic_light",
+      "at_destination",
+      "is_road_forward",
+      "is_road_left",
+      "is_road_right",
+      "at_dead_end",
+    ],
   },
   {
     id: 120,
@@ -1225,10 +1317,12 @@ const levels = [
   {
     id: 121,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 122,
     mode: "python",
+    commands: ["move_forwards", "turn_left"],
   },
   {
     id: 123,
@@ -1243,22 +1337,27 @@ const levels = [
   {
     id: 124,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     id: 125,
     mode: "python",
+    commands: ["move_forwards", "turn_right", "at_destination"],
   },
   {
     id: 126,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
     id: 127,
     mode: "python",
+    commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
     id: 128,
     mode: "python",
+    commands: ["move_forwards", "turn_right", "turn_left", "at_destination"],
   },
 ] as const satisfies LevelProps[]
 

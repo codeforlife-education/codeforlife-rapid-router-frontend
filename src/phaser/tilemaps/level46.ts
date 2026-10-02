@@ -8,7 +8,7 @@ export default tilemaps.makeOrthogonal({
       road: {
         data: [
           // Row 1
-          [...layers.tile.data.fillRow({ cols: 10 })],
+          layers.tile.data.fillRow(),
           // Row 2
           [
             // 2 columns of empty tiles
@@ -23,17 +23,11 @@ export default tilemaps.makeOrthogonal({
             // 2 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 2 }),
             // 1 column of vertical straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
             // 3 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 3 }),
-            // 1 column of vertical straight road tile (CFC)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            // 1 column of a bottom-facing dead end road tile (CFC)
+            layers.tile.data.IDs.Road.Asphalt.DeadEnd.BOTTOM,
             // 3 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 3 }),
           ],
@@ -42,17 +36,11 @@ export default tilemaps.makeOrthogonal({
             // 2 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 2 }),
             // 1 column of vertical straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
             // 3 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 3 }),
             // 1 column of vertical straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
             // 3 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 3 }),
           ],
@@ -61,29 +49,19 @@ export default tilemaps.makeOrthogonal({
             // 2 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 2 }),
             // 1 column of right-turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Asphalt.Turn.TOP_RIGHT,
             // 3 columns of horizontal straight road tiles
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
               cols: 3,
             }),
             // 1 column of left-turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Asphalt.Turn.TOP_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Asphalt.Turn.TOP_LEFT,
             // 3 columns of empty tiles
             ...layers.tile.data.fillRow({ cols: 3 }),
           ],
-          // Row 6
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          // Row 7
-          [...layers.tile.data.fillRow({ cols: 10 })],
-          // Row 8
-          [...layers.tile.data.fillRow({ cols: 10 })],
+          // Row 6 to 8 - 10 columns of empty tiles
+          ...layers.tile.data.fillManyRows({ rows: 3 }),
         ],
       },
     },

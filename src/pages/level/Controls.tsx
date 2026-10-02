@@ -55,7 +55,7 @@ const Base: FC<
   const playIntervalContext = usePlayIntervalContext()
   if (!playIntervalContext)
     throw new ReferenceError("Play interval context not provided.")
-  const [playInterval, setPlayInterval, clearPlayInterval] = playIntervalContext
+  const [playInterval, , clearPlayInterval] = playIntervalContext
   const { activeSceneKeys } = usePhaserGameContext()
 
   // Helper to map panel layout options to menu items.
@@ -88,10 +88,9 @@ const Base: FC<
           text={gameInPlay && playInterval ? "Pause" : "Play"}
           icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
           onClick={() => {
-            if (!clearPlayInterval()) {
-              onRun()
-              setPlayInterval()
-            }
+            // `onRun` starts playback itself once the full command list is
+            // ready - see `BlocklyWorkspace`/`PythonEditor`'s `runRef`.
+            if (!clearPlayInterval()) onRun()
           }}
         />
         <miniDrawers.MenuItem

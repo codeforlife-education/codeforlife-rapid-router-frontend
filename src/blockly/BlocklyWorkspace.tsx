@@ -8,7 +8,6 @@ import {
   useState,
 } from "react"
 
-import { appendGameCommand, setGameCommands } from "../app/slices"
 import {
   clearWorkspace,
   getPythonCodeFromStartBlock,
@@ -23,9 +22,11 @@ import {
   useGameCommandIndex,
   useGameHasFinishedEarly,
   useGameInPlay,
+  usePlayIntervalContext,
 } from "../app/hooks"
 import { type StartBlockType } from "./blocks"
-import { usePyodideRunner } from "../pyodide"
+import { setGameCommands } from "../app/slices"
+import { usePyodideRunner } from "../codeMirror"
 
 export interface BlocklyWorkspaceProps {
   startBlockType?: StartBlockType
@@ -54,15 +55,19 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const gameCommandIndex = useGameCommandIndex()
   const commandBlocks = useGameCommandBlocks()
   const { run } = usePyodideRunner()
+  const playIntervalContext = usePlayIntervalContext()
+  if (!playIntervalContext)
+    throw new ReferenceError("Play interval context not provided.")
+  const [, setPlayInterval] = playIntervalContext
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
   const { ref, toolboxContents, maxInstances, setPythonCode, levelId } =
     blocklyWorkspaceContext
 
-  // Generates Python from the current blocks and runs it through Pyodide,
-  // streaming fresh commands - only invoked when the player presses Play
-  // (via the exposed `run` ref method), never automatically on edit.
+  // Generates Python from the current blocks and runs it through Pyodide -
+  // only invoked when the player presses Play (via the exposed `run` ref
+  // method), never automatically on edit.
   const runRef = useRef(() => {})
   runRef.current = () => {
     if (!blockly) return
@@ -81,13 +86,20 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     // Run the generated Python through the same Pyodide pipeline the
     // Python editor uses, so loops/conditionals/etc. are correctly
     // resolved by actually executing them, not by statically walking
-    // the blocks. Commands stream in as they're derived (there's no
-    // "does this solve the level" check), so reset first, then append.
+    // the blocks. Playback only starts once the full command list is
+    // ready (see `editable`-equivalent lock on the workspace below).
     dispatch(setGameCommands({ commands: [], lines: [], blocks: [] }))
-    void run(code, levelId, (command, line, block, synthetic) => {
-      dispatch(appendGameCommand({ command, line, block, synthetic }))
-    }).then(result => {
-      if (!result.ok) {
+    void run(code, levelId).then(result => {
+      if (result.ok) {
+        dispatch(
+          setGameCommands({
+            commands: result.commands,
+            lines: result.commandLines,
+            blocks: result.commandBlocks,
+          }),
+        )
+        setPlayInterval()
+      } else {
         const block =
           result.blockId && blockly.workspace.getBlockById(result.blockId)
         if (block) {
@@ -131,6 +143,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     // Python text on edit - actually running it happens only via `run()`,
     // triggered by the player pressing Play.
     const onChange = debounce(() => {
+      // TODO: Implement saving local changes to session storage so that a user's
+      // workspace changes are saved when they return that level.
       setPythonCode(
         stripHighlightCalls(getPythonCodeFromStartBlock(blockly.startBlock)),
       )
@@ -187,7 +201,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       component="div"
       id="blockly-workspace"
       ref={divRef}
-      sx={{ height: "100%" }}
+      sx={{ height: "100%", pointerEvents: gameInPlay ? "none" : "auto" }}
     />
   )
 }

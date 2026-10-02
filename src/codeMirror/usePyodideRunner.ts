@@ -3,32 +3,24 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { RunRequest, WorkerResponse } from "./pyodide.worker"
 import type { GameCommand } from "../app/slices"
 
-/** Called for each command as it's derived (streamed), so the caller can
- * play back a script live instead of waiting for it to finish entirely -
- * there's no cap on how long a script may run for; the game's fuel meter
- * is what eventually stops a non-terminating one, during real playback. */
-export type OnCommand = (
-  command: GameCommand,
-  line: number,
-  block: string | null,
-  synthetic: boolean,
-) => void
-
 export type PyodideRunResult =
-  | { ok: true }
+  | {
+      ok: true
+      commands: GameCommand[]
+      commandLines: number[]
+      commandBlocks: (string | null)[]
+    }
   | { ok: false; message: string; blockId: string | null }
 
 type Pending = {
   resolve: (result: PyodideRunResult) => void
-  onCommand: OnCommand
 }
 
 /**
  * Owns a single Pyodide Web Worker for the lifetime of the calling
- * component, and exposes a promise-based `run(code, levelId, onCommand)` to
- * execute a student's Python script. `onCommand` fires for each command as
- * it's derived; the returned promise resolves once the script actually
- * finishes (or errors).
+ * component, and exposes a promise-based `run(code, levelId)` to execute a
+ * student's Python script. The returned promise resolves once the script
+ * actually finishes (or errors), with the full list of derived commands.
  */
 export function usePyodideRunner() {
   const workerRef = useRef<Worker | null>(null)
@@ -58,19 +50,15 @@ export function usePyodideRunner() {
       }
       const pending = pendingRef.current.get(data.id)
       if (!pending) return
-      if (data.type === "command") {
-        pending.onCommand(
-          data.command,
-          data.commandLine,
-          data.commandBlock,
-          data.synthetic,
-        )
-        return
-      }
       pendingRef.current.delete(data.id)
       pending.resolve(
         data.type === "result"
-          ? { ok: true }
+          ? {
+              ok: true,
+              commands: data.commands,
+              commandLines: data.commandLines,
+              commandBlocks: data.commandBlocks,
+            }
           : { ok: false, message: data.message, blockId: data.blockId },
       )
     }
@@ -84,11 +72,7 @@ export function usePyodideRunner() {
   }, [spawnWorker])
 
   const run = useCallback(
-    async (
-      code: string,
-      levelId: number,
-      onCommand: OnCommand,
-    ): Promise<PyodideRunResult> => {
+    async (code: string, levelId: number): Promise<PyodideRunResult> => {
       await readyRef.current?.promise
       const worker = workerRef.current
       if (!worker) {
@@ -101,7 +85,7 @@ export function usePyodideRunner() {
 
       return new Promise(resolve => {
         const id = ++nextRequestIdRef.current
-        pendingRef.current.set(id, { resolve, onCommand })
+        pendingRef.current.set(id, { resolve })
 
         const request: RunRequest = { type: "run", id, code, levelId }
         worker.postMessage(request)

@@ -16,7 +16,7 @@ import {
   PYTHON_STARTER_CODE,
   PythonWorkspaceContext,
   type PythonWorkspaceRef,
-} from "../../pyodide"
+} from "../../codeMirror"
 import {
   PhaserGameContext,
   type PhaserGameRef,
@@ -24,6 +24,7 @@ import {
 } from "../../phaser"
 import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
 import Controls from "./Controls"
+import type { GameCommand } from "../../app/slices"
 import Panels from "./Panels"
 import PlayIntervalContext from "../../app/PlayIntervalContext"
 import { paths } from "../../routes"
@@ -83,14 +84,15 @@ const PythonContext: FC<
   PythonProps &
     Pick<LevelModel, "id"> & {
       mode: "python" | "blocklyAndPython"
+      commands?: GameCommand[]
       children: ReactNode
     }
-> = ({ id, mode, children }) => {
+> = ({ id, mode, commands, children }) => {
   const pythonWorkspaceRef = useRef<PythonWorkspaceRef>(null)
 
   return (
     <PythonWorkspaceContext.Provider
-      value={{ ref: pythonWorkspaceRef, levelId: id, mode }}
+      value={{ ref: pythonWorkspaceRef, levelId: id, mode, commands }}
     >
       {children}
     </PythonWorkspaceContext.Provider>
@@ -120,7 +122,7 @@ export type LevelProps =
   | (Pick<LevelModel, "id"> &
       (
         | (BlocklyProps & { mode: "blockly" })
-        | (PythonProps & { mode: "python" })
+        | (PythonProps & { mode: "python"; commands: GameCommand[] })
         | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
       ))
   | {}

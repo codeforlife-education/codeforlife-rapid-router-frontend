@@ -10,221 +10,110 @@ export default tilemaps.makeOrthogonal({
           // Row 1
           [
             // 1 column of a bottom-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
             // 1 column of a t-junction road tile (left, right, bottom)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.LEFT_RIGHT_BOTTOM,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.LEFT_RIGHT_BOTTOM,
             // 2 columns of horizontal straight road tile
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 2,
             }),
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of a bottom-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of a right-facing dead end road tile (decorative)
             layers.tile.data.IDs.Road.Dirt.DeadEnd.RIGHT,
             // 1 column of horizontal straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
           ],
           // Row 2
           [
             // 1 column of vertical straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 1 column of horizontal straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 1 column of a top-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 2 columns of horizontal straight road tile
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 2,
             }),
             // 1 column of a t-junction road tile (top, left, bottom)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_BOTTOM,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_BOTTOM,
           ],
           // Row 3
           [
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 1 column of horizontal straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of a t-junction road tile (top, right, bottom)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_RIGHT_BOTTOM,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_RIGHT_BOTTOM,
             // 1 column of horizontal straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
             // 1 column of a t-junction road tile (left, right, bottom)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.LEFT_RIGHT_BOTTOM,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.LEFT_RIGHT_BOTTOM,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of a right-facing dead end road tile (decorative)
             layers.tile.data.IDs.Road.Dirt.DeadEnd.RIGHT,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of vertical straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
           ],
           // Row 4
           [
             // 1 column of a bottom-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 2 columns of vertical straight road tile
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
               cols: 2,
             }),
             // 1 column of a bottom-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
             // 1 column of a top-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 1 column of horizontal straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
             // 1 column of a t-junction road tile (top, left, right)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_RIGHT,
             // 1 column of a t-junction road tile (top, left, bottom)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_BOTTOM,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_BOTTOM,
           ],
           // Row 5
           [
             // 1 column of vertical straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 1 column of a t-junction road tile (top, left, right)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_RIGHT,
             // 1 column of a top-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 2 columns of a t-junction road tile (left, right, bottom)
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Dirt.TJunction.LEFT_RIGHT_BOTTOM,
@@ -236,139 +125,76 @@ export default tilemaps.makeOrthogonal({
               cols: 2,
             }),
             // 1 column of a t-junction road tile (top, left, bottom)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_BOTTOM,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_BOTTOM,
           ],
           // Row 6
           [
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 1 column of a t-junction road tile (left, right, bottom)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.LEFT_RIGHT_BOTTOM,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.LEFT_RIGHT_BOTTOM,
             // 1 column of horizontal straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of a right-facing dead end road tile (decorative)
             layers.tile.data.IDs.Road.Dirt.DeadEnd.RIGHT,
             // 1 column of a top-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 1 column of a left-facing dead end road tile (decorative)
             layers.tile.data.IDs.Road.Dirt.DeadEnd.LEFT,
             // 1 column of a right-facing dead end road tile (decorative)
             layers.tile.data.IDs.Road.Dirt.DeadEnd.RIGHT,
             // 1 column of a t-junction road tile (top, left, bottom)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_BOTTOM,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_BOTTOM,
           ],
           // Row 7
           [
             // 1 column of a bottom-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
             // 1 column of a top-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
             // 1 column of a bottom-facing dead end road tile (decorative)
             layers.tile.data.IDs.Road.Dirt.DeadEnd.BOTTOM,
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 2 columns of horizontal straight road tile
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 2,
             }),
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of a bottom-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_RIGHT,
             // 1 column of a bottom-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.BOTTOM_LEFT,
             // 1 column of vertical straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
           ],
           // Row 8
           [
             // 1 column of a top-right turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_RIGHT,
             // 1 column of horizontal straight road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
             // 1 column of a t-junction road tile (top, left, right)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_RIGHT,
             // 3 columns of horizontal straight road tile
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Dirt.Straight.HORIZONTAL,
               cols: 3,
             }),
             // 1 column of a t-junction road tile (top, left, right)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_RIGHT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.TJunction.TOP_LEFT_RIGHT,
             // 1 column of a top-left turn road tile
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
-              cols: 1,
-            }),
+            layers.tile.data.IDs.Road.Dirt.Turn.TOP_LEFT,
             // 1 column of a top-facing dead end road tile (incl. house)
             layers.tile.data.IDs.Road.Dirt.DeadEnd.TOP,
-            // 1 column of vertical straight road tile (CFC)
-            ...layers.tile.data.fillRow({
-              id: layers.tile.data.IDs.Road.Dirt.Straight.VERTICAL,
-              cols: 1,
-            }),
+            // 1 column of a top-facing dead end road tile (CFC)
+            layers.tile.data.IDs.Road.Dirt.DeadEnd.TOP,
           ],
         ],
       },

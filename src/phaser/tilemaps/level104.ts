@@ -8,43 +8,43 @@ export default tilemaps.makeOrthogonal({
       road: {
         data: [
           [
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
             layers.tile.data.IDs.Road.Asphalt.DeadEnd.BOTTOM,
             ...layers.tile.data.fillRow({ cols: 8 }),
           ],
           [
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
             layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
             ...layers.tile.data.fillRow({ cols: 8 }),
           ],
           [
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
             layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_RIGHT_BOTTOM,
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
               cols: 6,
             }),
             layers.tile.data.IDs.Road.Asphalt.Turn.BOTTOM_LEFT,
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
           ],
           [
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
             layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
             ...layers.tile.data.fillRow({ cols: 4 }),
             layers.tile.data.IDs.Road.Asphalt.Turn.BOTTOM_RIGHT,
             layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
             layers.tile.data.IDs.Road.Asphalt.Turn.TOP_LEFT,
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
           ],
           [
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
             layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
             ...layers.tile.data.fillRow({ cols: 4 }),
             layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
             ...layers.tile.data.fillRow({ cols: 3 }),
           ],
           [
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
             layers.tile.data.IDs.Road.Asphalt.Turn.TOP_RIGHT,
             ...layers.tile.data.fillRow({
               id: layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
@@ -53,17 +53,17 @@ export default tilemaps.makeOrthogonal({
             layers.tile.data.IDs.Road.Asphalt.TJunction.TOP_LEFT_RIGHT,
             layers.tile.data.IDs.Road.Asphalt.Straight.HORIZONTAL,
             layers.tile.data.IDs.Road.Asphalt.Turn.BOTTOM_LEFT,
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
           ],
           [
             ...layers.tile.data.fillRow({ cols: 8 }),
             layers.tile.data.IDs.Road.Asphalt.Straight.VERTICAL,
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
           ],
           [
             ...layers.tile.data.fillRow({ cols: 8 }),
             layers.tile.data.IDs.Road.Asphalt.DeadEnd.TOP,
-            ...layers.tile.data.fillRow({ cols: 1 }),
+            layers.tile.data.IDs.EMPTY,
           ],
         ],
       },
