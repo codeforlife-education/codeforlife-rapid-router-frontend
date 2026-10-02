@@ -5,6 +5,9 @@ import * as enGb from "blockly/msg/en-gb"
 import * as es from "blockly/msg/es"
 import * as fr from "blockly/msg/fr"
 import * as hi from "blockly/msg/hi"
+import * as pl from "blockly/msg/pl"
+import * as ptBr from "blockly/msg/pt-br"
+import * as ru from "blockly/msg/ru"
 
 import * as bg_custom from "./bg"
 import * as ca_custom from "./ca"
@@ -13,10 +16,13 @@ import * as en_custom from "./en"
 import * as es_custom from "./es"
 import * as fr_custom from "./fr"
 import * as hi_custom from "./hi"
+import * as pl_custom from "./pl"
+import * as ptBr_custom from "./pt-br"
+import * as ru_custom from "./ru"
 
 // Blockly ships built-in messages for many more languages than this, but we
-// only offer the ones the old site supported (see the legacy
-// `language_code_dict`), since those are the only ones we've reviewed.
+// only offer the ones the old site supports (see
+// https://www.codeforlife.education/rapidrouter/ - the language dropdown).
 export const LANGUAGE_NAMES = {
   bg: "български",
   ca: "Català",
@@ -25,6 +31,9 @@ export const LANGUAGE_NAMES = {
   es: "Español",
   fr: "Français",
   hi: "हिन्दी",
+  pl: "Polski",
+  "pt-br": "Português (Brasil)",
+  ru: "русский",
 } as const
 
 export type Language = keyof typeof LANGUAGE_NAMES
@@ -41,6 +50,9 @@ const DEFAULT_MESSAGES: Record<Language, object> = {
   es,
   fr,
   hi,
+  pl,
+  "pt-br": ptBr,
+  ru,
 }
 
 const CUSTOM_MESSAGES: Record<Language, object> = {
@@ -51,6 +63,9 @@ const CUSTOM_MESSAGES: Record<Language, object> = {
   es: es_custom,
   fr: fr_custom,
   hi: hi_custom,
+  pl: pl_custom,
+  "pt-br": ptBr_custom,
+  ru: ru_custom,
 }
 
 /** The full set of Blockly messages (built-in + our own) for a language. */
