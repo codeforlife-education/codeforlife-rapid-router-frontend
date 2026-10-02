@@ -1,6 +1,10 @@
 import type { PayloadAction } from "@reduxjs/toolkit"
 import { createSlice } from "codeforlife/slices"
 
+import {
+  DEFAULT_LANGUAGE,
+  type Language,
+} from "../../blockly/messages/languages"
 import { getSettingsCookie } from "../utils"
 
 // undefined represents the "auto" layout option.
@@ -22,12 +26,14 @@ export interface SettingsState {
   twoPanelLayout: TwoPanelLayout
   threePanelLayout: ThreePanelLayout
   playSpeed: PlaySpeed
+  language: Language
 }
 
 const DEFAULT_SETTINGS: SettingsState = Object.freeze({
   twoPanelLayout: undefined, // "auto"
   threePanelLayout: undefined, // "auto"
   playSpeed: 1,
+  language: DEFAULT_LANGUAGE,
 })
 
 export const settingsSlice = createSlice({
@@ -47,10 +53,17 @@ export const settingsSlice = createSlice({
     setPlaySpeed: create.reducer((state, action: PayloadAction<PlaySpeed>) => {
       state.playSpeed = action.payload
     }),
+    setLanguage: create.reducer((state, action: PayloadAction<Language>) => {
+      state.language = action.payload
+    }),
   }),
   selectors: { selectSettings: settings => settings },
 })
 
-export const { setTwoPanelLayout, setThreePanelLayout, setPlaySpeed } =
-  settingsSlice.actions
+export const {
+  setTwoPanelLayout,
+  setThreePanelLayout,
+  setPlaySpeed,
+  setLanguage,
+} = settingsSlice.actions
 export const { selectSettings } = settingsSlice.selectors
