@@ -3,71 +3,24 @@ import { Close as CloseIcon } from "@mui/icons-material"
 import { CopyIconButton } from "codeforlife/components"
 import { type FC } from "react"
 
-import type { VanMethod } from "../../app/van"
-
-type CommandCategory = "Movement" | "Position" | "Animals"
-
-const COMMANDS: Record<
-  VanMethod,
-  { category: CommandCategory; signature: string }
-> = {
-  move_forwards: { category: "Movement", signature: "my_van.move_forwards()" },
-  turn_left: { category: "Movement", signature: "my_van.turn_left()" },
-  turn_right: { category: "Movement", signature: "my_van.turn_right()" },
-  turn_around: { category: "Movement", signature: "my_van.turn_around()" },
-  wait: { category: "Movement", signature: "my_van.wait()" },
-  deliver: { category: "Movement", signature: "my_van.deliver()" },
-  at_dead_end: { category: "Position", signature: "my_van.at_dead_end()" },
-  at_destination: {
-    category: "Position",
-    signature: "my_van.at_destination()",
-  },
-  at_red_traffic_light: {
-    category: "Position",
-    signature: "my_van.at_red_traffic_light()",
-  },
-  is_road_forward: {
-    category: "Position",
-    signature: "my_van.is_road_forward()",
-  },
-  is_road_left: { category: "Position", signature: "my_van.is_road_left()" },
-  is_road_right: {
-    category: "Position",
-    signature: "my_van.is_road_right()",
-  },
-  is_animal_crossing: {
-    category: "Animals",
-    signature: "my_van.is_animal_crossing()",
-  },
-  sound_horn: { category: "Animals", signature: "my_van.sound_horn()" },
-}
-
-const CATEGORY_ORDER: readonly CommandCategory[] = [
-  "Movement",
-  "Position",
-  "Animals",
-]
-
-/** Groups the given commands by category, in a fixed display order, for
- * rendering in the Commands modal. */
-function groupCommandsByCategory(
-  commands: readonly VanMethod[],
-): { category: CommandCategory; commands: VanMethod[] }[] {
-  return CATEGORY_ORDER.map(category => ({
-    category,
-    commands: commands.filter(
-      commandName => COMMANDS[commandName].category === category,
-    ),
-  })).filter(group => group.commands.length > 0)
-}
+import { type VanMethod, groupCommandsByCategory } from "../app/van"
 
 export interface CommandsModalProps {
   open: boolean
   commands: VanMethod[]
+  /** Formats a command/method as the caller's own target-language call
+   * syntax (e.g. Python's `my_van.move_forwards()`) - this modal has no
+   * built-in knowledge of any particular language. */
+  getSignature: (command: VanMethod) => string
   onClose: () => void
 }
 
-const CommandsModal: FC<CommandsModalProps> = ({ open, commands, onClose }) => (
+const CommandsModal: FC<CommandsModalProps> = ({
+  open,
+  commands,
+  getSignature,
+  onClose,
+}) => (
   <Modal open={open} onClose={onClose}>
     <Box
       sx={{
@@ -123,10 +76,10 @@ const CommandsModal: FC<CommandsModalProps> = ({ open, commands, onClose }) => (
                     variant="h6"
                     sx={{ fontFamily: "monospace" }}
                   >
-                    {COMMANDS[commandName].signature}
+                    {getSignature(commandName)}
                   </Typography>
                   <CopyIconButton
-                    content={COMMANDS[commandName].signature}
+                    content={getSignature(commandName)}
                     size="small"
                   />
                 </Box>

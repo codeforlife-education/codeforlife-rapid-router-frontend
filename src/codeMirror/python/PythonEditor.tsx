@@ -30,7 +30,7 @@ import {
   usePlayIntervalContext,
   usePythonWorkspaceContext,
 } from "../../app/hooks"
-import CommandsModal from "./CommandsModal"
+import CommandsModal from "../CommandsModal"
 import { setGameCommands } from "../../app/slices"
 
 /** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
@@ -182,6 +182,7 @@ const EditablePythonEditor: FC<{
       <CommandsModal
         open={commandsOpen}
         commands={commands ?? []}
+        getSignature={command => `my_van.${command}()`}
         onClose={() => setCommandsOpen(false)}
       />
     </Box>
