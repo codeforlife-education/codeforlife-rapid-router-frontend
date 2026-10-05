@@ -19,7 +19,7 @@ import {
 import {
   dispatchHighlightedLine,
   highlightLineExtension,
-} from "./pythonLineHighlight"
+} from "./lineHighlight"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -29,9 +29,9 @@ import {
   useGameInPlay,
   usePlayIntervalContext,
   usePythonWorkspaceContext,
-} from "../app/hooks"
+} from "../../app/hooks"
 import CommandsModal from "./CommandsModal"
-import { setGameCommands } from "../app/slices"
+import { setGameCommands } from "../../app/slices"
 
 /** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
 const EditablePythonEditor: FC<{

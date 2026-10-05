@@ -14,7 +14,7 @@ import {
 import { type BlockToolboxEntry } from "../blockly/blocks"
 import { type BlockType } from "./blocks"
 import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
-import { PYTHON_STARTER_CODE } from "../codeMirror"
+import { PYTHON_STARTER_CODE } from "../codeMirror/python"
 
 export type BlockDefinition<T extends string> = {
   type: T

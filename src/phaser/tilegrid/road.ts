@@ -1,12 +1,3 @@
-/**
- * Road tile connectivity - shared between the live Phaser game
- * (`CharacterManager`) and the headless level simulator (`LevelSimulator`),
- * so both agree on exactly which side(s) of a road tile actually connect to
- * its neighbours. A tile being non-empty is NOT enough on its own: e.g. a
- * dead end or turn tile only opens onto 1-2 of its 4 sides, so entering/
- * exiting via a side it doesn't open onto must be treated as off-road, even
- * though the tile itself is "road".
- */
 import * as tilesets from "../tilesets"
 import {
   type Direction,
@@ -56,13 +47,7 @@ export function roadOpenSides(
   return new Set(sides)
 }
 
-/**
- * Builds the tile-connectivity queries shared by the live Phaser game
- * (`CharacterManager`) and the headless level simulator (`LevelSimulator`) -
- * both agree on these rules by constructing their navigator from the same
- * code, differing only in how `getTile` reads a tile's index/rotation (a
- * live `Tilemap` lookup vs. a raw road-data array).
- */
+/** Creates a navigator for querying road tile connectivity on a tilemap. */
 export function createRoadNavigator<Tile extends { row: number; col: number }>(
   getTile: (tile: Tile) => { index: number; rotation: number } | undefined,
 ) {

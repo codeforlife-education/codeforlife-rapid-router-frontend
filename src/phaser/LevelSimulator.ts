@@ -1,14 +1,14 @@
-import * as tilesets from "../phaser/tilesets"
+import * as tilesets from "./tilesets"
 import {
   type Direction,
   turnAround,
   turnLeft,
   turnRight,
-} from "../phaser/tilemaps/navigation"
-import { type RoadID, decode } from "../phaser/layers/tile/data"
+} from "./tilegrid/navigation"
+import { type RoadID, decode } from "./layers/tile/data"
 import type { GameCommand } from "../app/slices"
-import type { OrthogonalTilemap } from "../phaser/tilemaps"
-import { createRoadNavigator } from "../phaser/tilemaps/roadConnectivity"
+import type { OrthogonalTilemap } from "./tilemaps"
+import { createRoadNavigator } from "./tilegrid/road"
 
 export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"

@@ -7,13 +7,13 @@ export {
   default as LevelSimulator,
   type RelativeDirection,
   type TrafficLightColour,
-} from "./LevelSimulator"
+} from "../../phaser/LevelSimulator"
 export { usePyodideRunner, type PyodideRunResult } from "./usePyodideRunner"
-export { PYTHON_STARTER_CODE } from "./pythonStarterCode"
+export { default as PYTHON_STARTER_CODE } from "./starterCode.py?raw"
 export { default as PythonEditor } from "./PythonEditor"
-export { getTilemap } from "./getTilemap"
+export { getTilemap } from "../../phaser/tilemaps/load"
 export {
   SENSING_METHODS,
   type SensingMethod,
   type VanMethod,
-} from "./vanMethods"
+} from "../../app/van"

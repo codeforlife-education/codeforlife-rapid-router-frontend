@@ -8,7 +8,7 @@ import {
   useState,
 } from "react"
 
-import { LevelSimulator, getTilemap } from "../codeMirror"
+import { LevelSimulator, getTilemap } from "../codeMirror/python"
 import {
   clearWorkspace,
   getPythonCodeFromStartBlock,

@@ -3,7 +3,7 @@ import { Close as CloseIcon } from "@mui/icons-material"
 import { CopyIconButton } from "codeforlife/components"
 import { type FC } from "react"
 
-import type { VanMethod } from "./vanMethods"
+import type { VanMethod } from "../../app/van"
 
 type CommandCategory = "Movement" | "Position" | "Animals"
 

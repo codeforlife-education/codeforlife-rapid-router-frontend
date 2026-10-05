@@ -1,13 +1,5 @@
-/**
- * Pure direction/heading math shared between the live Phaser game
- * (`CharacterManager`) and anything else that needs to reason about a
- * character's position/heading on the road grid without depending on
- * Phaser (e.g. a headless level simulator).
- */
-
 export type Direction = "top" | "right" | "bottom" | "left"
 
-/** Clockwise order of directions - matches the endpoints' own rotation convention. */
 export const DIRECTION_ORDER: readonly Direction[] = [
   "top",
   "right",

@@ -27,7 +27,7 @@ import {
 import { BlocklyWorkspaceContext } from "../blockly"
 import { PhaserGameContext } from "../phaser"
 import PlayIntervalContext from "./PlayIntervalContext"
-import { PythonWorkspaceContext } from "../codeMirror"
+import { PythonWorkspaceContext } from "../codeMirror/python"
 
 export type ScreenOrientation = "portrait" | "landscape"
 

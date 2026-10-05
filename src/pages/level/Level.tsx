@@ -17,7 +17,7 @@ import {
   PythonWorkspaceContext,
   type PythonWorkspaceRef,
   type VanMethod,
-} from "../../codeMirror"
+} from "../../codeMirror/python"
 import {
   PhaserGameContext,
   type PhaserGameRef,

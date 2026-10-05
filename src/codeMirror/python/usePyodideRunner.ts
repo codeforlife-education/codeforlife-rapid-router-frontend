@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import type { RunRequest, WorkerResponse } from "./pyodide.worker"
-import type { GameCommand } from "../app/slices"
+import type { GameCommand } from "../../app/slices"
 
 export type PyodideRunResult =
   | {

@@ -7,11 +7,11 @@ import {
   turnAround,
   turnLeft,
   turnRight,
-} from "../../../tilemaps/navigation"
+} from "../../../tilegrid/navigation"
 import { Events, TILE_WIDTH } from "../../../globals"
 import type { GameCommand } from "../../../../app/slices"
 import type Level from "."
-import { createRoadNavigator } from "../../../tilemaps/roadConnectivity"
+import { createRoadNavigator } from "../../../tilegrid/road"
 
 export type { Direction }
 

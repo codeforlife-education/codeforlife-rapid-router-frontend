@@ -1,6 +1,6 @@
 import { type RefObject, createContext } from "react"
 
-import type { VanMethod } from "./vanMethods"
+import type { VanMethod } from "../../app/van"
 
 export type PythonWorkspaceRef = {
   clear: () => void

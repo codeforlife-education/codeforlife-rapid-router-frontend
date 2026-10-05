@@ -1,4 +1,4 @@
-import { type GameCommand } from "../app/slices"
+import { type GameCommand } from "./slices"
 
 /**
  * `my_van` methods that query the van's surroundings rather than instruct
