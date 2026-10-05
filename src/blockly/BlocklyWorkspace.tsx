@@ -8,6 +8,7 @@ import {
   useState,
 } from "react"
 
+import { LevelSimulator, getTilemap } from "../codeMirror"
 import {
   clearWorkspace,
   getPythonCodeFromStartBlock,
@@ -25,8 +26,8 @@ import {
   usePlayIntervalContext,
 } from "../app/hooks"
 import { type StartBlockType } from "./blocks"
+import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
-import { usePyodideRunner } from "../codeMirror"
 
 export interface BlocklyWorkspaceProps {
   startBlockType?: StartBlockType
@@ -54,7 +55,6 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const gameHasFinishedEarly = useGameHasFinishedEarly()
   const gameCommandIndex = useGameCommandIndex()
   const commandBlocks = useGameCommandBlocks()
-  const { run } = usePyodideRunner()
   const playIntervalContext = usePlayIntervalContext()
   if (!playIntervalContext)
     throw new ReferenceError("Play interval context not provided.")
@@ -65,7 +65,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const { ref, toolboxContents, maxInstances, setPythonCode, levelId } =
     blocklyWorkspaceContext
 
-  // Generates Python from the current blocks and runs it through Pyodide -
+  // Generates Python (for display only) and runs the blocks directly -
   // only invoked when the player presses Play (via the exposed `run` ref
   // method), never automatically on edit.
   const runRef = useRef(() => {})
@@ -83,19 +83,21 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     const code = getPythonCodeFromStartBlock(blockly.startBlock)
     setPythonCode(stripHighlightCalls(code))
 
-    // Run the generated Python through the same Pyodide pipeline the
-    // Python editor uses, so loops/conditionals/etc. are correctly
-    // resolved by actually executing them, not by statically walking
-    // the blocks. Playback only starts once the full command list is
-    // ready (see `editable`-equivalent lock on the workspace below).
+    // Runs the blocks directly against a headless simulator (see
+    // `blockly/interpreter.ts`) - no Python generation/execution involved,
+    // so pure Blockly levels never need to load Pyodide. Playback only
+    // starts once the full command list is ready (see `editable`-equivalent
+    // lock on the workspace below).
     dispatch(setGameCommands({ commands: [], lines: [], blocks: [] }))
-    void run(code, levelId).then(result => {
+    void getTilemap(levelId).then(tilemap => {
+      const simulator = new LevelSimulator(tilemap)
+      const result = runBlockly(blockly.startBlock, simulator)
       if (result.ok) {
         dispatch(
           setGameCommands({
-            commands: result.commands,
-            lines: result.commandLines,
-            blocks: result.commandBlocks,
+            commands: simulator.commands,
+            lines: simulator.commandLines,
+            blocks: simulator.commandBlocks,
           }),
         )
         setPlayInterval()

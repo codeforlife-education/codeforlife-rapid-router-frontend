@@ -1,6 +1,6 @@
 import { type RefObject, createContext } from "react"
 
-import type { GameCommand } from "../app/slices"
+import type { VanMethod } from "./vanMethods"
 
 export type PythonWorkspaceRef = {
   clear: () => void
@@ -18,7 +18,7 @@ export type PythonWorkspaceContextValue = {
   mode: "python" | "blocklyAndPython"
   /** The `my_van` commands relevant to this level, shown in the Commands
    * modal. Only set for "python" mode levels. */
-  commands?: GameCommand[]
+  commands?: VanMethod[]
 }
 
 const PythonWorkspaceContext =

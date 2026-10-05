@@ -1,7 +1,6 @@
 import * as tilesets from "../phaser/tilesets"
 import {
   type Direction,
-  STEP_BY_DIRECTION,
   turnAround,
   turnLeft,
   turnRight,
@@ -9,7 +8,7 @@ import {
 import { type RoadID, decode } from "../phaser/layers/tile/data"
 import type { GameCommand } from "../app/slices"
 import type { OrthogonalTilemap } from "../phaser/tilemaps"
-import { roadOpenSides } from "../phaser/tilemaps/roadConnectivity"
+import { createRoadNavigator } from "../phaser/tilemaps/roadConnectivity"
 
 export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"
@@ -51,6 +50,7 @@ export default class LevelSimulator {
   private readonly roadData: readonly number[]
   private readonly roadWidth: number
   private readonly roadHeight: number
+  private readonly navigator: ReturnType<typeof createRoadNavigator<Tile>>
   private readonly destinationTiles: Tile[]
   private tile: Tile
   private heading: Direction
@@ -72,6 +72,17 @@ export default class LevelSimulator {
     this.roadData = roadLayer.data
     this.roadWidth = roadLayer.width
     this.roadHeight = roadLayer.height
+    this.navigator = createRoadNavigator<Tile>(tile => {
+      if (
+        tile.row < 0 ||
+        tile.row >= this.roadHeight ||
+        tile.col < 0 ||
+        tile.col >= this.roadWidth
+      )
+        return undefined
+      const rawId = this.roadData[tile.row * this.roadWidth + tile.col]
+      return rawId === 0 ? undefined : decode(rawId as RoadID)
+    })
 
     const objects = tilemap.layers[2].objects
     const start = objects.find(
@@ -106,36 +117,6 @@ export default class LevelSimulator {
     return a.row === b.row && a.col === b.col
   }
 
-  private moveFromTile(tile: Tile, dir: Direction): Tile {
-    const step = STEP_BY_DIRECTION[dir]
-    return { row: tile.row + step.row, col: tile.col + step.col }
-  }
-
-  /** The compass directions the tile at `tile` actually opens onto, or
-   * `undefined` if it isn't a road tile at all (including off the map). */
-  private openSides(tile: Tile): Set<Direction> | undefined {
-    if (
-      tile.row < 0 ||
-      tile.row >= this.roadHeight ||
-      tile.col < 0 ||
-      tile.col >= this.roadWidth
-    )
-      return undefined
-    const rawId = this.roadData[tile.row * this.roadWidth + tile.col]
-    if (rawId === 0) return undefined
-    const { index, rotation } = decode(rawId as RoadID)
-    return roadOpenSides(index, rotation)
-  }
-
-  /** True only if `fromTile` opens onto `dir` AND the neighbouring tile in
-   * `dir` opens back onto `fromTile` - a tile merely being road isn't
-   * enough, since e.g. a dead end or turn tile only connects 1-2 sides. */
-  private roadConnects(fromTile: Tile, dir: Direction): boolean {
-    if (!this.openSides(fromTile)?.has(dir)) return false
-    const toTile = this.moveFromTile(fromTile, dir)
-    return this.openSides(toTile)?.has(turnAround(dir)) ?? false
-  }
-
   /** Records a command against `this.commands`/`commandLines`/`commandBlocks`. */
   private pushCommand(command: GameCommand, line?: number, blockId?: string) {
     this.commands.push(command)
@@ -150,7 +131,7 @@ export default class LevelSimulator {
     blockId?: string,
   ) {
     this.pushCommand(command, line, blockId)
-    this.tile = this.moveFromTile(this.tile, this.heading)
+    this.tile = this.navigator.moveFromTile(this.tile, this.heading)
     this.heading = newHeading(this.heading)
   }
 
@@ -160,7 +141,7 @@ export default class LevelSimulator {
   // originating Blockly block ID (if the script was compiled from blocks).
   moveForwards = (line?: number, blockId?: string) => {
     this.pushCommand("move_forwards", line, blockId)
-    this.tile = this.moveFromTile(this.tile, this.heading)
+    this.tile = this.navigator.moveFromTile(this.tile, this.heading)
   }
   turnLeft = (line?: number, blockId?: string) =>
     this.turnTo("turn_left", turnLeft, line, blockId)
@@ -188,15 +169,15 @@ export default class LevelSimulator {
   // opens onto 1-2 of its 4 sides, so it must not be treated as connected
   // on a side it doesn't actually open onto.
   roadExists = (direction: RelativeDirection): boolean => {
-    if (!this.roadConnects(this.tile, this.heading)) return false
-    const nextTile = this.moveFromTile(this.tile, this.heading)
+    if (!this.navigator.roadConnects(this.tile, this.heading)) return false
+    const nextTile = this.navigator.moveFromTile(this.tile, this.heading)
     const resultingHeading =
       direction === "forward"
         ? this.heading
         : direction === "left"
           ? turnLeft(this.heading)
           : turnRight(this.heading)
-    return this.roadConnects(nextTile, resultingHeading)
+    return this.navigator.roadConnects(nextTile, resultingHeading)
   }
   isRoad = (direction: "FORWARD" | "LEFT" | "RIGHT"): boolean =>
     this.roadExists(direction.toLowerCase() as RelativeDirection)
@@ -210,14 +191,14 @@ export default class LevelSimulator {
   // front half reaches the destination tile, matching the real van sprite's
   // position (see `CharacterManager`'s `boundaryPoint`).
   atDestination = (): boolean => {
-    const aheadTile = this.moveFromTile(this.tile, this.heading)
+    const aheadTile = this.navigator.moveFromTile(this.tile, this.heading)
     return this.destinationTiles.some(t => this.tileEquals(t, aheadTile))
   }
   // Obstacles are checked one tile ahead (in the van's current heading),
   // never on the van's own tile - the game's rules forbid the van ever
   // sharing a tile with a traffic light or animal.
   atTrafficLight = (colour: TrafficLightColour): boolean => {
-    const aheadTile = this.moveFromTile(this.tile, this.heading)
+    const aheadTile = this.navigator.moveFromTile(this.tile, this.heading)
     return this.trafficLightTiles.some(
       t => t.colour === colour && this.tileEquals(t.tile, aheadTile),
     )
@@ -225,7 +206,7 @@ export default class LevelSimulator {
   atRedTrafficLight = (): boolean => this.atTrafficLight("RED")
   atGreenTrafficLight = (): boolean => this.atTrafficLight("GREEN")
   isAnimalCrossing = (): boolean => {
-    const aheadTile = this.moveFromTile(this.tile, this.heading)
+    const aheadTile = this.navigator.moveFromTile(this.tile, this.heading)
     return this.animalTiles.some(t => this.tileEquals(t, aheadTile))
   }
 }

@@ -9,7 +9,7 @@ import type { PyProxy } from "pyodide/ffi"
 
 import type { GameCommand } from "../app/slices"
 import LevelSimulator from "./LevelSimulator"
-import type { OrthogonalTilemap } from "../phaser/tilemaps"
+import { getTilemap } from "./getTilemap"
 
 // Defines the `van` module's `Van` class (see PYTHON_STARTER_CODE) in terms
 // of the underscore-prefixed JS functions set on `globals` for this run, so
@@ -57,20 +57,6 @@ void getPyodide().then(() => {
   const response: WorkerResponse = { type: "ready" }
   self.postMessage(response)
 })
-
-const tilemapCache = new Map<number, Promise<OrthogonalTilemap>>()
-function getTilemap(levelId: number) {
-  let tilemap = tilemapCache.get(levelId)
-  if (!tilemap) {
-    // Same dynamic-import pattern `Preloader.lazyLoadTilemap` uses - plain
-    // tile/object data, no Phaser instance needed.
-    tilemap = import(`../phaser/tilemaps/level${levelId}.ts`).then(
-      module => (module as { default: OrthogonalTilemap }).default,
-    )
-    tilemapCache.set(levelId, tilemap)
-  }
-  return tilemap
-}
 
 self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
   const { id, code, levelId } = data

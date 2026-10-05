@@ -3,12 +3,12 @@ import { Close as CloseIcon } from "@mui/icons-material"
 import { CopyIconButton } from "codeforlife/components"
 import { type FC } from "react"
 
-import type { GameCommand } from "../app/slices"
+import type { VanMethod } from "./vanMethods"
 
 type CommandCategory = "Movement" | "Position" | "Animals"
 
 const COMMANDS: Record<
-  GameCommand,
+  VanMethod,
   { category: CommandCategory; signature: string }
 > = {
   move_forwards: { category: "Movement", signature: "my_van.move_forwards()" },
@@ -51,8 +51,8 @@ const CATEGORY_ORDER: readonly CommandCategory[] = [
 /** Groups the given commands by category, in a fixed display order, for
  * rendering in the Commands modal. */
 function groupCommandsByCategory(
-  commands: readonly GameCommand[],
-): { category: CommandCategory; commands: GameCommand[] }[] {
+  commands: readonly VanMethod[],
+): { category: CommandCategory; commands: VanMethod[] }[] {
   return CATEGORY_ORDER.map(category => ({
     category,
     commands: commands.filter(
@@ -63,7 +63,7 @@ function groupCommandsByCategory(
 
 export interface CommandsModalProps {
   open: boolean
-  commands: GameCommand[]
+  commands: VanMethod[]
   onClose: () => void
 }
 

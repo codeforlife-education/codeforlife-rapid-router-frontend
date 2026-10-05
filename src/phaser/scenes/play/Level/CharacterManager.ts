@@ -11,7 +11,7 @@ import {
 import { Events, TILE_WIDTH } from "../../../globals"
 import type { GameCommand } from "../../../../app/slices"
 import type Level from "."
-import { roadOpenSides } from "../../../tilemaps/roadConnectivity"
+import { createRoadNavigator } from "../../../tilemaps/roadConnectivity"
 
 export type { Direction }
 
@@ -39,6 +39,7 @@ const LANE_OFFSET = 0.125 * TILE_WIDTH
  */
 export default class CharacterManager {
   private readonly level: Level
+  private readonly navigator: ReturnType<typeof createRoadNavigator<Tile>>
   private tile!: Tile
   private heading!: Direction
   private crashed = false
@@ -49,6 +50,11 @@ export default class CharacterManager {
 
   constructor(level: Level) {
     this.level = level
+    this.navigator = createRoadNavigator<Tile>(
+      tile =>
+        this.level.tilemap.getTileAt(tile.col, tile.row, false, "Tile.ROAD") ??
+        undefined,
+    )
     this.spawn()
 
     const onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
@@ -156,7 +162,7 @@ export default class CharacterManager {
   }
 
   private moveForwards(instant: boolean) {
-    const newTile = this.moveFromTile(this.tile, this.heading)
+    const newTile = this.navigator.moveFromTile(this.tile, this.heading)
 
     if (instant) {
       this.tile = newTile
@@ -179,7 +185,7 @@ export default class CharacterManager {
       90: turnRight(this.heading),
       180: turnAround(this.heading),
     }[deltaDeg]
-    const newTile = this.moveFromTile(this.tile, this.heading)
+    const newTile = this.navigator.moveFromTile(this.tile, this.heading)
 
     if (instant) {
       this.tile = newTile
@@ -212,38 +218,10 @@ export default class CharacterManager {
     )
   }
 
-  /** The tile after moving one step in `dir` (may be off the edge of the map). */
-  private moveFromTile(tile: Tile, dir: Direction): Tile {
-    const step = STEP_BY_DIRECTION[dir]
-    return { row: tile.row + step.row, col: tile.col + step.col }
-  }
-
-  /** The compass directions the tile at `tile` actually opens onto, or
-   * `undefined` if it isn't a road tile at all (including off the map). */
-  private openSides(tile: Tile): Set<Direction> | undefined {
-    const roadTile = this.level.tilemap.getTileAt(
-      tile.col,
-      tile.row,
-      false,
-      "Tile.ROAD",
-    )
-    if (!roadTile) return undefined
-    return roadOpenSides(roadTile.index, roadTile.rotation)
-  }
-
-  /** True only if `fromTile` opens onto `dir` AND the neighbouring tile in
-   * `dir` opens back onto `fromTile` - a tile merely being road isn't
-   * enough, since e.g. a dead end or turn tile only connects 1-2 sides. */
-  private roadConnects(fromTile: Tile, dir: Direction): boolean {
-    if (!this.openSides(fromTile)?.has(dir)) return false
-    const toTile = this.moveFromTile(fromTile, dir)
-    return this.openSides(toTile)?.has(turnAround(dir)) ?? false
-  }
-
   /** The van is on the road only while both tiles it straddles are road AND
    * actually connected to each other in its current heading. */
   private isValidState(tile: Tile, heading: Direction): boolean {
-    return this.roadConnects(tile, heading)
+    return this.navigator.roadConnects(tile, heading)
   }
 
   /** Crashes if the van's current position has driven off the road. */

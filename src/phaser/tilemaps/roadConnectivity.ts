@@ -8,7 +8,12 @@
  * though the tile itself is "road".
  */
 import * as tilesets from "../tilesets"
-import { type Direction, turnRight } from "./navigation"
+import {
+  type Direction,
+  STEP_BY_DIRECTION,
+  turnAround,
+  turnRight,
+} from "./navigation"
 
 /** Each road type's open sides before any rotation is applied - matching
  * that type's own canonical (`0°`) named variant in `layers/tile/data.ts`
@@ -49,4 +54,38 @@ export function roadOpenSides(
   let sides: readonly Direction[] = sidesAt0
   for (let i = 0; i < steps; i++) sides = sides.map(turnRight)
   return new Set(sides)
+}
+
+/**
+ * Builds the tile-connectivity queries shared by the live Phaser game
+ * (`CharacterManager`) and the headless level simulator (`LevelSimulator`) -
+ * both agree on these rules by constructing their navigator from the same
+ * code, differing only in how `getTile` reads a tile's index/rotation (a
+ * live `Tilemap` lookup vs. a raw road-data array).
+ */
+export function createRoadNavigator<Tile extends { row: number; col: number }>(
+  getTile: (tile: Tile) => { index: number; rotation: number } | undefined,
+) {
+  const moveFromTile = (tile: Tile, dir: Direction): Tile => {
+    const step = STEP_BY_DIRECTION[dir]
+    return { row: tile.row + step.row, col: tile.col + step.col } as Tile
+  }
+
+  /** The compass directions the tile at `tile` actually opens onto, or
+   * `undefined` if it isn't a road tile at all (including off the map). */
+  const openSides = (tile: Tile): Set<Direction> | undefined => {
+    const roadTile = getTile(tile)
+    return roadTile && roadOpenSides(roadTile.index, roadTile.rotation)
+  }
+
+  /** True only if `fromTile` opens onto `dir` AND the neighbouring tile in
+   * `dir` opens back onto `fromTile` - a tile merely being road isn't
+   * enough, since e.g. a dead end or turn tile only connects 1-2 sides. */
+  const roadConnects = (fromTile: Tile, dir: Direction): boolean => {
+    if (!openSides(fromTile)?.has(dir)) return false
+    const toTile = moveFromTile(fromTile, dir)
+    return openSides(toTile)?.has(turnAround(dir)) ?? false
+  }
+
+  return { moveFromTile, openSides, roadConnects }
 }

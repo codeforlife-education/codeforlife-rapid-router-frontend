@@ -11,3 +11,9 @@ export {
 export { usePyodideRunner, type PyodideRunResult } from "./usePyodideRunner"
 export { PYTHON_STARTER_CODE } from "./pythonStarterCode"
 export { default as PythonEditor } from "./PythonEditor"
+export { getTilemap } from "./getTilemap"
+export {
+  SENSING_METHODS,
+  type SensingMethod,
+  type VanMethod,
+} from "./vanMethods"

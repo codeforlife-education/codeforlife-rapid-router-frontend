@@ -9,13 +9,6 @@ export const GAME_COMMANDS = [
   "wait",
   "deliver",
   "sound_horn",
-  "at_dead_end",
-  "at_destination",
-  "at_red_traffic_light",
-  "is_road_forward",
-  "is_road_left",
-  "is_road_right",
-  "is_animal_crossing",
 ] as const
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 

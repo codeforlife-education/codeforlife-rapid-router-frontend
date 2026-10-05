@@ -10,10 +10,10 @@ import {
 } from "react"
 import { python } from "@codemirror/lang-python"
 
-import { type GameCommand, setGameCommands } from "../app/slices"
 import {
   PYTHON_STARTER_CODE,
   type PythonWorkspaceRef,
+  type VanMethod,
   usePyodideRunner,
 } from "."
 import {
@@ -31,12 +31,13 @@ import {
   usePythonWorkspaceContext,
 } from "../app/hooks"
 import CommandsModal from "./CommandsModal"
+import { setGameCommands } from "../app/slices"
 
 /** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
 const EditablePythonEditor: FC<{
   ref: RefObject<PythonWorkspaceRef | null>
   levelId: number
-  commands?: GameCommand[]
+  commands?: VanMethod[]
 }> = ({ ref, levelId, commands }) => {
   const dispatch = useAppDispatch()
   const { run, ready } = usePyodideRunner()

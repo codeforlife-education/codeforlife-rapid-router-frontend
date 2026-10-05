@@ -16,6 +16,7 @@ import {
   PYTHON_STARTER_CODE,
   PythonWorkspaceContext,
   type PythonWorkspaceRef,
+  type VanMethod,
 } from "../../codeMirror"
 import {
   PhaserGameContext,
@@ -24,7 +25,6 @@ import {
 } from "../../phaser"
 import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
 import Controls from "./Controls"
-import type { GameCommand } from "../../app/slices"
 import Panels from "./Panels"
 import PlayIntervalContext from "../../app/PlayIntervalContext"
 import { paths } from "../../routes"
@@ -84,7 +84,7 @@ const PythonContext: FC<
   PythonProps &
     Pick<LevelModel, "id"> & {
       mode: "python" | "blocklyAndPython"
-      commands?: GameCommand[]
+      commands?: VanMethod[]
       children: ReactNode
     }
 > = ({ id, mode, commands, children }) => {
@@ -122,7 +122,7 @@ export type LevelProps =
   | (Pick<LevelModel, "id"> &
       (
         | (BlocklyProps & { mode: "blockly" })
-        | (PythonProps & { mode: "python"; commands: GameCommand[] })
+        | (PythonProps & { mode: "python"; commands: VanMethod[] })
         | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
       ))
   | {}
