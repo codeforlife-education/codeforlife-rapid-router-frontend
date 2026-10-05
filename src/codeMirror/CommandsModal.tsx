@@ -7,6 +7,7 @@ import { type VanMethod, groupCommandsByCategory } from "../app/van"
 
 export interface CommandsModalProps {
   open: boolean
+  language: string
   commands: VanMethod[]
   /** Formats a command/method as the caller's own target-language call
    * syntax (e.g. Python's `my_van.move_forwards()`) - this modal has no
@@ -17,6 +18,7 @@ export interface CommandsModalProps {
 
 const CommandsModal: FC<CommandsModalProps> = ({
   open,
+  language,
   commands,
   getSignature,
   onClose,
@@ -44,7 +46,7 @@ const CommandsModal: FC<CommandsModalProps> = ({
           justifyContent: "space-between",
         }}
       >
-        <Typography variant="h3">Python Commands</Typography>
+        <Typography variant="h3">{language} Commands</Typography>
         <IconButton onClick={onClose} size="small" type="button">
           <CloseIcon />
         </IconButton>

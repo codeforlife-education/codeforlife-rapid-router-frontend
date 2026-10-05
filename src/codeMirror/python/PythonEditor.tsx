@@ -181,6 +181,7 @@ const EditablePythonEditor: FC<{
       </Box>
       <CommandsModal
         open={commandsOpen}
+        language="Python"
         commands={commands ?? []}
         getSignature={command => `my_van.${command}()`}
         onClose={() => setCommandsOpen(false)}
