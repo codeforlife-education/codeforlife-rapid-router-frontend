@@ -50,8 +50,7 @@ const CommandsModal: FC<CommandsModalProps> = ({
         </IconButton>
       </Box>
       <Typography sx={{ mb: 4 }}>
-        Run the following commands on the van object v, e.g.
-        my_van.move_forwards()
+        Run the following commands on the van object:
       </Typography>
       <Box
         sx={{
