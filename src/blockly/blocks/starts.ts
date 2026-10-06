@@ -1,4 +1,4 @@
-import { defineBlock } from "../utils"
+import { defineBlock } from "./blocks"
 
 function defineStartBlock<T extends string>(type: T, imageName: string) {
   return defineBlock(

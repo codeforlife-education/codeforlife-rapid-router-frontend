@@ -9,7 +9,7 @@ import {
 } from "@mui/material"
 import { type FC, useCallback } from "react"
 
-import { type BlockDefinition } from "../../blockly/utils"
+import { type BlockDefinition } from "../../blockly/blocks"
 import { BlockPreview } from "../../blockly"
 import { type BlockType } from "../../blockly/blocks"
 

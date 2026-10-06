@@ -22,7 +22,7 @@ import { getTilemap } from "../../phaser/tilemaps/load"
 // line number (`f_back.f_lineno`) through, so its own JS call is tagged with
 // the exact line that issued it. `_current_block_id` tracks the Blockly
 // block currently executing, set via `_highlight_block` calls injected by
-// `pythonGenerator.STATEMENT_PREFIX` (see `blockly/utils.ts`) - `None` for
+// `pythonGenerator.STATEMENT_PREFIX` (see `blockly/python.ts`) - `None` for
 // hand-typed Python, which never calls `_highlight_block`.
 import VAN_MODULE_PREAMBLE from "./van.py?raw"
 

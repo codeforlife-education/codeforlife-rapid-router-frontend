@@ -8,13 +8,8 @@ import {
   useState,
 } from "react"
 
-import {
-  clearWorkspace,
-  getPythonCodeFromStartBlock,
-  initializeBlockly,
-  resizeWorkspace,
-  stripHighlightCalls,
-} from "./utils"
+import { clearWorkspace, initializeBlockly, resizeWorkspace } from "./workspace"
+import { getPythonCodeFromStartBlock, stripHighlightCalls } from "./python"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,

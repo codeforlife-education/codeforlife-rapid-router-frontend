@@ -1,4 +1,4 @@
-import { type BlockDefinition } from "../utils"
+import { type BlockDefinition } from "./blocks"
 
 // https://github.com/RaspberryPiFoundation/blockly/blob/blockly-v12.3.1/blocks/logic.ts
 

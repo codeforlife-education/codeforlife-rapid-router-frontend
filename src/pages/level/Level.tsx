@@ -22,7 +22,7 @@ import {
   type PhaserGameRef,
   type SceneKey,
 } from "../../phaser"
-import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
+import { getMaxInstances, getToolboxContents } from "../../blockly/workspace"
 import type { CharacterCommand } from "../../app/character"
 import Controls from "./Controls"
 import Panels from "./Panels"

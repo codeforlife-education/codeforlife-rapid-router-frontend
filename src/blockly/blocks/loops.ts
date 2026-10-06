@@ -1,6 +1,6 @@
 import { Order, pythonGenerator } from "blockly/python"
 
-import { type DefineBlockKwArgs, defineBlock } from "../utils"
+import { type DefineBlockKwArgs, defineBlock } from "./blocks"
 
 // Blockly's default `controls_whileUntil` combines "while" and "until" into
 // one block with a MODE dropdown. Our game's levels are built around having

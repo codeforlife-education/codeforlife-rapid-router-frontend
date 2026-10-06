@@ -1,5 +1,5 @@
 import { type GameCommand } from "../../app/slices"
-import { defineBlock } from "../utils"
+import { defineBlock } from "./blocks"
 import deliverIcon from "../../images/blocks/deliver.svg"
 import emptyIcon from "../../images/blocks/empty.svg"
 import moveForwardsIcon from "../../images/blocks/move_forwards.svg"
