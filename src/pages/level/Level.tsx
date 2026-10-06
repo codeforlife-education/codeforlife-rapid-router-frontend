@@ -23,10 +23,10 @@ import {
   type SceneKey,
 } from "../../phaser"
 import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
+import type { CharacterCommand } from "../../app/character"
 import Controls from "./Controls"
 import Panels from "./Panels"
 import PlayIntervalContext from "../../app/PlayIntervalContext"
-import type { VanMethod } from "../../app/van"
 import { paths } from "../../routes"
 import { usePlayInterval } from "../../app/hooks"
 
@@ -84,7 +84,7 @@ const PythonContext: FC<
   PythonProps &
     Pick<LevelModel, "id"> & {
       mode: "python" | "blocklyAndPython"
-      commands?: VanMethod[]
+      commands?: CharacterCommand[]
       children: ReactNode
     }
 > = ({ id, mode, commands, children }) => {
@@ -127,7 +127,7 @@ export type LevelProps =
   | (Pick<LevelModel, "id"> &
       (
         | (BlocklyProps & { mode: "blockly" })
-        | (PythonProps & { mode: "python"; commands: VanMethod[] })
+        | (PythonProps & { mode: "python"; commands: CharacterCommand[] })
         | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
       ))
   | {}

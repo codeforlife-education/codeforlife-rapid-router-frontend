@@ -1,7 +1,7 @@
 import { type RefObject, createContext } from "react"
 
 import type { BaseEditorRef } from "../BaseEditor"
-import type { VanMethod } from "../../app/van"
+import type { CharacterCommand } from "../../app/character"
 
 export type PythonEditorRef = BaseEditorRef
 
@@ -13,7 +13,7 @@ export type PythonEditorContextValue = {
   editable: boolean
   /** The `my_van` commands relevant to this level, shown in the Commands
    * modal. Only set for "python" mode levels. */
-  commands?: VanMethod[]
+  commands?: CharacterCommand[]
 }
 
 const PythonEditorContext = createContext<PythonEditorContextValue | null>(null)

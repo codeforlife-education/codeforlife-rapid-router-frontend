@@ -10,10 +10,10 @@ import {
   usePythonEditorContext,
 } from "../../app/hooks"
 import BaseEditor from "../BaseEditor"
+import type { CharacterCommand } from "../../app/character"
 import CommandsModal from "../CommandsModal"
 import PYTHON_STARTER_CODE from "./starterCode.py?raw"
 import type { PythonEditorRef } from "./PythonEditorContext"
-import type { VanMethod } from "../../app/van"
 import { setGameCommands } from "../../app/slices"
 import { usePyodideRunner } from "./usePyodideRunner"
 
@@ -21,7 +21,7 @@ import { usePyodideRunner } from "./usePyodideRunner"
 const EditablePythonEditor: FC<{
   ref: RefObject<PythonEditorRef | null>
   levelId: number
-  commands?: VanMethod[]
+  commands?: CharacterCommand[]
 }> = ({ ref, levelId, commands }) => {
   const dispatch = useAppDispatch()
   const { run, ready } = usePyodideRunner()
@@ -38,14 +38,16 @@ const EditablePythonEditor: FC<{
   // so playback only starts once the full command list is ready.
   const handleRun = (code: string) => {
     setError(null)
-    dispatch(setGameCommands({ commands: [], lines: [] }))
+    dispatch(setGameCommands([]))
     void run(code, levelId).then(result => {
       if (result.ok) {
         dispatch(
-          setGameCommands({
-            commands: result.commands,
-            lines: result.commandLines,
-          }),
+          setGameCommands(
+            result.commands.map((command, i) => ({
+              command,
+              lineNo: result.commandLines[i],
+            })),
+          ),
         )
         setPlayInterval()
       } else {

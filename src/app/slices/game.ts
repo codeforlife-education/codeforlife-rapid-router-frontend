@@ -13,12 +13,13 @@ export const GAME_COMMANDS = [
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
 export interface GameState {
-  gameCommands: GameCommand[]
-  /** The Python source line (1-indexed) that produced each `gameCommands` entry. */
-  gameCommandLines: number[]
-  /** The originating Blockly block ID for each `gameCommands` entry, when
-   * the commands came from a compiled Blockly workspace (`null` otherwise). */
-  gameCommandBlocks: (string | null)[]
+  gameCommands: {
+    command: GameCommand
+    /** The originating Blockly block ID. */
+    blockID?: string
+    /** The source line (1-indexed). */
+    lineNo?: number
+  }[]
   gameCommandIndex: number
   gameOver: boolean
 }
@@ -26,8 +27,6 @@ export interface GameState {
 const startGameCommandIndex = -1 // indicates start before the first command
 const initialState: GameState = Object.freeze({
   gameCommands: [],
-  gameCommandLines: [],
-  gameCommandBlocks: [],
   gameCommandIndex: startGameCommandIndex,
   gameOver: false,
 })
@@ -58,17 +57,8 @@ export const gameSlice = createSlice({
   initialState,
   reducers: create => ({
     setGameCommands: create.reducer(
-      (
-        state,
-        action: PayloadAction<{
-          commands: GameCommand[]
-          lines: number[]
-          blocks?: (string | null)[]
-        }>,
-      ) => {
-        state.gameCommands = action.payload.commands
-        state.gameCommandLines = action.payload.lines
-        state.gameCommandBlocks = action.payload.blocks ?? []
+      (state, action: PayloadAction<GameState["gameCommands"]>) => {
+        state.gameCommands = action.payload
         _restartGame(state)
       },
     ),
@@ -91,9 +81,9 @@ export const gameSlice = createSlice({
     }),
   }),
   selectors: {
-    selectGameCommands: state => state.gameCommands,
-    selectGameCommandLines: state => state.gameCommandLines,
-    selectGameCommandBlocks: state => state.gameCommandBlocks,
+    selectGameCommands: state => state.gameCommands.map(c => c.command),
+    selectGameCommandLines: state => state.gameCommands.map(c => c.lineNo),
+    selectGameCommandBlocks: state => state.gameCommands.map(c => c.blockID),
     selectGameCommandIndex: state => state.gameCommandIndex,
     selectGameOver: state => state.gameOver,
     selectCurrentGameCommand: state =>

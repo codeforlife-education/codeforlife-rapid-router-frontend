@@ -56,6 +56,7 @@ export function usePlayInterval() {
   const dispatch = useAppDispatch()
   const { playSpeed } = useSettings()
   const gameOver = useGameOver()
+  const gameIsDefined = useGameIsDefined()
   const intervalRef = useRef<null | ReturnType<typeof setInterval>>(null)
 
   const clearPlayInterval = useCallback(() => {
@@ -76,6 +77,11 @@ export function usePlayInterval() {
   useEffect(() => {
     if (gameOver) clearPlayInterval()
   }, [gameOver, clearPlayInterval])
+
+  // Clear interval whenever the game becomes undefined.
+  useEffect(() => {
+    if (!gameIsDefined) clearPlayInterval()
+  }, [gameIsDefined, clearPlayInterval])
 
   // Clear interval on unmount.
   useEffect(() => {

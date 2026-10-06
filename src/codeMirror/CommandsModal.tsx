@@ -3,16 +3,19 @@ import { Close as CloseIcon } from "@mui/icons-material"
 import { CopyIconButton } from "codeforlife/components"
 import { type FC } from "react"
 
-import { type VanMethod, groupCommandsByCategory } from "../app/van"
+import {
+  type CharacterCommand,
+  groupCommandsByCategory,
+} from "../app/character"
 
 export interface CommandsModalProps {
   open: boolean
   language: string
-  commands: VanMethod[]
-  /** Formats a command/method as the caller's own target-language call
+  commands: CharacterCommand[]
+  /** Formats a command as the caller's own target-language call
    * syntax (e.g. Python's `my_van.move_forwards()`) - this modal has no
    * built-in knowledge of any particular language. */
-  getSignature: (command: VanMethod) => string
+  getSignature: (command: CharacterCommand) => string
   onClose: () => void
 }
 

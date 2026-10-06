@@ -89,17 +89,19 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     // so pure Blockly levels never need to load Pyodide. Playback only
     // starts once the full command list is ready (see `editable`-equivalent
     // lock on the workspace below).
-    dispatch(setGameCommands({ commands: [], lines: [], blocks: [] }))
+    dispatch(setGameCommands([]))
     void getTilemap(levelId).then(tilemap => {
       const simulator = new LevelSimulator(tilemap)
       const result = runBlockly(blockly.startBlock, simulator)
       if (result.ok) {
         dispatch(
-          setGameCommands({
-            commands: simulator.commands,
-            lines: simulator.commandLines,
-            blocks: simulator.commandBlocks,
-          }),
+          setGameCommands(
+            simulator.commands.map((command, i) => ({
+              command,
+              lineNo: simulator.commandLines[i],
+              blockId: simulator.commandBlocks[i],
+            })),
+          ),
         )
         setPlayInterval()
       } else {

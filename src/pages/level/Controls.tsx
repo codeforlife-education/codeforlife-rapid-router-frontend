@@ -16,7 +16,7 @@ import {
   THREE_PANEL_LAYOUTS,
   TWO_PANEL_LAYOUTS,
   nextGameCommand,
-  setGameCommands,
+  restartGame,
   setPlaySpeed,
   setThreePanelLayout,
   setTwoPanelLayout,
@@ -41,8 +41,6 @@ const Base: FC<
   Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
     panelCount: number
     onClear: () => void
-    /** (Re-)runs the active mode's code - only called when Play/Run Program
-     * is pressed, never automatically on edit. */
     onRun: () => void
   }
 > = ({ panelCount, onClear, onRun, onOpened, onClosed }) => {
@@ -53,10 +51,11 @@ const Base: FC<
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
   const playIntervalContext = usePlayIntervalContext()
+  const { activeSceneKeys } = usePhaserGameContext()
+
   if (!playIntervalContext)
     throw new ReferenceError("Play interval context not provided.")
   const [playInterval, , clearPlayInterval] = playIntervalContext
-  const { activeSceneKeys } = usePhaserGameContext()
 
   // Helper to map panel layout options to menu items.
   function mapPanelLayoutsToMenuItems<
@@ -88,8 +87,6 @@ const Base: FC<
           text={gameInPlay && playInterval ? "Pause" : "Play"}
           icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
           onClick={() => {
-            // `onRun` starts playback itself once the full command list is
-            // ready - see `BlocklyWorkspace`/`PythonEditor`'s `runRef`.
             if (!clearPlayInterval()) onRun()
           }}
         />
@@ -111,7 +108,7 @@ const Base: FC<
           disabled={!gameHasStarted}
           onClick={() => {
             clearPlayInterval()
-            dispatch(setGameCommands({ commands: [], lines: [], blocks: [] }))
+            dispatch(restartGame())
           }}
         />
         <miniDrawers.ButtonItem
@@ -209,9 +206,6 @@ const BlocklyAndPython: FC = () => {
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
-  // The Blockly workspace is the actual editor in this mode - the Python
-  // panel is just a read-only view of the code it generates - so Play only
-  // needs to (re-)run the Blockly-compiled code.
   const runBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.run()
   }, [blocklyWorkspaceContext])
