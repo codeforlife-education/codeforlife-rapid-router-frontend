@@ -55,9 +55,6 @@ function evalValue(
       return simulator.atDeadEnd()
     case "at_destination":
       return simulator.atDestination()
-    // The Python API only exposes a single generic "is animal crossing"
-    // check (no separate cow/pigeon methods), so both blocks map to it -
-    // see `registerPythonGenerators` in `blockly/utils.ts`.
     case "cow_crossing":
     case "pigeon_crossing":
       return simulator.isAnimalCrossing()

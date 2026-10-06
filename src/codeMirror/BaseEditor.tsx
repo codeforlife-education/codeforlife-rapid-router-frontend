@@ -13,12 +13,7 @@ import {
   dispatchHighlightedLine,
   highlightLineExtension,
 } from "./lineHighlight"
-import {
-  useGameCommandIndex,
-  useGameCommandLines,
-  useGameHasFinishedEarly,
-  useGameInPlay,
-} from "../app/hooks"
+import { useCurrentGameCommand, useGameInPlay } from "../app/hooks"
 
 export type BaseEditorRef = {
   /** Resets the editor back to its starter code. */
@@ -48,9 +43,7 @@ const BaseEditor: FC<BaseEditorProps> = ({
   onRun,
 }) => {
   const gameInPlay = useGameInPlay()
-  const gameHasFinishedEarly = useGameHasFinishedEarly()
-  const gameCommandIndex = useGameCommandIndex()
-  const commandLines = useGameCommandLines()
+  const currentGameCommand = useCurrentGameCommand()
   const editorRef = useRef<ReactCodeMirrorRef>(null)
   const [code, setCode] = useState(starterCode)
 
@@ -72,10 +65,8 @@ const BaseEditor: FC<BaseEditorProps> = ({
   useEffect(() => {
     const view = editorRef.current?.view
     if (!view) return
-    const line =
-      (gameInPlay || gameHasFinishedEarly) && commandLines[gameCommandIndex]
-    dispatchHighlightedLine(view, line || null)
-  }, [gameCommandIndex, gameInPlay, gameHasFinishedEarly, commandLines])
+    dispatchHighlightedLine(view, currentGameCommand?.lineNo ?? null)
+  }, [currentGameCommand])
 
   return (
     <CodeMirror

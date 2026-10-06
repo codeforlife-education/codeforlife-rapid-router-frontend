@@ -1,11 +1,10 @@
 import * as Blockly from "blockly/core"
 import * as en_default from "blockly/msg/en"
-import { Order, pythonGenerator } from "blockly/python"
+import { type Order, pythonGenerator } from "blockly/python"
 import { debounce } from "@mui/material"
 
 import * as en_custom from "./messages/en"
 import {
-  COMMAND_BLOCK_TYPES,
   CUSTOM_BLOCKS,
   START_BLOCK_TYPES,
   type StartBlockType,
@@ -15,6 +14,21 @@ import { type BlockToolboxEntry } from "../blockly/blocks"
 import { type BlockType } from "./blocks"
 import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
 import { PYTHON_STARTER_CODE } from "../codeMirror/python"
+
+// Injects a call reporting the currently-executing block's ID before
+// every generated statement (including ones nested inside a repeat/if
+// body), so the workspace can highlight the right block during playback
+// or on error - see `_highlight_block` in `pyodide.worker.ts`.
+pythonGenerator.STATEMENT_PREFIX = "_highlight_block(%1)\n"
+
+/**
+ * Strip the internal `_highlight_block` calls injected for block-highlighting
+ * during playback, so code shown to the player only contains the commands
+ * they'd actually recognize.
+ */
+export function stripHighlightCalls(code: string): string {
+  return code.replace(/^[ \t]*_highlight_block\(.*\)\n?/gm, "")
+}
 
 export type BlockDefinition<T extends string> = {
   type: T
@@ -59,9 +73,22 @@ export type BlockDefinition<T extends string> = {
   nextStatement?: string | null
 }
 
+export type DefineBlockKwArgs = {
+  /** The Python code a custom block generates - a plain statement string for
+   * statement blocks, or a `[code, order]` tuple for value blocks (`order`
+   * being the generated expression's operator precedence, so the generator
+   * knows when to wrap it in parentheses). Matches the shape Blockly expects
+   * at `pythonGenerator.forBlock[type]`. */
+  toPython: (block: Blockly.Block) => string | [string, Order]
+}
+
 export function defineBlock<T extends string>(
   blockDefinition: BlockDefinition<T>,
+  { toPython }: DefineBlockKwArgs,
 ): BlockDefinition<T> {
+  // Register the Python code generator for this block type with Blockly.
+  pythonGenerator.forBlock[blockDefinition.type] = toPython
+
   return blockDefinition
 }
 
@@ -307,64 +334,8 @@ let DEFINED_CUSTOM_BLOCKS = false
  * `"RED"`) to the Python string argument the matching `Van` sensing method
  * expects - the legacy `Van` API takes the same uppercase values Blockly's
  * dropdowns already store, so no case conversion is needed. */
-const pythonChoiceArg = (block: Blockly.Block) =>
+export const pythonChoiceArg = (block: Blockly.Block) =>
   JSON.stringify(String(block.getFieldValue("CHOICE")))
-
-let DEFINED_PYTHON_GENERATORS = false
-
-/**
- * Register the Python code each custom block generates, for use by
- * `pythonGenerator.workspaceToCode` (see `getPythonCodeFromStartBlock`).
- * Built-in blocks (e.g. `controls_if`/`controls_repeat`) already have
- * generators registered by importing `blockly/python`. Safe to call
- * multiple times.
- */
-function registerPythonGenerators() {
-  if (DEFINED_PYTHON_GENERATORS) return
-
-  // Injects a call reporting the currently-executing block's ID before
-  // every generated statement (including ones nested inside a repeat/if
-  // body), so the workspace can highlight the right block during playback
-  // or on error - see `_highlight_block` in `pyodide.worker.ts`.
-  pythonGenerator.STATEMENT_PREFIX = "_highlight_block(%1)\n"
-
-  // The start block only contributes its `PYTHON_STARTER_CODE` preamble
-  // (added separately in `getPythonCodeFromStartBlock`), not its own line.
-  pythonGenerator.forBlock[START_BLOCK_TYPES[0]] = () => ""
-
-  for (const type of COMMAND_BLOCK_TYPES)
-    pythonGenerator.forBlock[type] = () => `my_van.${type}()
-`
-
-  pythonGenerator.forBlock.road_exists = block => [
-    `my_van.is_road(${pythonChoiceArg(block)})`,
-    Order.FUNCTION_CALL,
-  ]
-  pythonGenerator.forBlock.traffic_light = block => [
-    `my_van.at_traffic_light(${pythonChoiceArg(block)})`,
-    Order.FUNCTION_CALL,
-  ]
-  pythonGenerator.forBlock.dead_end = () => [
-    "my_van.at_dead_end()",
-    Order.FUNCTION_CALL,
-  ]
-  pythonGenerator.forBlock.at_destination = () => [
-    "my_van.at_destination()",
-    Order.FUNCTION_CALL,
-  ]
-  // The Python API only exposes a single generic "is animal crossing"
-  // check (no separate cow/pigeon methods), so both blocks map to it.
-  pythonGenerator.forBlock.cow_crossing = () => [
-    "my_van.is_animal_crossing()",
-    Order.FUNCTION_CALL,
-  ]
-  pythonGenerator.forBlock.pigeon_crossing = () => [
-    "my_van.is_animal_crossing()",
-    Order.FUNCTION_CALL,
-  ]
-
-  DEFINED_PYTHON_GENERATORS = true
-}
 
 /**
  * Set up locale and custom block definitions, and disable block selection
@@ -384,8 +355,6 @@ function ensureBlocklyInitialized() {
     )
     DEFINED_CUSTOM_BLOCKS = true
   }
-
-  registerPythonGenerators()
 
   // Override block selection visuals to disable them.
   Blockly.BlockSvg.prototype.addSelect = () => {}
@@ -529,10 +498,10 @@ export function resizeWorkspace(
  * "blocklyAndPython" mode, and - by running this same output through
  * Pyodide (see `BlocklyWorkspace.tsx`) - as the actual source of game
  * commands for ALL Blockly-driven modes. Uses Blockly's official
- * `pythonGenerator`, which - via the `forBlock` entries registered in
- * `registerPythonGenerators` for our custom blocks, plus its own built-in
- * support for standard blocks (`controls_if`, `controls_repeat`, etc.) -
- * handles indentation/loops/conditionals automatically.
+ * `pythonGenerator`, which - via the `forBlock` entries each `defineBlock`
+ * call registers for our custom blocks, plus its own built-in support for
+ * standard blocks (`controls_if`, `controls_repeat`, etc.) - handles
+ * indentation/loops/conditionals automatically.
  * @param startBlock The starting block to convert from.
  * @returns The Python source code equivalent to the given blocks.
  */
@@ -574,19 +543,6 @@ export function getPythonCodeFromStartBlock(
   code = code.replace(/\n\s+$/, "\n")
   code = code.replace(/[ \t]+\n/g, "\n")
   return PYTHON_STARTER_CODE + code
-}
-
-/** Matches a whole `_highlight_block(...)` line (see `STATEMENT_PREFIX` in
- * `registerPythonGenerators`), including its leading indentation. */
-const HIGHLIGHT_CALL_LINE = /^[ \t]*_highlight_block\(.*\)\n?/gm
-
-/**
- * Strip the internal `_highlight_block` calls `getPythonCodeFromStartBlock`
- * injects for block-highlighting during playback, so code shown to the
- * player only contains the commands they'd actually recognise.
- */
-export function stripHighlightCalls(code: string): string {
-  return code.replace(HIGHLIGHT_CALL_LINE, "")
 }
 
 export function clearWorkspace(
