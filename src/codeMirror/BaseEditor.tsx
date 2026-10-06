@@ -32,7 +32,6 @@ export interface BaseEditorProps {
   starterCode: string
   /** Language-specific CodeMirror extensions (e.g. `python()`). */
   extensions: Extension[]
-  editable: boolean
   /** Called with the editor's current code when the player presses Play. */
   onRun: (code: string) => void
 }
@@ -46,7 +45,6 @@ const BaseEditor: FC<BaseEditorProps> = ({
   ref,
   starterCode,
   extensions,
-  editable,
   onRun,
 }) => {
   const gameInPlay = useGameInPlay()
@@ -83,7 +81,7 @@ const BaseEditor: FC<BaseEditorProps> = ({
     <CodeMirror
       ref={editorRef}
       value={code}
-      editable={editable}
+      editable={!gameInPlay}
       extensions={[...extensions, highlightLineExtension]}
       onChange={setCode}
       height="100%"

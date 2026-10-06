@@ -6,7 +6,6 @@ import { python } from "@codemirror/lang-python"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
-  useGameInPlay,
   usePlayIntervalContext,
   usePythonEditorContext,
 } from "../../app/hooks"
@@ -26,13 +25,12 @@ const EditablePythonEditor: FC<{
 }> = ({ ref, levelId, commands }) => {
   const dispatch = useAppDispatch()
   const { run, ready } = usePyodideRunner()
-  const gameInPlay = useGameInPlay()
   const playIntervalContext = usePlayIntervalContext()
   if (!playIntervalContext)
     throw new ReferenceError("Play interval context not provided.")
   const [, setPlayInterval, clearPlayInterval] = playIntervalContext
   const [error, setError] = useState<string | null>(null)
-  const [commandsOpen, setCommandsOpen] = useState(false)
+  const [commandsModalOpen, setCommandsModalOpen] = useState(false)
 
   // Runs the given code through Pyodide - only invoked when the player
   // presses Play/Run Program, never automatically on edit. The editor is
@@ -79,7 +77,7 @@ const EditablePythonEditor: FC<{
           variant="outlined"
           size="small"
           sx={{ flexShrink: 0 }}
-          onClick={() => setCommandsOpen(true)}
+          onClick={() => setCommandsModalOpen(true)}
         >
           Commands
         </Button>
@@ -97,7 +95,6 @@ const EditablePythonEditor: FC<{
           ref={ref}
           starterCode={PYTHON_STARTER_CODE}
           extensions={[python()]}
-          editable={!gameInPlay}
           onRun={handleRun}
         />
       </Box>
@@ -131,11 +128,11 @@ const EditablePythonEditor: FC<{
         )}
       </Box>
       <CommandsModal
-        open={commandsOpen}
+        open={commandsModalOpen}
         language="Python"
         commands={commands ?? []}
         getSignature={command => `my_van.${command}()`}
-        onClose={() => setCommandsOpen(false)}
+        onClose={() => setCommandsModalOpen(false)}
       />
     </Box>
   )
