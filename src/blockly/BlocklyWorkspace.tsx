@@ -97,7 +97,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
             simulator.commands.map((command, i) => ({
               command,
               lineNo: simulator.commandLines[i],
-              blockId: simulator.commandBlocks[i],
+              blockId: simulator.commandBlocks[i] ?? undefined,
             })),
           ),
         )
