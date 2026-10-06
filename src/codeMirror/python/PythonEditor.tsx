@@ -212,7 +212,7 @@ const PythonEditor: FC<PythonEditorProps> = () => {
   if (!pythonEditorContext)
     throw new ReferenceError("Python workspace context not provided.")
 
-  return pythonEditorContext.mode === "python" ? (
+  return pythonEditorContext.editable ? (
     <EditablePythonEditor
       ref={pythonEditorContext.ref}
       levelId={pythonEditorContext.levelId}

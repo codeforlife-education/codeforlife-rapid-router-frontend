@@ -92,7 +92,12 @@ const PythonContext: FC<
 
   return (
     <PythonEditorContext.Provider
-      value={{ ref: pythonWorkspaceRef, levelId: id, mode, commands }}
+      value={{
+        ref: pythonWorkspaceRef,
+        levelId: id,
+        editable: mode === "python",
+        commands,
+      }}
     >
       {children}
     </PythonEditorContext.Provider>

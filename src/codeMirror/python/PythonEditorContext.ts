@@ -13,9 +13,8 @@ export type PythonEditorContextValue = {
   ref: RefObject<PythonEditorRef | null>
   /** Needed to load the right level's tile data into the Pyodide worker. */
   levelId: number
-  /** "python" is a real editor that runs via Pyodide; "blocklyAndPython" is
-   * a read-only view of the equivalent code generated from the blocks. */
-  mode: "python" | "blocklyAndPython"
+  /** Whether the editor is editable. If false, the editor is read-only. */
+  editable: boolean
   /** The `my_van` commands relevant to this level, shown in the Commands
    * modal. Only set for "python" mode levels. */
   commands?: VanMethod[]
