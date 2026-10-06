@@ -16,7 +16,7 @@ export interface GameState {
   gameCommands: {
     command: GameCommand
     /** The originating Blockly block ID. */
-    blockID?: string
+    blockId?: string
     /** The source line (1-indexed). */
     lineNo?: number
   }[]
@@ -81,13 +81,11 @@ export const gameSlice = createSlice({
     }),
   }),
   selectors: {
-    selectGameCommands: state => state.gameCommands.map(c => c.command),
-    selectGameCommandLines: state => state.gameCommands.map(c => c.lineNo),
-    selectGameCommandBlocks: state => state.gameCommands.map(c => c.blockID),
+    selectGameCommands: state => state.gameCommands,
     selectGameCommandIndex: state => state.gameCommandIndex,
     selectGameOver: state => state.gameOver,
     selectCurrentGameCommand: state =>
-      gameInPlay(state)
+      gameHasStarted(state) && !gameHasFinished(state)
         ? state.gameCommands[state.gameCommandIndex]
         : undefined,
     selectGameIsDefined: gameIsDefined,
@@ -106,8 +104,6 @@ export const {
 } = gameSlice.actions
 export const {
   selectGameCommands,
-  selectGameCommandLines,
-  selectGameCommandBlocks,
   selectGameCommandIndex,
   selectGameOver,
   selectCurrentGameCommand,

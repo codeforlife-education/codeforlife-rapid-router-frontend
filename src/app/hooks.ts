@@ -12,9 +12,7 @@ import type { AppDispatch, RootState } from "./store"
 import {
   nextGameCommand,
   selectCurrentGameCommand,
-  selectGameCommandBlocks,
   selectGameCommandIndex,
-  selectGameCommandLines,
   selectGameCommands,
   selectGameHasFinished,
   selectGameHasFinishedEarly,
@@ -101,8 +99,6 @@ export function usePlayInterval() {
 // Slice selectors
 export const useSettings = () => useSelector(selectSettings)
 export const useGameCommands = () => useSelector(selectGameCommands)
-export const useGameCommandLines = () => useSelector(selectGameCommandLines)
-export const useGameCommandBlocks = () => useSelector(selectGameCommandBlocks)
 export const useGameCommandIndex = () => useSelector(selectGameCommandIndex)
 export const useGameOver = () => useSelector(selectGameOver)
 export const useCurrentGameCommand = () => useSelector(selectCurrentGameCommand)

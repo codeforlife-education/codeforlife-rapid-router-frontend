@@ -18,8 +18,7 @@ import {
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
-  useGameCommandBlocks,
-  useGameCommandIndex,
+  useCurrentGameCommand,
   useGameHasFinishedEarly,
   useGameInPlay,
   usePlayIntervalContext,
@@ -54,8 +53,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const dispatch = useAppDispatch()
   const gameInPlay = useGameInPlay()
   const gameHasFinishedEarly = useGameHasFinishedEarly()
-  const gameCommandIndex = useGameCommandIndex()
-  const commandBlocks = useGameCommandBlocks()
+  const currentGameCommand = useCurrentGameCommand()
   const playIntervalContext = usePlayIntervalContext()
   if (!playIntervalContext)
     throw new ReferenceError("Play interval context not provided.")
@@ -176,30 +174,19 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       highlightedBlockRef.current = null
     }
 
-    // Only highlight the block if the game is in play or has finished early.
-    if (!gameInPlay && !gameHasFinishedEarly) return
-
-    // Get and track the block to highlight. There may be no matching block
-    // if this command didn't come from a Blockly-tagged statement (e.g. the
-    // Python editor in blocklyAndPython mode) or the block was deleted since.
-    const blockId = commandBlocks[gameCommandIndex]
-    const block = blockId ? blockly.workspace.getBlockById(blockId) : null
+    if (!currentGameCommand) return
+    const block = currentGameCommand.blockId
+      ? blockly.workspace.getBlockById(currentGameCommand.blockId)
+      : null
     if (!block) return
+
     highlightedBlockRef.current = {
       id: block.id,
       originalColour: gameHasFinishedEarly ? block.getColour() : undefined,
     }
-
-    // Highlight the block and possibly change its color.
     blockly.workspace.highlightBlock(block.id)
     if (gameHasFinishedEarly) block.setColour("#ff0000")
-  }, [
-    blockly,
-    gameCommandIndex,
-    gameInPlay,
-    gameHasFinishedEarly,
-    commandBlocks,
-  ])
+  }, [blockly, gameHasFinishedEarly, currentGameCommand])
 
   return (
     <Box
