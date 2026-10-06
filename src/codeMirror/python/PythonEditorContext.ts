@@ -2,15 +2,15 @@ import { type RefObject, createContext } from "react"
 
 import type { VanMethod } from "../../app/van"
 
-export type PythonWorkspaceRef = {
+export type PythonEditorRef = {
   clear: () => void
   /** Runs the current code, streaming fresh commands - only called when
    * the player presses Play/Run Program. */
   run: () => void
 }
 
-export type PythonWorkspaceContextValue = {
-  ref: RefObject<PythonWorkspaceRef | null>
+export type PythonEditorContextValue = {
+  ref: RefObject<PythonEditorRef | null>
   /** Needed to load the right level's tile data into the Pyodide worker. */
   levelId: number
   /** "python" is a real editor that runs via Pyodide; "blocklyAndPython" is
@@ -21,7 +21,6 @@ export type PythonWorkspaceContextValue = {
   commands?: VanMethod[]
 }
 
-const PythonWorkspaceContext =
-  createContext<PythonWorkspaceContextValue | null>(null)
+const PythonEditorContext = createContext<PythonEditorContextValue | null>(null)
 
-export default PythonWorkspaceContext
+export default PythonEditorContext

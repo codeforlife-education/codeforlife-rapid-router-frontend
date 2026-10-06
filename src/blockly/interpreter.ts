@@ -1,6 +1,6 @@
 import type * as Blockly from "blockly/core"
 
-import type LevelSimulator from "../phaser/LevelSimulator"
+import { type LevelSimulator } from "../phaser"
 import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
 
 /**

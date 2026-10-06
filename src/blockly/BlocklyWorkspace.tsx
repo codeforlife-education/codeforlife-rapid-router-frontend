@@ -8,7 +8,6 @@ import {
   useState,
 } from "react"
 
-import { LevelSimulator, getTilemap } from "../codeMirror/python"
 import {
   clearWorkspace,
   getPythonCodeFromStartBlock,
@@ -25,7 +24,9 @@ import {
   useGameInPlay,
   usePlayIntervalContext,
 } from "../app/hooks"
+import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
+import { getTilemap } from "../phaser/tilemaps/load"
 import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
 

@@ -11,12 +11,6 @@ import {
 import { python } from "@codemirror/lang-python"
 
 import {
-  PYTHON_STARTER_CODE,
-  type PythonWorkspaceRef,
-  type VanMethod,
-  usePyodideRunner,
-} from "."
-import {
   dispatchHighlightedLine,
   highlightLineExtension,
 } from "./lineHighlight"
@@ -28,14 +22,18 @@ import {
   useGameHasFinishedEarly,
   useGameInPlay,
   usePlayIntervalContext,
-  usePythonWorkspaceContext,
+  usePythonEditorContext,
 } from "../../app/hooks"
 import CommandsModal from "../CommandsModal"
+import PYTHON_STARTER_CODE from "./starterCode.py?raw"
+import type { PythonEditorRef } from "./PythonEditorContext"
+import type { VanMethod } from "../../app/van"
 import { setGameCommands } from "../../app/slices"
+import { usePyodideRunner } from "./usePyodideRunner"
 
 /** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
 const EditablePythonEditor: FC<{
-  ref: RefObject<PythonWorkspaceRef | null>
+  ref: RefObject<PythonEditorRef | null>
   levelId: number
   commands?: VanMethod[]
 }> = ({ ref, levelId, commands }) => {
@@ -207,16 +205,18 @@ const ReadOnlyPythonEditor: FC = () => {
   )
 }
 
-const PythonEditor: FC = () => {
-  const pythonWorkspaceContext = usePythonWorkspaceContext()
-  if (!pythonWorkspaceContext)
+export interface PythonEditorProps {}
+
+const PythonEditor: FC<PythonEditorProps> = () => {
+  const pythonEditorContext = usePythonEditorContext()
+  if (!pythonEditorContext)
     throw new ReferenceError("Python workspace context not provided.")
 
-  return pythonWorkspaceContext.mode === "python" ? (
+  return pythonEditorContext.mode === "python" ? (
     <EditablePythonEditor
-      ref={pythonWorkspaceContext.ref}
-      levelId={pythonWorkspaceContext.levelId}
-      commands={pythonWorkspaceContext.commands}
+      ref={pythonEditorContext.ref}
+      levelId={pythonEditorContext.levelId}
+      commands={pythonEditorContext.commands}
     />
   ) : (
     <ReadOnlyPythonEditor />

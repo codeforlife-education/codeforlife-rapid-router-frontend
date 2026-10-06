@@ -27,7 +27,7 @@ import {
 import { BlocklyWorkspaceContext } from "../blockly"
 import { PhaserGameContext } from "../phaser"
 import PlayIntervalContext from "./PlayIntervalContext"
-import { PythonWorkspaceContext } from "../codeMirror/python"
+import { PythonEditorContext } from "../codeMirror/python"
 
 export type ScreenOrientation = "portrait" | "landscape"
 
@@ -111,6 +111,5 @@ export const useGameHasFinishedEarly = () =>
 export const useBlocklyWorkspaceContext = () =>
   useContext(BlocklyWorkspaceContext)
 export const usePhaserGameContext = () => useContext(PhaserGameContext)
-export const usePythonWorkspaceContext = () =>
-  useContext(PythonWorkspaceContext)
+export const usePythonEditorContext = () => useContext(PythonEditorContext)
 export const usePlayIntervalContext = () => useContext(PlayIntervalContext)

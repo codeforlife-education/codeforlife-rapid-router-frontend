@@ -14,9 +14,8 @@ import {
 } from "../../api/level"
 import {
   PYTHON_STARTER_CODE,
-  PythonWorkspaceContext,
-  type PythonWorkspaceRef,
-  type VanMethod,
+  PythonEditorContext,
+  type PythonEditorRef,
 } from "../../codeMirror/python"
 import {
   PhaserGameContext,
@@ -27,6 +26,7 @@ import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
 import Controls from "./Controls"
 import Panels from "./Panels"
 import PlayIntervalContext from "../../app/PlayIntervalContext"
+import type { VanMethod } from "../../app/van"
 import { paths } from "../../routes"
 import { usePlayInterval } from "../../app/hooks"
 
@@ -88,14 +88,14 @@ const PythonContext: FC<
       children: ReactNode
     }
 > = ({ id, mode, commands, children }) => {
-  const pythonWorkspaceRef = useRef<PythonWorkspaceRef>(null)
+  const pythonWorkspaceRef = useRef<PythonEditorRef>(null)
 
   return (
-    <PythonWorkspaceContext.Provider
+    <PythonEditorContext.Provider
       value={{ ref: pythonWorkspaceRef, levelId: id, mode, commands }}
     >
       {children}
-    </PythonWorkspaceContext.Provider>
+    </PythonEditorContext.Provider>
   )
 }
 

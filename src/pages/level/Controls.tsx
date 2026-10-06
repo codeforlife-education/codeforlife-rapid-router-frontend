@@ -29,7 +29,7 @@ import {
   useGameIsDefined,
   usePhaserGameContext,
   usePlayIntervalContext,
-  usePythonWorkspaceContext,
+  usePythonEditorContext,
   useSettings,
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
@@ -180,13 +180,13 @@ const Blockly: FC = () => {
 }
 
 const Python: FC = () => {
-  const pythonWorkspaceContext = usePythonWorkspaceContext()
+  const pythonEditorContext = usePythonEditorContext()
   const clearPythonWorkspace = useCallback(() => {
-    pythonWorkspaceContext?.ref.current?.clear()
-  }, [pythonWorkspaceContext])
+    pythonEditorContext?.ref.current?.clear()
+  }, [pythonEditorContext])
   const runPythonWorkspace = useCallback(() => {
-    pythonWorkspaceContext?.ref.current?.run()
-  }, [pythonWorkspaceContext])
+    pythonEditorContext?.ref.current?.run()
+  }, [pythonEditorContext])
 
   return (
     <Base
@@ -199,13 +199,13 @@ const Python: FC = () => {
 
 const BlocklyAndPython: FC = () => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
-  const pythonWorkspaceContext = usePythonWorkspaceContext()
+  const pythonEditorContext = usePythonEditorContext()
   const clearBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
   }, [blocklyWorkspaceContext])
   const clearPythonWorkspace = useCallback(() => {
-    pythonWorkspaceContext?.ref.current?.clear()
-  }, [pythonWorkspaceContext])
+    pythonEditorContext?.ref.current?.clear()
+  }, [pythonEditorContext])
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
