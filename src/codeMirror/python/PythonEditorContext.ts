@@ -1,13 +1,9 @@
 import { type RefObject, createContext } from "react"
 
+import type { BaseEditorRef } from "../BaseEditor"
 import type { VanMethod } from "../../app/van"
 
-export type PythonEditorRef = {
-  clear: () => void
-  /** Runs the current code, streaming fresh commands - only called when
-   * the player presses Play/Run Program. */
-  run: () => void
-}
+export type PythonEditorRef = BaseEditorRef
 
 export type PythonEditorContextValue = {
   ref: RefObject<PythonEditorRef | null>

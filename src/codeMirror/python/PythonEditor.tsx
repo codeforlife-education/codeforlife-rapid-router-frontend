@@ -1,29 +1,16 @@
 import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material"
-import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror"
-import {
-  type FC,
-  type RefObject,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react"
+import { type FC, type RefObject, useState } from "react"
+import CodeMirror from "@uiw/react-codemirror"
 import { python } from "@codemirror/lang-python"
 
 import {
-  dispatchHighlightedLine,
-  highlightLineExtension,
-} from "./lineHighlight"
-import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
-  useGameCommandIndex,
-  useGameCommandLines,
-  useGameHasFinishedEarly,
   useGameInPlay,
   usePlayIntervalContext,
   usePythonEditorContext,
 } from "../../app/hooks"
+import BaseEditor from "../BaseEditor"
 import CommandsModal from "../CommandsModal"
 import PYTHON_STARTER_CODE from "./starterCode.py?raw"
 import type { PythonEditorRef } from "./PythonEditorContext"
@@ -40,30 +27,21 @@ const EditablePythonEditor: FC<{
   const dispatch = useAppDispatch()
   const { run, ready } = usePyodideRunner()
   const gameInPlay = useGameInPlay()
-  const gameHasFinishedEarly = useGameHasFinishedEarly()
-  const gameCommandIndex = useGameCommandIndex()
-  const commandLines = useGameCommandLines()
   const playIntervalContext = usePlayIntervalContext()
   if (!playIntervalContext)
     throw new ReferenceError("Play interval context not provided.")
   const [, setPlayInterval, clearPlayInterval] = playIntervalContext
-  const editorRef = useRef<ReactCodeMirrorRef>(null)
-  const [code, setCode] = useState(PYTHON_STARTER_CODE)
   const [error, setError] = useState<string | null>(null)
   const [commandsOpen, setCommandsOpen] = useState(false)
 
-  // Runs the current code through Pyodide - only invoked when the player
+  // Runs the given code through Pyodide - only invoked when the player
   // presses Play/Run Program, never automatically on edit. The editor is
   // locked (see `editable` below) for the whole time the game is in play,
   // so playback only starts once the full command list is ready.
-  const codeRef = useRef(code)
-  codeRef.current = code
-  const runRef = useRef(() => {})
-  runRef.current = () => {
-    const nextCode = codeRef.current
+  const handleRun = (code: string) => {
     setError(null)
     dispatch(setGameCommands({ commands: [], lines: [] }))
-    void run(nextCode, levelId).then(result => {
+    void run(code, levelId).then(result => {
       if (result.ok) {
         dispatch(
           setGameCommands({
@@ -76,30 +54,6 @@ const EditablePythonEditor: FC<{
         setError(result.message)
       }
     })
-  }
-
-  // Expose an imperative "clear"/"run" for the Controls panel.
-  useImperativeHandle(
-    ref,
-    () => ({
-      clear: () => setCode(PYTHON_STARTER_CODE),
-      run: () => runRef.current(),
-    }),
-    [],
-  )
-
-  // Highlight the line of code whose command is currently being animated,
-  // and scroll it into view for long scripts.
-  useEffect(() => {
-    const view = editorRef.current?.view
-    if (!view) return
-    const line =
-      (gameInPlay || gameHasFinishedEarly) && commandLines[gameCommandIndex]
-    dispatchHighlightedLine(view, line || null)
-  }, [gameCommandIndex, gameInPlay, gameHasFinishedEarly, commandLines])
-
-  const onChange = (nextCode: string) => {
-    setCode(nextCode)
   }
 
   return (
@@ -139,13 +93,12 @@ const EditablePythonEditor: FC<{
         </Box>
       )}
       <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-        <CodeMirror
-          ref={editorRef}
-          value={code}
+        <BaseEditor
+          ref={ref}
+          starterCode={PYTHON_STARTER_CODE}
+          extensions={[python()]}
           editable={!gameInPlay}
-          extensions={[python(), highlightLineExtension]}
-          onChange={onChange}
-          height="100%"
+          onRun={handleRun}
         />
       </Box>
       <Box
@@ -161,7 +114,7 @@ const EditablePythonEditor: FC<{
           variant="contained"
           size="small"
           onClick={() => {
-            if (!clearPlayInterval()) runRef.current()
+            if (!clearPlayInterval()) ref.current?.run()
           }}
         >
           Run Program
