@@ -4,27 +4,27 @@ import { pythonGenerator } from "blockly/python"
 import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
 import { PYTHON_STARTER_CODE } from "../codeMirror/python"
 
-// Injects a call reporting the currently-executing block's ID before
-// every generated statement (including ones nested inside a repeat/if
-// body), so the workspace can highlight the right block during playback
-// or on error - see `_highlight_block` in `pyodide.worker.ts`.
-pythonGenerator.STATEMENT_PREFIX = "_highlight_block(%1)\n"
+// Tags every generated statement (including ones nested inside a repeat/if
+// body) with its originating block's ID, as an inert Python comment, See
+// `mapBlocksToPythonLines`, the only consumer, which statically parses these
+// tags back out.
+pythonGenerator.STATEMENT_PREFIX = "#__block__:%1\n"
 
-/** Matches a whole `_highlight_block(...)` line, including its indentation. */
-const HIGHLIGHT_CALL_LINE = /^[ \t]*_highlight_block\((.*)\)$/
+/** Matches a whole `#__block__:...` tag line, including its indentation. */
+const BLOCK_TAG_LINE = /^[ \t]*#__block__:(.*)$/
 
 /**
- * Strips the internal `_highlight_block` calls injected for block-highlighting
+ * Strips the internal `#__block__:...` tags injected for block-highlighting
  * during playback, so code shown to the player only contains the commands
  * they'd actually recognize - while, in the same pass, recording which
- * (1-indexed) display line each surviving block ID's call immediately preceded.
+ * (1-indexed) display line each surviving block ID's tag immediately preceded.
  */
 export function mapBlocksToPythonLines(code: string) {
   const lineByBlockId = new Map<string, number>()
   let pendingBlockId: string | null = null
   const lines: string[] = []
   for (const rawLine of code.split("\n")) {
-    const match = HIGHLIGHT_CALL_LINE.exec(rawLine)
+    const match = BLOCK_TAG_LINE.exec(rawLine)
     if (match) {
       pendingBlockId = match[1].replace(/^'|'$/g, "")
       continue

@@ -1,15 +1,6 @@
 import sys as _sys
 import types as _types
 
-_current_block_id = None
-
-def _highlight_block(block_id):
-    global _current_block_id
-    _current_block_id = block_id
-    # Not real student code - don't let the tracer treat this line as one
-    # that "issued nothing" and synthesise a spurious "wait" for it.
-    _tracer.mark_issued()
-
 class _LineTracer:
     def __init__(self):
         self.top_frame = None
@@ -29,14 +20,14 @@ class _LineTracer:
             return None
         if event == "line":
             if self.last_line != -1 and not self.issued_on_line:
-                _wait(self.last_line, _current_block_id)
+                _wait(self.last_line)
             self.last_line = frame.f_lineno
             self.issued_on_line = False
         return self.trace
 
     def finish(self):
         if self.last_line != -1 and not self.issued_on_line:
-            _wait(self.last_line, _current_block_id)
+            _wait(self.last_line)
 
 _tracer = None
 
@@ -53,25 +44,25 @@ def _run_traced(source):
 class Van:
     def move_forwards(self):
         _tracer.mark_issued()
-        _move_forwards(_sys._getframe().f_back.f_lineno, _current_block_id)
+        _move_forwards(_sys._getframe().f_back.f_lineno)
     def turn_left(self):
         _tracer.mark_issued()
-        _turn_left(_sys._getframe().f_back.f_lineno, _current_block_id)
+        _turn_left(_sys._getframe().f_back.f_lineno)
     def turn_right(self):
         _tracer.mark_issued()
-        _turn_right(_sys._getframe().f_back.f_lineno, _current_block_id)
+        _turn_right(_sys._getframe().f_back.f_lineno)
     def turn_around(self):
         _tracer.mark_issued()
-        _turn_around(_sys._getframe().f_back.f_lineno, _current_block_id)
+        _turn_around(_sys._getframe().f_back.f_lineno)
     def wait(self):
         _tracer.mark_issued()
-        _wait(_sys._getframe().f_back.f_lineno, _current_block_id)
+        _wait(_sys._getframe().f_back.f_lineno)
     def deliver(self):
         _tracer.mark_issued()
-        _deliver(_sys._getframe().f_back.f_lineno, _current_block_id)
+        _deliver(_sys._getframe().f_back.f_lineno)
     def sound_horn(self):
         _tracer.mark_issued()
-        _sound_horn(_sys._getframe().f_back.f_lineno, _current_block_id)
+        _sound_horn(_sys._getframe().f_back.f_lineno)
     def is_road(self, direction):
         return _is_road(direction)
     def is_road_forward(self):

@@ -20,10 +20,7 @@ import { getTilemap } from "../../phaser/tilemaps/load"
 // so the editor's highlight visits every executed line, not just the ones
 // that call a Van method. Each Van command method still passes the CALLER's
 // line number (`f_back.f_lineno`) through, so its own JS call is tagged with
-// the exact line that issued it. `_current_block_id` tracks the Blockly
-// block currently executing, set via `_highlight_block` calls injected by
-// `pythonGenerator.STATEMENT_PREFIX` (see `blockly/python.ts`) - `None` for
-// hand-typed Python, which never calls `_highlight_block`.
+// the exact line that issued it.
 import VAN_MODULE_PREAMBLE from "./van.py?raw"
 
 export type RunRequest = {
@@ -40,9 +37,8 @@ export type WorkerResponse =
       id: number
       commands: GameCommand[]
       commandLines: number[]
-      commandBlocks: (string | null)[]
     }
-  | { type: "error"; id: number; message: string; blockId: string | null }
+  | { type: "error"; id: number; message: string }
 
 let pyodidePromise: Promise<PyodideInterface> | null = null
 function getPyodide() {
@@ -60,7 +56,6 @@ void getPyodide().then(() => {
 
 self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
   const { id, code, levelId } = data
-  let globals: PyProxy | undefined
   try {
     const [pyodide, tilemap] = await Promise.all([
       getPyodide(),
@@ -69,14 +64,16 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     const simulator = new LevelSimulator(tilemap)
 
     // A fresh globals dict per run - keeps runs isolated from each other.
-    globals = pyodide.toPy({
-      _move_forwards: simulator.moveForwards,
-      _turn_left: simulator.turnLeft,
-      _turn_right: simulator.turnRight,
-      _turn_around: simulator.turnAround,
-      _wait: simulator.wait,
-      _deliver: simulator.deliver,
-      _sound_horn: simulator.soundHorn,
+    // `LevelSimulator`'s command methods take an options object; Python
+    // only ever supplies a line number, hence the thin adapters below.
+    const globals = pyodide.toPy({
+      _move_forwards: (line?: number) => simulator.moveForwards({ line }),
+      _turn_left: (line?: number) => simulator.turnLeft({ line }),
+      _turn_right: (line?: number) => simulator.turnRight({ line }),
+      _turn_around: (line?: number) => simulator.turnAround({ line }),
+      _wait: (line?: number) => simulator.wait({ line }),
+      _deliver: (line?: number) => simulator.deliver({ line }),
+      _sound_horn: (line?: number) => simulator.soundHorn({ line }),
       _is_road: simulator.isRoad,
       _is_road_forward: simulator.isRoadForward,
       _is_road_left: simulator.isRoadLeft,
@@ -97,19 +94,11 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       id,
       commands: simulator.commands,
       commandLines: simulator.commandLines,
-      commandBlocks: simulator.commandBlocks,
     }
     self.postMessage(response)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    // The block whose generated code was executing when the error was
-    // thrown, if the script was compiled from Blockly - lets the workspace
-    // highlight the offending block in red.
-    const globalsGet = globals as { get?: (key: string) => unknown } | undefined
-    const blockId =
-      (globalsGet?.get?.("_current_block_id") as string | null | undefined) ??
-      null
-    const response: WorkerResponse = { type: "error", id, message, blockId }
+    const response: WorkerResponse = { type: "error", id, message }
     self.postMessage(response)
   }
 }

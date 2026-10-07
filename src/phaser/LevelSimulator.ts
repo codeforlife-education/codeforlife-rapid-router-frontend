@@ -14,6 +14,7 @@ export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"
 
 type Tile = { row: number; col: number }
+type CommandOptions = { blockId?: string; line?: number }
 
 const CFC_IDS: readonly number[] = tilesets.endpoints.cfc.IDs
 const HOUSE_IDS: readonly number[] = tilesets.endpoints.house.IDs
@@ -60,11 +61,12 @@ export default class LevelSimulator {
   }[]
   private readonly animalTiles: Tile[]
   readonly commands: GameCommand[] = []
-  /** The Python source line (1-indexed) that produced each entry in `commands`. */
+  /** The Python source line (1-indexed) that produced each entry in
+   * `commands` - only ever set when driven by real Pyodide execution
+   * (hand-typed Python), `0` otherwise. */
   readonly commandLines: number[] = []
-  /** The originating Blockly block ID for each entry in `commands`, when the
-   * script was compiled from a Blockly workspace (`null` for hand-typed
-   * Python, or any command not preceded by a `_highlight_block` call). */
+  /** The originating Blockly block ID for each entry in `commands` - only
+   * ever set when driven by the Blockly interpreter, `null` otherwise. */
   readonly commandBlocks: (string | null)[] = []
 
   constructor(tilemap: OrthogonalTilemap) {
@@ -118,43 +120,36 @@ export default class LevelSimulator {
   }
 
   /** Records a command against `this.commands`/`commandLines`/`commandBlocks`. */
-  private pushCommand(command: GameCommand, line?: number, blockId?: string) {
+  private pushCommand(command: GameCommand, options?: CommandOptions) {
     this.commands.push(command)
-    this.commandLines.push(line ?? 0)
-    this.commandBlocks.push(blockId ?? null)
+    this.commandLines.push(options?.line ?? 0)
+    this.commandBlocks.push(options?.blockId ?? null)
   }
 
   private turnTo(
     command: GameCommand,
     newHeading: (dir: Direction) => Direction,
-    line?: number,
-    blockId?: string,
+    options?: CommandOptions,
   ) {
-    this.pushCommand(command, line, blockId)
+    this.pushCommand(command, options)
     this.tile = this.navigator.moveFromTile(this.tile, this.heading)
     this.heading = newHeading(this.heading)
   }
 
-  // Commands - exposed to Python as the game-command functions. Each takes
-  // the calling line number (see `VAN_MODULE_PREAMBLE` in pyodide.worker.ts)
-  // so the editor can highlight the line currently being animated, plus the
-  // originating Blockly block ID (if the script was compiled from blocks).
-  moveForwards = (line?: number, blockId?: string) => {
-    this.pushCommand("move_forwards", line, blockId)
+  moveForwards = (options?: CommandOptions) => {
+    this.pushCommand("move_forwards", options)
     this.tile = this.navigator.moveFromTile(this.tile, this.heading)
   }
-  turnLeft = (line?: number, blockId?: string) =>
-    this.turnTo("turn_left", turnLeft, line, blockId)
-  turnRight = (line?: number, blockId?: string) =>
-    this.turnTo("turn_right", turnRight, line, blockId)
-  turnAround = (line?: number, blockId?: string) =>
-    this.turnTo("turn_around", turnAround, line, blockId)
-  wait = (line?: number, blockId?: string) =>
-    this.pushCommand("wait", line, blockId)
-  deliver = (line?: number, blockId?: string) =>
-    this.pushCommand("deliver", line, blockId)
-  soundHorn = (line?: number, blockId?: string) =>
-    this.pushCommand("sound_horn", line, blockId)
+  turnLeft = (options?: CommandOptions) =>
+    this.turnTo("turn_left", turnLeft, options)
+  turnRight = (options?: CommandOptions) =>
+    this.turnTo("turn_right", turnRight, options)
+  turnAround = (options?: CommandOptions) =>
+    this.turnTo("turn_around", turnAround, options)
+  wait = (options?: CommandOptions) => this.pushCommand("wait", options)
+  deliver = (options?: CommandOptions) => this.pushCommand("deliver", options)
+  soundHorn = (options?: CommandOptions) =>
+    this.pushCommand("sound_horn", options)
 
   // Sensing - exposed to Python as boolean-returning functions.
   // Mirrors `CharacterManager.isValidState`: a move/turn is only actually

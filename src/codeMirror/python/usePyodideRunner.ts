@@ -8,9 +8,8 @@ export type PyodideRunResult =
       ok: true
       commands: GameCommand[]
       commandLines: number[]
-      commandBlocks: (string | null)[]
     }
-  | { ok: false; message: string; blockId: string | null }
+  | { ok: false; message: string }
 
 type Pending = {
   resolve: (result: PyodideRunResult) => void
@@ -57,9 +56,8 @@ export function usePyodideRunner() {
               ok: true,
               commands: data.commands,
               commandLines: data.commandLines,
-              commandBlocks: data.commandBlocks,
             }
-          : { ok: false, message: data.message, blockId: data.blockId },
+          : { ok: false, message: data.message },
       )
     }
     workerRef.current = worker
@@ -79,7 +77,6 @@ export function usePyodideRunner() {
         return {
           ok: false,
           message: "Python runtime is not ready yet.",
-          blockId: null,
         }
       }
 

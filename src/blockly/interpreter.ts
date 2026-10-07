@@ -8,8 +8,7 @@ import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
  * unset variable, runaway loop, unknown block, etc.) - carries the id of
  * the innermost statement block that was executing when the error
  * occurred, attached as the error propagates up through `runStatement`'s
- * try/catch, for highlighting in red (mirrors `_current_block_id` in
- * `codeMirror/van.py`, tracked there via `_highlight_block` calls instead).
+ * try/catch, for highlighting in red.
  */
 class InterpreterError extends Error {
   blockId: string | null = null
@@ -116,7 +115,7 @@ function runLoop(
       evalBoolean(block.getInputTargetBlock("BOOL"), ctx) !== invert
     // The condition check itself is never a van instruction - record a
     // "wait" for every pass, including the final one that breaks the loop.
-    ctx.simulator.wait(undefined, block.id)
+    ctx.simulator.wait({ blockId: block.id })
     if (!continues) return
     runStatements(block.getInputTargetBlock("DO"), ctx)
   }
@@ -127,19 +126,19 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
     const { simulator } = ctx
     switch (block.type) {
       case "move_forwards":
-        return simulator.moveForwards(undefined, block.id)
+        return simulator.moveForwards({ blockId: block.id })
       case "turn_left":
-        return simulator.turnLeft(undefined, block.id)
+        return simulator.turnLeft({ blockId: block.id })
       case "turn_right":
-        return simulator.turnRight(undefined, block.id)
+        return simulator.turnRight({ blockId: block.id })
       case "turn_around":
-        return simulator.turnAround(undefined, block.id)
+        return simulator.turnAround({ blockId: block.id })
       case "wait":
-        return simulator.wait(undefined, block.id)
+        return simulator.wait({ blockId: block.id })
       case "deliver":
-        return simulator.deliver(undefined, block.id)
+        return simulator.deliver({ blockId: block.id })
       case "sound_horn":
-        return simulator.soundHorn(undefined, block.id)
+        return simulator.soundHorn({ blockId: block.id })
 
       case "controls_if": {
         let branch: Blockly.Block | null = null
@@ -152,7 +151,7 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         if (!branch && block.getInput("ELSE"))
           branch = block.getInputTargetBlock("ELSE")
         // Checking the condition(s) is never a van instruction itself.
-        simulator.wait(undefined, block.id)
+        simulator.wait({ blockId: block.id })
         return runStatements(branch, ctx)
       }
 
@@ -160,7 +159,7 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         const times = Number(block.getFieldValue("TIMES"))
         for (let i = 0; i < times; i++) {
           tick(ctx)
-          simulator.wait(undefined, block.id)
+          simulator.wait({ blockId: block.id })
           runStatements(block.getInputTargetBlock("DO"), ctx)
         }
         return
@@ -176,7 +175,7 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
       case "variables_set": {
         const value = evalValue(block.getInputTargetBlock("VALUE"), ctx)
         ctx.vars.set(block.getFieldValue("VAR") as string, value as number)
-        return simulator.wait(undefined, block.id)
+        return simulator.wait({ blockId: block.id })
       }
       case "math_change": {
         const id = block.getFieldValue("VAR") as string
@@ -185,7 +184,7 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
           ctx,
         ) as number
         ctx.vars.set(id, (ctx.vars.get(id) ?? 0) + delta)
-        return simulator.wait(undefined, block.id)
+        return simulator.wait({ blockId: block.id })
       }
 
       case "procedures_callnoreturn": {
@@ -195,7 +194,7 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         // The game doesn't support procedure parameters, so there's no
         // argument binding/call-stack here - just a shared global scope.
         tick(ctx)
-        simulator.wait(undefined, block.id)
+        simulator.wait({ blockId: block.id })
         return runStatements(ctx.procedures.get(name) ?? null, ctx)
       }
       // Definitions are registered upfront (see `runBlockly`) and never
