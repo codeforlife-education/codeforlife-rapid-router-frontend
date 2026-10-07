@@ -1,6 +1,5 @@
 import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material"
 import { type FC, type RefObject, useState } from "react"
-import CodeMirror from "@uiw/react-codemirror"
 import { python } from "@codemirror/lang-python"
 
 import {
@@ -9,7 +8,8 @@ import {
   usePlayIntervalContext,
   usePythonEditorContext,
 } from "../../app/hooks"
-import BaseEditor from "../BaseEditor"
+import BaseEditableEditor from "../BaseEditableEditor"
+import BaseNonEditableEditor from "../BaseNonEditableEditor"
 import type { CharacterCommand } from "../../app/character"
 import CommandsModal from "../CommandsModal"
 import PYTHON_STARTER_CODE from "./starterCode.py?raw"
@@ -93,7 +93,7 @@ const EditablePythonEditor: FC<{
         </Box>
       )}
       <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-        <BaseEditor
+        <BaseEditableEditor
           ref={ref}
           starterCode={PYTHON_STARTER_CODE}
           extensions={[python()]}
@@ -141,17 +141,18 @@ const EditablePythonEditor: FC<{
 }
 
 /** Mode "blocklyAndPython" - a read-only view of the code generated from
- * the current Blockly blocks; the player can't type into it directly. */
+ * the current Blockly blocks; the player can't type into it directly, but
+ * it highlights whichever line produced the command currently being
+ * animated (see `mapBlocksToPythonLines` for how that line is determined
+ * without ever executing this code). */
 const ReadOnlyPythonEditor: FC = () => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
 
   return (
     <Box sx={{ height: "100%", overflow: "auto" }}>
-      <CodeMirror
-        value={blocklyWorkspaceContext?.pythonCode ?? PYTHON_STARTER_CODE}
+      <BaseNonEditableEditor
+        value={blocklyWorkspaceContext?.code ?? PYTHON_STARTER_CODE}
         extensions={[python()]}
-        editable={false}
-        height="100%"
       />
     </Box>
   )

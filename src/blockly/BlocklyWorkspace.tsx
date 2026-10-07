@@ -1,5 +1,4 @@
 import "blockly/blocks"
-import { Box, debounce } from "@mui/material"
 import {
   type FC,
   useEffect,
@@ -7,9 +6,10 @@ import {
   useRef,
   useState,
 } from "react"
+import { Box } from "@mui/material"
 
 import { clearWorkspace, initializeBlockly, resizeWorkspace } from "./workspace"
-import { getPythonCodeFromStartBlock, stripHighlightCalls } from "./python"
+import { getPythonCodeFromStartBlock, mapBlocksToPythonLines } from "./python"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -18,6 +18,7 @@ import {
   useGameInPlay,
   usePlayIntervalContext,
 } from "../app/hooks"
+import type { BlocklyWorkspaceRef } from "./BlocklyWorkspaceContext"
 import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
 import { getTilemap } from "../phaser/tilemaps/load"
@@ -40,6 +41,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     id: string
     originalColour?: string
   } | null>(null)
+  const runRef = useRef<BlocklyWorkspaceRef["run"]>(() => {})
   // Tracked separately from playback highlighting - errors aren't tied to
   // `gameCommandIndex`, and must be cleared as soon as the blocks change.
   const erroredBlockRef = useRef<{ id: string; originalColour: string } | null>(
@@ -50,20 +52,18 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const gameHasFinishedEarly = useGameHasFinishedEarly()
   const currentGameCommand = useCurrentGameCommand()
   const playIntervalContext = usePlayIntervalContext()
+
   if (!playIntervalContext)
     throw new ReferenceError("Play interval context not provided.")
   const [, setPlayInterval] = playIntervalContext
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
-  const { ref, toolboxContents, maxInstances, setPythonCode, levelId } =
+  const { ref, toolboxContents, maxInstances, setCode, levelId } =
     blocklyWorkspaceContext
 
-  // Generates Python (for display only) and runs the blocks directly -
-  // only invoked when the player presses Play (via the exposed `run` ref
-  // method), never automatically on edit.
-  const runRef = useRef(() => {})
-  runRef.current = () => {
+  // Interprets and runs the Blockly workspace.
+  runRef.current = generator => {
     if (!blockly) return
 
     // Clear any previous error highlight - it no longer applies once the
@@ -74,26 +74,40 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       erroredBlockRef.current = null
     }
 
-    const code = getPythonCodeFromStartBlock(blockly.startBlock)
-    setPythonCode(stripHighlightCalls(code))
+    // Generate the code from the start block if needed, tracking which line
+    // each block ID maps to so playback commands can highlight the right line.
+    let lineByBlockId: Map<string, number> | undefined
+    if (generator) {
+      let code: string
+      switch (generator) {
+        case "python": {
+          const mapped = mapBlocksToPythonLines(
+            getPythonCodeFromStartBlock(blockly.startBlock),
+          )
+          code = mapped.code
+          lineByBlockId = mapped.lineByBlockId
+          break
+        }
+      }
+      setCode(code)
+    }
 
-    // Runs the blocks directly against a headless simulator (see
-    // `blockly/interpreter.ts`) - no Python generation/execution involved,
-    // so pure Blockly levels never need to load Pyodide. Playback only
-    // starts once the full command list is ready (see `editable`-equivalent
-    // lock on the workspace below).
-    dispatch(setGameCommands([]))
+    // Interpret the blocks using the headless simulator.
+    dispatch(setGameCommands([])) // Clear previous game commands.
     void getTilemap(levelId).then(tilemap => {
       const simulator = new LevelSimulator(tilemap)
       const result = runBlockly(blockly.startBlock, simulator)
       if (result.ok) {
         dispatch(
           setGameCommands(
-            simulator.commands.map((command, i) => ({
-              command,
-              lineNo: simulator.commandLines[i],
-              blockId: simulator.commandBlocks[i] ?? undefined,
-            })),
+            simulator.commands.map((command, i) => {
+              const blockId = simulator.commandBlocks[i] ?? undefined
+              return {
+                command,
+                blockId,
+                lineNo: blockId ? lineByBlockId?.get(blockId) : undefined,
+              }
+            }),
           ),
         )
         setPlayInterval()
@@ -137,24 +151,10 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     )
     setBlockly(blockly)
 
-    // Only save workspace state and refresh the (read-only) generated
-    // Python text on edit - actually running it happens only via `run()`,
-    // triggered by the player pressing Play.
-    const onChange = debounce(() => {
-      // TODO: Implement saving local changes to session storage so that a user's
-      // workspace changes are saved when they return that level.
-      setPythonCode(
-        stripHighlightCalls(getPythonCodeFromStartBlock(blockly.startBlock)),
-      )
-    }, 250)
-
-    blockly.workspace.addChangeListener(onChange)
-
     return () => {
-      blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [divRef, startBlockType, toolboxContents, maxInstances, setPythonCode])
+  }, [divRef, startBlockType, toolboxContents, maxInstances, setCode])
 
   // Highlight the current block during game play.
   useEffect(() => {

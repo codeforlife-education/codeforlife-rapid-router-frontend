@@ -13,15 +13,14 @@ import {
   useRetrieveLevelQuery,
 } from "../../api/level"
 import {
-  PYTHON_STARTER_CODE,
-  PythonEditorContext,
-  type PythonEditorRef,
-} from "../../codeMirror/python"
-import {
   PhaserGameContext,
   type PhaserGameRef,
   type SceneKey,
 } from "../../phaser"
+import {
+  PythonEditorContext,
+  type PythonEditorRef,
+} from "../../codeMirror/python"
 import { getMaxInstances, getToolboxContents } from "../../blockly/workspace"
 import type { CharacterCommand } from "../../app/character"
 import Controls from "./Controls"
@@ -48,9 +47,9 @@ const BlocklyContext: FC<
   Pick<LevelModel, "id"> & BlocklyProps & { children: ReactNode }
 > = ({ id, blockly_toolbox_block_types, children }) => {
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
-  const [pythonCode, setPythonCode] = useState(PYTHON_STARTER_CODE)
+  const [code, setCode] = useState("")
 
-  // Stable references across re-renders (e.g. from `setPythonCode` itself) -
+  // Stable references across re-renders (e.g. from `setCode` itself) -
   // otherwise `BlocklyWorkspace`'s init effect would see "new" values on
   // every edit and recreate the workspace, wiping out the player's blocks.
   const toolboxContents = useMemo(
@@ -68,8 +67,8 @@ const BlocklyContext: FC<
         ref: blocklyWorkspaceRef,
         toolboxContents,
         maxInstances,
-        pythonCode,
-        setPythonCode,
+        code,
+        setCode,
         levelId: id,
       }}
     >

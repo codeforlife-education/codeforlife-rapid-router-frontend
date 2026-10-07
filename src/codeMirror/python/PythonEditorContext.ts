@@ -1,9 +1,9 @@
 import { type RefObject, createContext } from "react"
 
-import type { BaseEditorRef } from "../BaseEditor"
+import type { BaseEditableEditorRef } from "../BaseEditableEditor"
 import type { CharacterCommand } from "../../app/character"
 
-export type PythonEditorRef = BaseEditorRef
+export type PythonEditorRef = BaseEditableEditorRef
 
 export type PythonEditorContextValue = {
   ref: RefObject<PythonEditorRef | null>

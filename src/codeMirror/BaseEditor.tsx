@@ -1,67 +1,74 @@
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror"
-import {
-  type FC,
-  type RefObject,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react"
-import type { Extension } from "@codemirror/state"
+import { Decoration, type DecorationSet, EditorView } from "@codemirror/view"
+import { type Extension, StateEffect, StateField } from "@codemirror/state"
+import { type FC, useEffect, useRef } from "react"
 
-import {
-  dispatchHighlightedLine,
-  highlightLineExtension,
-} from "./lineHighlight"
-import { useCurrentGameCommand, useGameInPlay } from "../app/hooks"
+import { useCurrentGameCommand } from "../app/hooks"
 
-export type BaseEditorRef = {
-  /** Resets the editor back to its starter code. */
-  clear: () => void
-  /** Runs the editor's current code - only called when the player presses Play. */
-  run: () => void
+/** Set to a 1-indexed line number to highlight it, or `null` to clear. */
+const setHighlightedLine = StateEffect.define<number | null>()
+
+const highlightedLineField = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update(decorations, transaction) {
+    for (const effect of transaction.effects) {
+      if (!effect.is(setHighlightedLine)) continue
+      if (effect.value == null) return Decoration.none
+      // Lines can shift/disappear on read-only content changes; clamp to
+      // the document's current line count to avoid an out-of-range access.
+      const lineNumber = Math.min(effect.value, transaction.state.doc.lines)
+      const line = transaction.state.doc.line(lineNumber)
+      return Decoration.set([
+        Decoration.line({ class: "cm-highlighted-line" }).range(line.from),
+      ])
+    }
+    return decorations.map(transaction.changes)
+  },
+  provide: field => EditorView.decorations.from(field),
+})
+
+const highlightedLineTheme = EditorView.baseTheme({
+  ".cm-highlighted-line": { backgroundColor: "rgba(46, 204, 64, 0.35)" },
+})
+
+/** Highlights a single line, updated via `setHighlightedLine` effects. */
+const highlightLineExtension = [highlightedLineField, highlightedLineTheme]
+
+/** Highlight the given 1-indexed line (or clear it if `null`) and, if set,
+ * scroll it into view. */
+function dispatchHighlightedLine(view: EditorView, line: number | null) {
+  if (line == null) {
+    view.dispatch({ effects: setHighlightedLine.of(null) })
+    return
+  }
+  const pos = view.state.doc.line(Math.min(line, view.state.doc.lines)).from
+  view.dispatch({
+    effects: [setHighlightedLine.of(line), EditorView.scrollIntoView(pos)],
+  })
 }
 
 export interface BaseEditorProps {
-  ref: RefObject<BaseEditorRef | null>
-  starterCode: string
+  value: string
+  editable: boolean
   /** Language-specific CodeMirror extensions (e.g. `python()`). */
   extensions: Extension[]
-  /** Called with the editor's current code when the player presses Play. */
-  onRun: (code: string) => void
+  onChange?: (value: string) => void
 }
 
 /**
- * A CodeMirror-backed code editor shared by every editable code-editing
- * mode - owns the code state, exposes an imperative `clear`/`run`, and
- * highlights whichever line produced the command currently being animated.
+ * The CodeMirror instance shared by every code-editing/viewing mode,
+ * editable or not - highlights whichever line produced the command
+ * currently being animated, scrolling it into view.
  */
 const BaseEditor: FC<BaseEditorProps> = ({
-  ref,
-  starterCode,
+  value,
+  editable,
   extensions,
-  onRun,
+  onChange,
 }) => {
-  const gameInPlay = useGameInPlay()
   const currentGameCommand = useCurrentGameCommand()
   const editorRef = useRef<ReactCodeMirrorRef>(null)
-  const [code, setCode] = useState(starterCode)
 
-  // Avoids a stale closure in the imperative `run` below.
-  const codeRef = useRef(code)
-  codeRef.current = code
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      clear: () => setCode(starterCode),
-      run: () => onRun(codeRef.current),
-    }),
-    [starterCode, onRun],
-  )
-
-  // Highlight the line whose command is currently being animated, and
-  // scroll it into view for long scripts.
   useEffect(() => {
     const view = editorRef.current?.view
     if (!view) return
@@ -71,10 +78,10 @@ const BaseEditor: FC<BaseEditorProps> = ({
   return (
     <CodeMirror
       ref={editorRef}
-      value={code}
-      editable={!gameInPlay}
+      value={value}
+      editable={editable}
       extensions={[...extensions, highlightLineExtension]}
-      onChange={setCode}
+      onChange={onChange}
       height="100%"
     />
   )

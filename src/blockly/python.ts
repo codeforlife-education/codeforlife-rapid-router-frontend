@@ -10,13 +10,32 @@ import { PYTHON_STARTER_CODE } from "../codeMirror/python"
 // or on error - see `_highlight_block` in `pyodide.worker.ts`.
 pythonGenerator.STATEMENT_PREFIX = "_highlight_block(%1)\n"
 
+/** Matches a whole `_highlight_block(...)` line, including its indentation. */
+const HIGHLIGHT_CALL_LINE = /^[ \t]*_highlight_block\((.*)\)$/
+
 /**
- * Strip the internal `_highlight_block` calls injected for block-highlighting
+ * Strips the internal `_highlight_block` calls injected for block-highlighting
  * during playback, so code shown to the player only contains the commands
- * they'd actually recognize.
+ * they'd actually recognize - while, in the same pass, recording which
+ * (1-indexed) display line each surviving block ID's call immediately preceded.
  */
-export function stripHighlightCalls(code: string): string {
-  return code.replace(/^[ \t]*_highlight_block\(.*\)\n?/gm, "")
+export function mapBlocksToPythonLines(code: string) {
+  const lineByBlockId = new Map<string, number>()
+  let pendingBlockId: string | null = null
+  const lines: string[] = []
+  for (const rawLine of code.split("\n")) {
+    const match = HIGHLIGHT_CALL_LINE.exec(rawLine)
+    if (match) {
+      pendingBlockId = match[1].replace(/^'|'$/g, "")
+      continue
+    }
+    lines.push(rawLine)
+    if (pendingBlockId) {
+      lineByBlockId.set(pendingBlockId, lines.length)
+      pendingBlockId = null
+    }
+  }
+  return { code: lines.join("\n"), lineByBlockId }
 }
 
 /** Maps a boolean block's dropdown `CHOICE` field value (e.g. `"FORWARD"`,
