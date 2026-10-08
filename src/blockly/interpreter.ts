@@ -1,6 +1,7 @@
 import type * as Blockly from "blockly/core"
 
-import { type LevelSimulator } from "../phaser"
+import type { BlockType } from "./blocks"
+import type { LevelSimulator } from "../phaser"
 import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
 
 /**
@@ -15,11 +16,14 @@ class InterpreterError extends Error {
 }
 
 /** Hard cap on loop iterations/procedure calls. This interpreter runs
- * synchronously on the main thread - unlike Pyodide's Worker, there's no
- * `.terminate()` to fall back on - so a runaway loop/recursive procedure
- * call must surface as a clear error instead of freezing the tab. */
+ * synchronously on the main thread so a runaway loop/recursive procedure call
+ * must surface as a clear error instead of freezing the tab.
+ */
 const MAX_STEPS = 1000
 
+/** The context object passed around during interpretation, holding the
+ * simulator instance, variable and procedure maps, and the current step count.
+ */
 type InterpreterContext = {
   simulator: LevelSimulator
   vars: Map<string, number>
@@ -27,6 +31,9 @@ type InterpreterContext = {
   steps: number
 }
 
+/** Increments the step counter and throws an error if the program has exceeded
+ * the maximum allowed steps.
+ */
 function tick(ctx: InterpreterContext) {
   if (++ctx.steps > MAX_STEPS)
     throw new Error(
@@ -41,7 +48,7 @@ function evalValue(
 ): boolean | number {
   if (!block) throw new Error("A value input is missing a block.")
   const { simulator } = ctx
-  switch (block.type) {
+  switch (block.type as BlockType) {
     case "road_exists":
       return simulator.isRoad(
         block.getFieldValue("CHOICE") as "FORWARD" | "LEFT" | "RIGHT",
@@ -124,7 +131,7 @@ function runLoop(
 function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
   try {
     const { simulator } = ctx
-    switch (block.type) {
+    switch (block.type as BlockType) {
       case "move_forwards":
         return simulator.moveForwards({ blockId: block.id })
       case "turn_left":
@@ -230,11 +237,8 @@ export type BlocklyRunResult =
   | { ok: false; message: string; blockId: string | null }
 
 /**
- * Runs the blocks connected to `startBlock` directly against `simulator` -
- * no Python generation/execution involved, so pure Blockly levels never
- * need to load Pyodide. Mirrors `getPythonCodeFromStartBlock`'s traversal
- * (the start block's chain, plus top-level procedure definitions), but
- * executes each block immediately instead of emitting source text.
+ * Runs the blocks connected to `startBlock` directly against `simulator`.
+ * Procedure definitions are registered upfront and never executed inline.
  */
 export function runBlockly(
   startBlock: Blockly.Block,
