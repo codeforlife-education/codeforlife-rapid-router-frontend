@@ -1,6 +1,7 @@
 import "blockly/blocks"
 import {
   type FC,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -25,6 +26,8 @@ import { getTilemap } from "../phaser/tilemaps/load"
 import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
 
+type HighlightedBlock = { id: string; originalColour?: string }
+
 export interface BlocklyWorkspaceProps {
   startBlockType?: StartBlockType
 }
@@ -37,16 +40,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const [blockly, setBlockly] = useState<null | ReturnType<
     typeof initializeBlockly
   >>(null)
-  const highlightedBlockRef = useRef<{
-    id: string
-    originalColour?: string
-  } | null>(null)
+  const highlightedBlockRef = useRef<HighlightedBlock | null>(null)
   const runRef = useRef<BlocklyWorkspaceRef["run"]>(() => {})
-  // Tracked separately from playback highlighting - errors aren't tied to
-  // `gameCommandIndex`, and must be cleared as soon as the blocks change.
-  const erroredBlockRef = useRef<{ id: string; originalColour: string } | null>(
-    null,
-  )
   const dispatch = useAppDispatch()
   const gameInPlay = useGameInPlay()
   const gameHasFinishedEarly = useGameHasFinishedEarly()
@@ -62,17 +57,40 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const { ref, toolboxContents, maxInstances, setCode, levelId } =
     blocklyWorkspaceContext
 
+  const highlightBlock = useCallback(
+    (
+      { workspace }: NonNullable<typeof blockly>,
+      blockId: string,
+      { error }: { error: boolean },
+    ) => {
+      const block = workspace.getBlockById(blockId)
+      if (!block) return
+      highlightedBlockRef.current = {
+        id: blockId,
+        originalColour: error ? block.getColour() : undefined,
+      }
+      workspace.highlightBlock(blockId)
+      if (error) block.setColour("#ff0000")
+    },
+    [],
+  )
+
+  const unhighlightBlock = useCallback(
+    ({ workspace }: NonNullable<typeof blockly>) => {
+      workspace.highlightBlock(null) // Unhighlight all blocks.
+      if (!highlightedBlockRef.current) return
+      const { id, originalColour } = highlightedBlockRef.current
+      if (originalColour) workspace.getBlockById(id)?.setColour(originalColour)
+      highlightedBlockRef.current = null
+    },
+    [],
+  )
+
   // Interprets and runs the Blockly workspace.
   runRef.current = generator => {
     if (!blockly) return
 
-    // Clear any previous error highlight - it no longer applies once the
-    // blocks have changed.
-    if (erroredBlockRef.current) {
-      const { id, originalColour } = erroredBlockRef.current
-      blockly.workspace.getBlockById(id)?.setColour(originalColour)
-      erroredBlockRef.current = null
-    }
+    unhighlightBlock(blockly) // Unhighlight any previously highlighted blocks.
 
     // Generate the code from the start block if needed, tracking which line
     // each block ID maps to so playback commands can highlight the right line.
@@ -111,16 +129,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
           ),
         )
         setPlayInterval()
-      } else {
-        const block =
-          result.blockId && blockly.workspace.getBlockById(result.blockId)
-        if (block) {
-          erroredBlockRef.current = {
-            id: block.id,
-            originalColour: block.getColour(),
-          }
-          block.setColour("#ff0000")
-        }
+      } else if (result.blockId) {
+        highlightBlock(blockly, result.blockId, { error: true })
       }
     })
   }
@@ -160,28 +170,19 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   useEffect(() => {
     if (!blockly) return
 
-    // Restore the previously highlighted block before touching a new one.
-    if (highlightedBlockRef.current) {
-      const { id, originalColour } = highlightedBlockRef.current
-      blockly.workspace.highlightBlock(null) // Unhighlight all blocks.
-      if (originalColour)
-        blockly.workspace.getBlockById(id)?.setColour(originalColour)
-      highlightedBlockRef.current = null
-    }
+    unhighlightBlock(blockly) // Unhighlight any previously highlighted blocks.
 
-    if (!currentGameCommand) return
-    const block = currentGameCommand.blockId
-      ? blockly.workspace.getBlockById(currentGameCommand.blockId)
-      : null
-    if (!block) return
-
-    highlightedBlockRef.current = {
-      id: block.id,
-      originalColour: gameHasFinishedEarly ? block.getColour() : undefined,
-    }
-    blockly.workspace.highlightBlock(block.id)
-    if (gameHasFinishedEarly) block.setColour("#ff0000")
-  }, [blockly, gameHasFinishedEarly, currentGameCommand])
+    if (!currentGameCommand?.blockId) return
+    highlightBlock(blockly, currentGameCommand.blockId, {
+      error: gameHasFinishedEarly,
+    })
+  }, [
+    blockly,
+    gameHasFinishedEarly,
+    currentGameCommand,
+    highlightBlock,
+    unhighlightBlock,
+  ])
 
   return (
     <Box
