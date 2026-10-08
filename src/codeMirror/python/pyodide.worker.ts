@@ -35,8 +35,7 @@ export type WorkerResponse =
   | {
       type: "result"
       id: number
-      commands: GameCommand[]
-      commandLines: number[]
+      commands: { command: GameCommand; lineNo?: number }[]
     }
   | { type: "error"; id: number; message: string }
 
@@ -67,13 +66,13 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     // `LevelSimulator`'s command methods take an options object; Python
     // only ever supplies a line number, hence the thin adapters below.
     const globals = pyodide.toPy({
-      _move_forwards: (line?: number) => simulator.moveForwards({ line }),
-      _turn_left: (line?: number) => simulator.turnLeft({ line }),
-      _turn_right: (line?: number) => simulator.turnRight({ line }),
-      _turn_around: (line?: number) => simulator.turnAround({ line }),
-      _wait: (line?: number) => simulator.wait({ line }),
-      _deliver: (line?: number) => simulator.deliver({ line }),
-      _sound_horn: (line?: number) => simulator.soundHorn({ line }),
+      _move_forwards: (lineNo?: number) => simulator.moveForwards({ lineNo }),
+      _turn_left: (lineNo?: number) => simulator.turnLeft({ lineNo }),
+      _turn_right: (lineNo?: number) => simulator.turnRight({ lineNo }),
+      _turn_around: (lineNo?: number) => simulator.turnAround({ lineNo }),
+      _wait: (lineNo?: number) => simulator.wait({ lineNo }),
+      _deliver: (lineNo?: number) => simulator.deliver({ lineNo }),
+      _sound_horn: (lineNo?: number) => simulator.soundHorn({ lineNo }),
       _is_road: simulator.isRoad,
       _is_road_forward: simulator.isRoadForward,
       _is_road_left: simulator.isRoadLeft,
@@ -93,7 +92,6 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       type: "result",
       id,
       commands: simulator.commands,
-      commandLines: simulator.commandLines,
     }
     self.postMessage(response)
   } catch (error) {

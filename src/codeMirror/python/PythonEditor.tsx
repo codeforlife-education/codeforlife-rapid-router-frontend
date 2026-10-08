@@ -41,14 +41,7 @@ const EditablePythonEditor: FC<{
     dispatch(setGameCommands([]))
     void run(code, levelId).then(result => {
       if (result.ok) {
-        dispatch(
-          setGameCommands(
-            result.commands.map((command, i) => ({
-              command,
-              lineNo: result.commandLines[i],
-            })),
-          ),
-        )
+        dispatch(setGameCommands(result.commands))
         setPlayInterval()
       } else {
         setError(result.message)

@@ -4,11 +4,7 @@ import type { RunRequest, WorkerResponse } from "./pyodide.worker"
 import type { GameCommand } from "../../app/slices"
 
 export type PyodideRunResult =
-  | {
-      ok: true
-      commands: GameCommand[]
-      commandLines: number[]
-    }
+  | { ok: true; commands: { command: GameCommand; lineNo?: number }[] }
   | { ok: false; message: string }
 
 type Pending = {
@@ -52,11 +48,7 @@ export function usePyodideRunner() {
       pendingRef.current.delete(data.id)
       pending.resolve(
         data.type === "result"
-          ? {
-              ok: true,
-              commands: data.commands,
-              commandLines: data.commandLines,
-            }
+          ? { ok: true, commands: data.commands }
           : { ok: false, message: data.message },
       )
     }

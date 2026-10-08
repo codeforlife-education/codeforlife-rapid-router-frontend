@@ -118,14 +118,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       if (result.ok) {
         dispatch(
           setGameCommands(
-            simulator.commands.map((command, i) => {
-              const blockId = simulator.commandBlocks[i] ?? undefined
-              return {
-                command,
-                blockId,
-                lineNo: blockId ? lineByBlockId?.get(blockId) : undefined,
-              }
-            }),
+            simulator.commands.map(({ command, blockId }) => ({
+              command,
+              blockId,
+              lineNo: blockId ? lineByBlockId?.get(blockId) : undefined,
+            })),
           ),
         )
         setPlayInterval()

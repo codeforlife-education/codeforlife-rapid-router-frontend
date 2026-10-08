@@ -1,3 +1,5 @@
+import type Phaser from "phaser"
+
 import * as tilesets from "./tilesets"
 import {
   type Direction,
@@ -5,16 +7,19 @@ import {
   turnLeft,
   turnRight,
 } from "./tilegrid/navigation"
+import type { GameCommand, GameState } from "../app/slices"
 import { type RoadID, decode } from "./layers/tile/data"
-import type { GameCommand } from "../app/slices"
 import type { OrthogonalTilemap } from "./tilemaps"
 import { createRoadNavigator } from "./tilegrid/road"
 
 export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"
 
-type Tile = { row: number; col: number }
-type CommandOptions = { blockId?: string; line?: number }
+type Tile = Phaser.Types.Tilemaps.Tile
+type CommandOptions = Pick<
+  GameState["gameCommands"][number],
+  "blockId" | "lineNo"
+>
 
 const CFC_IDS: readonly number[] = tilesets.endpoints.cfc.IDs
 const HOUSE_IDS: readonly number[] = tilesets.endpoints.house.IDs
@@ -40,12 +45,9 @@ function readObjectTile(properties: unknown): {
 }
 
 /**
- * A headless, Phaser-free stand-in for the play-mode van, used to resolve a
- * Python script's sensing calls (`is_road`/`at_dead_end`/`at_destination`/
- * `at_traffic_light`/`is_animal_crossing`) against a level's static tile
- * data. Mirrors the position/heading rules in `CharacterManager`, but runs
- * the whole script upfront (no animation) and collects the resulting flat
- * `GameCommand[]` list.
+ * A headless, Phaser-free stand-in for the play-mode van. Mirrors the
+ * position/heading rules in `CharacterManager`, but runs the whole script
+ * upfront (no animation) and collects the resulting flat `GameCommand[]` list.
  */
 export default class LevelSimulator {
   private readonly roadData: readonly number[]
@@ -60,14 +62,7 @@ export default class LevelSimulator {
     colour: TrafficLightColour
   }[]
   private readonly animalTiles: Tile[]
-  readonly commands: GameCommand[] = []
-  /** The Python source line (1-indexed) that produced each entry in
-   * `commands` - only ever set when driven by real Pyodide execution
-   * (hand-typed Python), `0` otherwise. */
-  readonly commandLines: number[] = []
-  /** The originating Blockly block ID for each entry in `commands` - only
-   * ever set when driven by the Blockly interpreter, `null` otherwise. */
-  readonly commandBlocks: (string | null)[] = []
+  readonly commands: GameState["gameCommands"] = []
 
   constructor(tilemap: OrthogonalTilemap) {
     const roadLayer = tilemap.layers[0]
@@ -120,10 +115,11 @@ export default class LevelSimulator {
   }
 
   /** Records a command against `this.commands`/`commandLines`/`commandBlocks`. */
-  private pushCommand(command: GameCommand, options?: CommandOptions) {
-    this.commands.push(command)
-    this.commandLines.push(options?.line ?? 0)
-    this.commandBlocks.push(options?.blockId ?? null)
+  private pushCommand(
+    command: GameCommand,
+    { blockId, lineNo }: CommandOptions = {},
+  ) {
+    this.commands.push({ command, lineNo, blockId })
   }
 
   private turnTo(
@@ -135,23 +131,22 @@ export default class LevelSimulator {
     this.tile = this.navigator.moveFromTile(this.tile, this.heading)
     this.heading = newHeading(this.heading)
   }
-
-  moveForwards = (options?: CommandOptions) => {
-    this.pushCommand("move_forwards", options)
-    this.tile = this.navigator.moveFromTile(this.tile, this.heading)
-  }
   turnLeft = (options?: CommandOptions) =>
     this.turnTo("turn_left", turnLeft, options)
   turnRight = (options?: CommandOptions) =>
     this.turnTo("turn_right", turnRight, options)
   turnAround = (options?: CommandOptions) =>
     this.turnTo("turn_around", turnAround, options)
+
+  moveForwards = (options?: CommandOptions) => {
+    this.pushCommand("move_forwards", options)
+    this.tile = this.navigator.moveFromTile(this.tile, this.heading)
+  }
   wait = (options?: CommandOptions) => this.pushCommand("wait", options)
   deliver = (options?: CommandOptions) => this.pushCommand("deliver", options)
   soundHorn = (options?: CommandOptions) =>
     this.pushCommand("sound_horn", options)
 
-  // Sensing - exposed to Python as boolean-returning functions.
   // Mirrors `CharacterManager.isValidState`: a move/turn is only actually
   // safe if BOTH tiles it would leave the van straddling are road AND
   // actually connected to each other - the immediate next tile (reached by
@@ -181,6 +176,7 @@ export default class LevelSimulator {
   isRoadRight = (): boolean => this.roadExists("right")
   atDeadEnd = (): boolean =>
     (["forward", "left", "right"] as const).every(d => !this.roadExists(d))
+
   // The van straddles the boundary between `this.tile` (back half) and
   // `moveFromTile(this.tile, heading)` (front half) - it "arrives" once its
   // front half reaches the destination tile, matching the real van sprite's
@@ -200,6 +196,7 @@ export default class LevelSimulator {
   }
   atRedTrafficLight = (): boolean => this.atTrafficLight("RED")
   atGreenTrafficLight = (): boolean => this.atTrafficLight("GREEN")
+
   isAnimalCrossing = (): boolean => {
     const aheadTile = this.navigator.moveFromTile(this.tile, this.heading)
     return this.animalTiles.some(t => this.tileEquals(t, aheadTile))
