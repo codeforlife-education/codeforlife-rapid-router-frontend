@@ -1,5 +1,5 @@
 import { type GameCommand } from "../../app/slices"
-import { defineBlock } from "../utils"
+import { defineBlock } from "./blocks"
 import deliverIcon from "../../images/blocks/deliver.svg"
 import emptyIcon from "../../images/blocks/empty.svg"
 import moveForwardsIcon from "../../images/blocks/move_forwards.svg"
@@ -9,28 +9,31 @@ import turnRightIcon from "../../images/blocks/turn_right.svg"
 import waitIcon from "../../images/blocks/wait.svg"
 
 function defineCommandBlock<T extends GameCommand>(type: T, icon: string) {
-  return defineBlock({
-    type,
-    tooltip: `%{BKY_${type.toUpperCase()}_TOOLTIP}`,
-    colour: 160,
-    message0: `%{BKY_${type.toUpperCase()}_TITLE} %1 %2`,
-    args0: [
-      {
-        type: "field_image",
-        src: icon,
-        width: 15,
-        height: 15,
-        alt: "*",
-        flipRtl: "FALSE",
-      },
-      {
-        type: "input_dummy",
-        name: "DUMMY",
-      },
-    ],
-    previousStatement: null,
-    nextStatement: null,
-  })
+  return defineBlock(
+    {
+      type,
+      tooltip: `%{BKY_${type.toUpperCase()}_TOOLTIP}`,
+      colour: 160,
+      message0: `%{BKY_${type.toUpperCase()}_TITLE} %1 %2`,
+      args0: [
+        {
+          type: "field_image",
+          src: icon,
+          width: 15,
+          height: 15,
+          alt: "*",
+          flipRtl: "FALSE",
+        },
+        {
+          type: "input_dummy",
+          name: "DUMMY",
+        },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+    },
+    { toPython: () => `my_van.${type}()\n` },
+  )
 }
 
 export const MOVE_FORWARDS_BLOCK = defineCommandBlock(

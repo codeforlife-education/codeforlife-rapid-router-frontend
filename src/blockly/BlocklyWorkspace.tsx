@@ -2,6 +2,7 @@ import "blockly/blocks"
 import { Box, debounce } from "@mui/material"
 import {
   type FC,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -10,20 +11,27 @@ import {
 
 import {
   clearWorkspace,
-  getGameCommandsFromStartBlock,
-  getNextBlocks,
+  getProgramSnapshot,
   initializeBlockly,
   resizeWorkspace,
-} from "./utils"
+} from "./workspace"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
-  useGameCommandIndex,
+  useCurrentGameCommand,
   useGameHasFinishedEarly,
   useGameInPlay,
 } from "../app/hooks"
+import type { BlocklyWorkspaceRef } from "./BlocklyWorkspaceContext"
+import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
+import { getPythonCodeFromStartBlock } from "./python"
+import { getTilemap } from "../phaser/tilemaps/load"
+import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
+
+type Blockly = ReturnType<typeof initializeBlockly>
+type HighlightedBlock = { id: string; originalColour?: string }
 
 export interface BlocklyWorkspaceProps {
   startBlockType?: StartBlockType
@@ -34,32 +42,104 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 }) => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const divRef = useRef<HTMLDivElement | null>(null)
-  const [blockly, setBlockly] = useState<null | ReturnType<
-    typeof initializeBlockly
-  >>(null)
-  const highlightedBlockRef = useRef<{
-    id: string
-    originalColour?: string
-  } | null>(null)
+  const [blockly, setBlockly] = useState<null | Blockly>(null)
+  const highlightedBlocksRef = useRef<HighlightedBlock[]>([])
+  const programSnapshotRef = useRef<string | null>(null)
+  const interpretRef = useRef<{
+    (blockly: Blockly, generator?: string): Promise<boolean>
+  }>(async () => new Promise<boolean>(resolve => resolve(false)))
   const dispatch = useAppDispatch()
   const gameInPlay = useGameInPlay()
   const gameHasFinishedEarly = useGameHasFinishedEarly()
-  const gameCommandIndex = useGameCommandIndex()
+  const currentGameCommand = useCurrentGameCommand()
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
-  const { ref, toolboxContents, maxInstances } = blocklyWorkspaceContext
+  const { ref, toolboxContents, maxInstances, setCode, levelId } =
+    blocklyWorkspaceContext
+
+  const highlightBlock = useCallback(
+    (
+      { workspace }: NonNullable<typeof blockly>,
+      blockIds: string[],
+      { error }: { error: boolean },
+    ) => {
+      highlightedBlocksRef.current = []
+      for (const blockId of blockIds) {
+        const block = workspace.getBlockById(blockId)
+        if (!block) continue
+        highlightedBlocksRef.current.push({
+          id: blockId,
+          originalColour: error ? block.getColour() : undefined,
+        })
+        workspace.highlightBlock(blockId, true)
+        if (error) block.setColour("#ff0000")
+      }
+    },
+    [],
+  )
+
+  const unhighlightBlock = useCallback(
+    ({ workspace }: NonNullable<typeof blockly>) => {
+      workspace.highlightBlock(null) // Unhighlight all blocks.
+      for (const { id, originalColour } of highlightedBlocksRef.current) {
+        if (originalColour)
+          workspace.getBlockById(id)?.setColour(originalColour)
+      }
+      highlightedBlocksRef.current = []
+    },
+    [],
+  )
+
+  // Interprets the Blockly workspace.
+  interpretRef.current = async (blockly, generator) => {
+    unhighlightBlock(blockly) // Unhighlight any previously highlighted blocks.
+
+    // Generate the code from the start block if needed, tracking which line
+    // each block ID maps to so playback commands can highlight the right line.
+    let lineByBlockId: Map<string, number> | undefined
+    if (generator) {
+      let code = ""
+      switch (generator) {
+        case "python": {
+          const python = getPythonCodeFromStartBlock(blockly.startBlock)
+          code = python.code
+          lineByBlockId = python.lineByBlockId
+          break
+        }
+      }
+      setCode(code)
+    }
+
+    // Interpret the blocks using the headless simulator.
+    dispatch(setGameCommands([])) // Clear previous game commands.
+    const tilemap = await getTilemap(levelId)
+    const simulator = new LevelSimulator(tilemap)
+    const result = runBlockly(blockly.startBlock, simulator, lineByBlockId)
+    if (result.ok) {
+      dispatch(setGameCommands(simulator.commands))
+    } else {
+      highlightBlock(blockly, result.blockIds, { error: true })
+    }
+
+    return result.ok
+  }
 
   // Expose workspace methods to parent components.
   useImperativeHandle(
     ref,
-    () =>
+    (): BlocklyWorkspaceRef =>
       blockly
         ? {
             resize: resizeWorkspace(blockly.workspace),
             clear: () => clearWorkspace(blockly.workspace, blockly.startBlock),
+            interpret: generator => interpretRef.current(blockly, generator),
           }
-        : { resize: () => {}, clear: () => {} },
+        : {
+            resize: () => {},
+            clear: () => {},
+            interpret: () => new Promise(resolve => resolve(false)),
+          },
     [blockly],
   )
 
@@ -74,13 +154,19 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       maxInstances,
     )
     setBlockly(blockly)
+    programSnapshotRef.current = getProgramSnapshot(
+      blockly.workspace,
+      blockly.startBlock,
+    )
 
     // Set up event listeners.
     const onChange = debounce(() => {
-      // TODO: Implement saving local changes to session storage so that a user's
-      // workspace changes are saved when they return that level.
-      const gameCommands = getGameCommandsFromStartBlock(blockly.startBlock)
-      dispatch(setGameCommands(gameCommands))
+      const snapshot = getProgramSnapshot(blockly.workspace, blockly.startBlock)
+      const changed = snapshot !== programSnapshotRef.current
+      programSnapshotRef.current = snapshot
+      if (!changed) return
+      dispatch(setGameCommands([]))
+      setCode("")
     }, 250)
 
     blockly.workspace.addChangeListener(onChange)
@@ -89,42 +175,32 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [divRef, startBlockType, toolboxContents, maxInstances, dispatch])
+  }, [divRef, startBlockType, toolboxContents, maxInstances, setCode, dispatch])
 
   // Highlight the current block during game play.
   useEffect(() => {
     if (!blockly) return
 
-    // Restore the previously highlighted block before touching a new one.
-    if (highlightedBlockRef.current) {
-      const { id, originalColour } = highlightedBlockRef.current
-      blockly.workspace.highlightBlock(null) // Unhighlight all blocks.
-      if (originalColour)
-        blockly.workspace.getBlockById(id)?.setColour(originalColour)
-      highlightedBlockRef.current = null
-    }
+    unhighlightBlock(blockly) // Unhighlight any previously highlighted blocks.
 
-    // Only highlight the block if the game is in play or has finished early.
-    if (!gameInPlay && !gameHasFinishedEarly) return
-
-    // Get and track the block to highlight.
-    const block = getNextBlocks(blockly.startBlock)[gameCommandIndex]
-    highlightedBlockRef.current = {
-      id: block.id,
-      originalColour: gameHasFinishedEarly ? block.getColour() : undefined,
-    }
-
-    // Highlight the block and possibly change its color.
-    blockly.workspace.highlightBlock(block.id)
-    if (gameHasFinishedEarly) block.setColour("#ff0000")
-  }, [blockly, gameCommandIndex, gameInPlay, gameHasFinishedEarly])
+    if (!currentGameCommand?.blockIds.length) return
+    highlightBlock(blockly, currentGameCommand.blockIds, {
+      error: gameHasFinishedEarly,
+    })
+  }, [
+    blockly,
+    gameHasFinishedEarly,
+    currentGameCommand,
+    highlightBlock,
+    unhighlightBlock,
+  ])
 
   return (
     <Box
       component="div"
       id="blockly-workspace"
       ref={divRef}
-      sx={{ height: "100%" }}
+      sx={{ height: "100%", pointerEvents: gameInPlay ? "none" : "auto" }}
     />
   )
 }

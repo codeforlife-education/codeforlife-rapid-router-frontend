@@ -4,65 +4,13 @@ import { debounce } from "@mui/material"
 
 import * as en_custom from "./messages/en"
 import {
-  COMMAND_BLOCK_TYPES,
   CUSTOM_BLOCKS,
-  type CommandBlockType,
   START_BLOCK_TYPES,
   type StartBlockType,
   defaults,
 } from "./blocks"
-import { type BlockToolboxEntry } from "../blockly/blocks"
+import { type BlockToolboxEntry } from "./blocks"
 import { type BlockType } from "./blocks"
-import type { GameCommand } from "../app/slices"
-
-export type BlockDefinition<T extends string> = {
-  type: T
-  tooltip?: string
-  colour?: number
-  /** A named block style (e.g. Blockly's built-in `"loop_blocks"`), as an
-   * alternative to a raw `colour`. */
-  style?: string
-  message0: string
-  args0: Array<
-    | {
-        type: "field_label"
-        text: string
-      }
-    | {
-        type: "field_image"
-        src: string
-        width: number
-        height: number
-        alt: string
-        flipRtl: "FALSE" | "TRUE"
-      }
-    | {
-        type: "input_dummy"
-        name: string
-      }
-    | {
-        type: "field_dropdown"
-        name: string
-        options: Array<[string, string]>
-      }
-    | {
-        type: "input_value"
-        name: string
-        check?: string
-      }
-  >
-  message1?: string
-  args1?: Array<{ type: "input_statement"; name: string }>
-  output?: string
-  previousStatement?: string | null
-  nextStatement?: string | null
-}
-
-export function defineBlock<T extends string>(
-  blockDefinition: BlockDefinition<T>,
-): BlockDefinition<T> {
-  return blockDefinition
-}
 
 function initializeStartBlock(
   workspace: Blockly.WorkspaceSvg,
@@ -215,7 +163,7 @@ function initializeWorkspace(
     trashcan: true,
     zoom: {
       controls: true,
-      wheel: true,
+      wheel: false,
       pinch: true,
       startScale: 1.0,
       maxScale: 2,
@@ -457,36 +405,6 @@ export function resizeWorkspace(
   }, debounceMs)
 }
 
-/**
- * Convert the blocks connected to the given start block into game commands.
- * Non-command blocks are converted to "wait" commands.
- * @param startBlock The starting block to convert from.
- * @returns An array of game commands.
- */
-export function getGameCommandsFromStartBlock(
-  startBlock: Blockly.BlockSvg,
-): GameCommand[] {
-  if (!START_BLOCK_TYPES.includes(startBlock.type as StartBlockType))
-    throw Error("Block is not one of the accepted start types.")
-
-  return getNextBlocks(startBlock).map(block => {
-    const blockType = block.type as CommandBlockType
-    return COMMAND_BLOCK_TYPES.includes(blockType) ? blockType : "wait"
-  })
-}
-
-export function getNextBlocks(block: Blockly.BlockSvg) {
-  const blocks: Blockly.BlockSvg[] = []
-
-  let currentBlock = block.getNextBlock()
-  while (currentBlock) {
-    blocks.push(currentBlock)
-    currentBlock = currentBlock.getNextBlock()
-  }
-
-  return blocks
-}
-
 export function clearWorkspace(
   workspace: Blockly.WorkspaceSvg,
   startBlock: Blockly.BlockSvg,
@@ -501,4 +419,28 @@ export function clearWorkspace(
   for (block of workspace.getAllBlocks()) {
     if (block.id !== startBlock.id) disposeBlock(block)
   }
+}
+
+/**
+ * Serializes everything connected to `startBlock` plus every defined
+ * procedure, as a plain string, so callers can diff it against a previous
+ * snapshot to detect whether the program has actually changed (added/
+ * removed/reconnected/edited a block) rather than e.g. just being dragged
+ * around - positions are excluded, and procedure definitions are sorted by
+ * id, so neither affects the result.
+ */
+export function getProgramSnapshot(
+  workspace: Blockly.Workspace,
+  startBlock: Blockly.Block,
+) {
+  const procedureDefs = workspace
+    .getTopBlocks(false)
+    .filter(block => block.type === defaults.PROCEDURES_DEFINE_BLOCK_TYPE)
+    .sort((a, b) => a.id.localeCompare(b.id))
+
+  return JSON.stringify(
+    [startBlock, ...procedureDefs].map(block =>
+      Blockly.serialization.blocks.save(block, { addCoordinates: false }),
+    ),
+  )
 }
