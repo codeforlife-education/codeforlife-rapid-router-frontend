@@ -163,7 +163,7 @@ function initializeWorkspace(
     trashcan: true,
     zoom: {
       controls: true,
-      wheel: true,
+      wheel: false,
       pinch: true,
       startScale: 1.0,
       maxScale: 2,

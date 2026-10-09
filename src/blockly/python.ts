@@ -23,14 +23,23 @@ export function mapBlocksToPythonLines(code: string) {
   const lineByBlockId = new Map<string, number>()
   let pendingBlockId: string | null = null
   const lines: string[] = []
-  for (const rawLine of code.split("\n")) {
+  const rawLines = code.split("\n")
+  for (const [i, rawLine] of rawLines.entries()) {
     const match = BLOCK_TAG_LINE.exec(rawLine)
     if (match) {
       pendingBlockId = match[1].replace(/^'|'$/g, "")
       continue
     }
     lines.push(rawLine)
-    if (pendingBlockId) {
+    // Splitting a "\n"-terminated string always yields a synthetic empty
+    // final element marking where the string ends, not real generated
+    // content - don't let it "consume" a pending tag, e.g. a loop block's
+    // own tag, which Blockly's `addLoopTrap` re-appends after the loop
+    // body (so real Python execution re-highlights the loop once the body
+    // finishes) - otherwise that tag would incorrectly override the loop's
+    // own (correct) line with this trailing non-line.
+    const isTrailingArtifact = i === rawLines.length - 1 && rawLine === ""
+    if (pendingBlockId && !isTrailingArtifact) {
       lineByBlockId.set(pendingBlockId, lines.length)
       pendingBlockId = null
     }
@@ -56,11 +65,10 @@ export const pythonChoiceArg = (block: Blockly.Block) =>
  * standard blocks (`controls_if`, `controls_repeat`, etc.) - handles
  * indentation/loops/conditionals automatically.
  * @param startBlock The starting block to convert from.
- * @returns The Python source code equivalent to the given blocks.
+ * @returns The Python source code equivalent to the given blocks, and the
+ * line each block's command maps to (see `mapBlocksToPythonLines`).
  */
-export function getPythonCodeFromStartBlock(
-  startBlock: Blockly.BlockSvg,
-): string {
+export function getPythonCodeFromStartBlock(startBlock: Blockly.BlockSvg) {
   // Only follow the chain of blocks actually connected to the start block -
   // `workspaceToCode` would instead generate code for every top-level block
   // stack in the workspace, including ones the player has merely dragged in
@@ -90,10 +98,38 @@ export function getPythonCodeFromStartBlock(
     .filter(block => block.type === PROCEDURES_DEFINE_BLOCK_TYPE)
     .map(block => blockToCode(block, true))
 
-  let code = [...procedureDefs, blockToCode(startBlock)].join("")
-  code = pythonGenerator.finish(code)
-  code = code.replace(/^\s+\n/, "")
-  code = code.replace(/\n\s+$/, "\n")
-  code = code.replace(/[ \t]+\n/g, "\n")
-  return PYTHON_STARTER_CODE + code
+  const taggedBody = [...procedureDefs, blockToCode(startBlock)].join("")
+
+  // `finish()` hoists one-time definitions (e.g. `from numbers import
+  // Number`, injected by built-ins like `math_change`) as a prefix, never
+  // touching `taggedBody` itself - split it off so those imports can join
+  // `PYTHON_STARTER_CODE`'s own at the very top, instead of sitting
+  // between them and the tagged body below, which would otherwise make
+  // the block->line mapping depend on whether any hoisted imports exist.
+  const finished = pythonGenerator.finish(taggedBody)
+  const hoistedImports = finished
+    .slice(0, finished.length - taggedBody.length)
+    .trim()
+
+  const { code: body, lineByBlockId } = mapBlocksToPythonLines(
+    taggedBody
+      .replace(/^\s+\n/, "")
+      .replace(/\n\s+$/, "\n")
+      .replace(/[ \t]+\n/g, "\n"),
+  )
+
+  const preamble = hoistedImports
+    ? PYTHON_STARTER_CODE.replace(/\n/, `\n${hoistedImports}\n`)
+    : PYTHON_STARTER_CODE
+  const preambleLines = preamble.split("\n").length - 1
+
+  return {
+    code: preamble + body,
+    lineByBlockId: new Map(
+      [...lineByBlockId].map(([blockId, line]) => [
+        blockId,
+        line + preambleLines,
+      ]),
+    ),
+  }
 }

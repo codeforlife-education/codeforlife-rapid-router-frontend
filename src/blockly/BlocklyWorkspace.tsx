@@ -10,7 +10,6 @@ import {
 import { Box } from "@mui/material"
 
 import { clearWorkspace, initializeBlockly, resizeWorkspace } from "./workspace"
-import { getPythonCodeFromStartBlock, mapBlocksToPythonLines } from "./python"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -21,6 +20,7 @@ import {
 import type { BlocklyWorkspaceRef } from "./BlocklyWorkspaceContext"
 import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
+import { getPythonCodeFromStartBlock } from "./python"
 import { getTilemap } from "../phaser/tilemaps/load"
 import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
@@ -92,11 +92,9 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       let code = ""
       switch (generator) {
         case "python": {
-          const mapped = mapBlocksToPythonLines(
-            getPythonCodeFromStartBlock(blockly.startBlock),
-          )
-          code = mapped.code
-          lineByBlockId = mapped.lineByBlockId
+          const python = getPythonCodeFromStartBlock(blockly.startBlock)
+          code = python.code
+          lineByBlockId = python.lineByBlockId
           break
         }
       }
