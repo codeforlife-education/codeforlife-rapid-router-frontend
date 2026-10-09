@@ -41,14 +41,21 @@ function gameHasStarted(state: GameState): boolean {
 function gameHasFinished(state: GameState): boolean {
   return state.gameCommandIndex === state.gameCommands.length
 }
+function gameOnLastStep(state: GameState): boolean {
+  return state.gameCommandIndex === state.gameCommands.length - 1
+}
 function gameHasFinishedEarly(state: GameState): boolean {
   return state.gameOver && gameHasStarted(state) && !gameHasFinished(state)
 }
 function gameInPlay(state: GameState): boolean {
   return !state.gameOver && gameHasStarted(state) && !gameHasFinished(state)
 }
-function _restartGame(state: GameState): void {
-  state.gameCommandIndex = startGameCommandIndex
+
+function _restartGame(
+  state: GameState,
+  gameCommandIndex = startGameCommandIndex,
+): void {
+  state.gameCommandIndex = gameCommandIndex
   state.gameOver = false
 }
 
@@ -68,7 +75,20 @@ export const gameSlice = createSlice({
       state.gameCommandIndex = state.gameCommandIndex + 1
       if (gameHasFinished(state)) state.gameOver = true
     }),
-    restartGame: create.reducer(_restartGame),
+    restartGame: create.reducer(
+      (state, action: PayloadAction<number | undefined>) => {
+        _restartGame(
+          state,
+          action.payload === undefined
+            ? undefined
+            : action.payload < startGameCommandIndex
+              ? startGameCommandIndex
+              : action.payload >= state.gameCommands.length
+                ? state.gameCommands.length - 1
+                : action.payload,
+        )
+      },
+    ),
     finishGameEarly: create.reducer((state, action: PayloadAction<number>) => {
       if (
         gameIsDefined(state) &&
@@ -92,6 +112,8 @@ export const gameSlice = createSlice({
     selectGameHasStarted: gameHasStarted,
     selectGameHasFinished: gameHasFinished,
     selectGameHasFinishedEarly: gameHasFinishedEarly,
+    selectGameOnLastStep: state =>
+      gameIsDefined(state) && gameOnLastStep(state),
     selectGameInPlay: gameInPlay,
   },
 })
@@ -111,5 +133,6 @@ export const {
   selectGameHasStarted,
   selectGameHasFinished,
   selectGameHasFinishedEarly,
+  selectGameOnLastStep,
   selectGameInPlay,
 } = gameSlice.selectors

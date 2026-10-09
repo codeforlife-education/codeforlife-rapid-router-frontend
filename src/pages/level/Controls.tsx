@@ -27,6 +27,7 @@ import {
   useGameHasStarted,
   useGameInPlay,
   useGameIsDefined,
+  useGameOnLastStep,
   usePhaserGameContext,
   usePlayInterval,
   usePythonEditorContext,
@@ -50,6 +51,7 @@ const Base: FC<
   const gameIsDefined = useGameIsDefined()
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
+  const gameOnLastStep = useGameOnLastStep()
   const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
   const { activeSceneKeys } = usePhaserGameContext()
 
@@ -115,8 +117,10 @@ const Base: FC<
           onClick={() => {
             clearPlayInterval()
             const step = () => dispatch(nextGameCommand())
-            if (gameIsDefined) step()
-            else void interpretCommands().then(ok => ok && step())
+            if (gameIsDefined) {
+              if (!gameOnLastStep) step()
+              else dispatch(restartGame(0))
+            } else void interpretCommands().then(ok => ok && step())
           }}
         />
         <miniDrawers.MenuItem

@@ -114,7 +114,8 @@ export default class CharacterManager {
     this.level.characterSprite.finishAnimation()
 
     const index = this.level.commandIndex
-    if (index === -1) {
+    // Respawn if the game restarts or the command index has moved backwards.
+    if (index === -1 || index < this.lastCommandIndex) {
       this.spawn()
       return
     }

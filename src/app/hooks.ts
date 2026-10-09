@@ -19,6 +19,7 @@ import {
   selectGameHasStarted,
   selectGameInPlay,
   selectGameIsDefined,
+  selectGameOnLastStep,
   selectGameOver,
   selectSettings,
 } from "./slices"
@@ -107,6 +108,7 @@ export const useGameInPlay = () => useSelector(selectGameInPlay)
 export const useGameHasFinished = () => useSelector(selectGameHasFinished)
 export const useGameHasFinishedEarly = () =>
   useSelector(selectGameHasFinishedEarly)
+export const useGameOnLastStep = () => useSelector(selectGameOnLastStep)
 
 // Contexts
 export const useBlocklyWorkspaceContext = () =>
