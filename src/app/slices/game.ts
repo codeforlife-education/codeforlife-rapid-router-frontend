@@ -15,8 +15,8 @@ export type GameCommand = (typeof GAME_COMMANDS)[number]
 export interface GameState {
   gameCommands: {
     command: GameCommand
-    /** The originating Blockly block ID. */
-    blockId?: string
+    /** The originating Blockly block IDs. */
+    blockIds: string[]
     /** The source line (1-indexed). */
     lineNo?: number
   }[]

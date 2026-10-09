@@ -1,7 +1,7 @@
 import type * as Blockly from "blockly/core"
-import { pythonGenerator } from "blockly/python"
+import { Order, pythonGenerator } from "blockly/python"
 
-import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
+import { IF_BLOCK_TYPE, PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
 import { PYTHON_STARTER_CODE } from "../codeMirror/python"
 
 // Tags every generated statement (including ones nested inside a repeat/if
@@ -9,6 +9,30 @@ import { PYTHON_STARTER_CODE } from "../codeMirror/python"
 // `mapBlocksToPythonLines`, the only consumer, which statically parses these
 // tags back out.
 pythonGenerator.STATEMENT_PREFIX = "#__block__:%1\n"
+
+// Overrides Blockly's built-in `controls_if` generator, which only tags the
+// whole if/elif/else chain once - instead, tag each if/elif branch's own
+// condition line individually (keyed `'<blockId>:<branchIndex>'`, parsed the
+// same way by `mapBlocksToPythonLines`), so each branch gets its own Python
+// line. No tag before `else:`, since nothing is evaluated there.
+pythonGenerator.forBlock[IF_BLOCK_TYPE] = block => {
+  const branches: string[] = []
+  for (let i = 0; block.getInput(`IF${i}`); i++) {
+    const condition =
+      pythonGenerator.valueToCode(block, `IF${i}`, Order.NONE) || "False"
+    const body =
+      pythonGenerator.statementToCode(block, `DO${i}`) || pythonGenerator.PASS
+    branches.push(
+      `#__block__:'${block.id}:${i}'\n${i === 0 ? "if" : "elif"} ${condition}:\n${body}`,
+    )
+  }
+  if (block.getInput("ELSE")) {
+    const body =
+      pythonGenerator.statementToCode(block, "ELSE") || pythonGenerator.PASS
+    branches.push(`else:\n${body}`)
+  }
+  return branches.join("")
+}
 
 /** Matches a whole `#__block__:...` tag line, including its indentation. */
 const BLOCK_TAG_LINE = /^[ \t]*#__block__:(.*)$/

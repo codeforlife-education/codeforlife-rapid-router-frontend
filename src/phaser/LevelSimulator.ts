@@ -16,9 +16,8 @@ export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"
 
 type Tile = Phaser.Types.Tilemaps.Tile
-type CommandOptions = Pick<
-  GameState["gameCommands"][number],
-  "blockId" | "lineNo"
+type CommandOptions = Partial<
+  Pick<GameState["gameCommands"][number], "blockIds" | "lineNo">
 >
 
 const CFC_IDS: readonly number[] = tilesets.endpoints.cfc.IDs
@@ -117,9 +116,9 @@ export default class LevelSimulator {
   /** Records a command against `this.commands`/`commandLines`/`commandBlocks`. */
   private pushCommand(
     command: GameCommand,
-    { blockId, lineNo }: CommandOptions = {},
+    { blockIds = [], lineNo }: CommandOptions = {},
   ) {
-    this.commands.push({ command, lineNo, blockId })
+    this.commands.push({ command, lineNo, blockIds })
   }
 
   private turnTo(

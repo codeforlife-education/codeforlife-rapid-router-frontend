@@ -38,7 +38,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const divRef = useRef<HTMLDivElement | null>(null)
   const [blockly, setBlockly] = useState<null | Blockly>(null)
-  const highlightedBlockRef = useRef<HighlightedBlock | null>(null)
+  const highlightedBlocksRef = useRef<HighlightedBlock[]>([])
   const interpretRef = useRef<{
     (blockly: Blockly, generator?: string): Promise<boolean>
   }>(async () => new Promise<boolean>(resolve => resolve(false)))
@@ -55,17 +55,20 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const highlightBlock = useCallback(
     (
       { workspace }: NonNullable<typeof blockly>,
-      blockId: string,
+      blockIds: string[],
       { error }: { error: boolean },
     ) => {
-      const block = workspace.getBlockById(blockId)
-      if (!block) return
-      highlightedBlockRef.current = {
-        id: blockId,
-        originalColour: error ? block.getColour() : undefined,
+      highlightedBlocksRef.current = []
+      for (const blockId of blockIds) {
+        const block = workspace.getBlockById(blockId)
+        if (!block) continue
+        highlightedBlocksRef.current.push({
+          id: blockId,
+          originalColour: error ? block.getColour() : undefined,
+        })
+        workspace.highlightBlock(blockId, true)
+        if (error) block.setColour("#ff0000")
       }
-      workspace.highlightBlock(blockId)
-      if (error) block.setColour("#ff0000")
     },
     [],
   )
@@ -73,10 +76,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const unhighlightBlock = useCallback(
     ({ workspace }: NonNullable<typeof blockly>) => {
       workspace.highlightBlock(null) // Unhighlight all blocks.
-      if (!highlightedBlockRef.current) return
-      const { id, originalColour } = highlightedBlockRef.current
-      if (originalColour) workspace.getBlockById(id)?.setColour(originalColour)
-      highlightedBlockRef.current = null
+      for (const { id, originalColour } of highlightedBlocksRef.current) {
+        if (originalColour)
+          workspace.getBlockById(id)?.setColour(originalColour)
+      }
+      highlightedBlocksRef.current = []
     },
     [],
   )
@@ -105,19 +109,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     dispatch(setGameCommands([])) // Clear previous game commands.
     const tilemap = await getTilemap(levelId)
     const simulator = new LevelSimulator(tilemap)
-    const result = runBlockly(blockly.startBlock, simulator)
+    const result = runBlockly(blockly.startBlock, simulator, lineByBlockId)
     if (result.ok) {
-      dispatch(
-        setGameCommands(
-          simulator.commands.map(({ command, blockId }) => ({
-            command,
-            blockId,
-            lineNo: blockId ? lineByBlockId?.get(blockId) : undefined,
-          })),
-        ),
-      )
-    } else if (result.blockId) {
-      highlightBlock(blockly, result.blockId, { error: true })
+      dispatch(setGameCommands(simulator.commands))
+    } else {
+      highlightBlock(blockly, result.blockIds, { error: true })
     }
 
     return result.ok
@@ -164,8 +160,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     unhighlightBlock(blockly) // Unhighlight any previously highlighted blocks.
 
-    if (!currentGameCommand?.blockId) return
-    highlightBlock(blockly, currentGameCommand.blockId, {
+    if (!currentGameCommand?.blockIds.length) return
+    highlightBlock(blockly, currentGameCommand.blockIds, {
       error: gameHasFinishedEarly,
     })
   }, [
