@@ -182,7 +182,11 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
 
   // Pass the current game commands to Phaser when in play mode.
   useEffect(() => {
-    if (mode === "play") setVariable("commands", gameCommands)
+    if (mode === "play")
+      setVariable(
+        "commands",
+        gameCommands.map(({ command }) => command),
+      )
   }, [mode, gameCommands, setVariable])
 
   // Pass the current game command index to Phaser when in play mode.

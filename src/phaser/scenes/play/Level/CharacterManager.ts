@@ -13,9 +13,7 @@ import type { GameCommand } from "../../../../app/slices"
 import type Level from "."
 import { createRoadNavigator } from "../../../tilegrid/road"
 
-export type { Direction }
-
-type Point = { x: number; y: number }
+type Point = Phaser.Types.Math.Vector2Like
 type Tile = Phaser.Types.Tilemaps.Tile
 
 const ROTATION_BY_DIRECTION: Record<Direction, number> = {
