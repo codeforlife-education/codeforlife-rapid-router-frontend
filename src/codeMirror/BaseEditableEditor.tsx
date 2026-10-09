@@ -13,8 +13,10 @@ import { useGameInPlay } from "../app/hooks"
 export type BaseEditableEditorRef = {
   /** Resets the editor back to its starter code. */
   clear: () => void
-  /** Runs the editor's current code - only called when the player presses Play. */
-  run: () => void
+  /** Interprets the editor's current code and returns a promise that resolves
+   * to a boolean indicating success.
+   */
+  interpret: () => Promise<boolean>
 }
 
 export interface BaseEditableEditorProps {
@@ -22,8 +24,7 @@ export interface BaseEditableEditorProps {
   starterCode: string
   /** Language-specific CodeMirror extensions (e.g. `python()`). */
   extensions: Extension[]
-  /** Called with the editor's current code when the player presses Play. */
-  onRun: (code: string) => void
+  interpret: (code: string) => Promise<boolean>
 }
 
 /**
@@ -34,12 +35,12 @@ const BaseEditableEditor: FC<BaseEditableEditorProps> = ({
   ref,
   starterCode,
   extensions,
-  onRun,
+  interpret,
 }) => {
   const gameInPlay = useGameInPlay()
   const [code, setCode] = useState(starterCode)
 
-  // Avoids a stale closure in the imperative `run` below.
+  // Avoids a stale closure in the imperative `interpret` below.
   const codeRef = useRef(code)
   codeRef.current = code
 
@@ -47,9 +48,9 @@ const BaseEditableEditor: FC<BaseEditableEditorProps> = ({
     ref,
     () => ({
       clear: () => setCode(starterCode),
-      run: () => onRun(codeRef.current),
+      interpret: () => interpret(codeRef.current),
     }),
-    [starterCode, onRun],
+    [starterCode, interpret],
   )
 
   return (

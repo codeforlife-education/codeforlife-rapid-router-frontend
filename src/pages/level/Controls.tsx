@@ -28,7 +28,7 @@ import {
   useGameInPlay,
   useGameIsDefined,
   usePhaserGameContext,
-  usePlayIntervalContext,
+  usePlayInterval,
   usePythonEditorContext,
   useSettings,
 } from "../../app/hooks"
@@ -41,21 +41,17 @@ const Base: FC<
   Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
     panelCount: number
     onClear: () => void
-    onRun: () => void
+    interpretCommands: () => Promise<boolean>
   }
-> = ({ panelCount, onClear, onRun, onOpened, onClosed }) => {
+> = ({ panelCount, onClear, interpretCommands, onOpened, onClosed }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
-  const playIntervalContext = usePlayIntervalContext()
+  const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
   const { activeSceneKeys } = usePhaserGameContext()
-
-  if (!playIntervalContext)
-    throw new ReferenceError("Play interval context not provided.")
-  const [playInterval, , clearPlayInterval] = playIntervalContext
 
   // Helper to map panel layout options to menu items.
   function mapPanelLayoutsToMenuItems<
@@ -87,7 +83,8 @@ const Base: FC<
           text={gameInPlay && playInterval ? "Pause" : "Play"}
           icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
           onClick={() => {
-            if (!clearPlayInterval()) onRun()
+            if (!clearPlayInterval())
+              void interpretCommands().then(ok => ok && setPlayInterval)
           }}
         />
         <miniDrawers.MenuItem
@@ -115,10 +112,11 @@ const Base: FC<
           isDrawerOpen={isDrawerOpen}
           text="Step"
           icon={<RedoIcon />}
-          disabled={!gameIsDefined}
           onClick={() => {
             clearPlayInterval()
-            dispatch(nextGameCommand())
+            const step = () => dispatch(nextGameCommand())
+            if (gameIsDefined) step()
+            else void interpretCommands().then(ok => ok && step)
           }}
         />
         <miniDrawers.MenuItem
@@ -161,15 +159,15 @@ const Blockly: FC = () => {
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
-  const runBlocklyWorkspace = useCallback(() => {
-    blocklyWorkspaceContext?.ref.current?.run()
+  const interpretBlocklyWorkspace = useCallback(async () => {
+    return (await blocklyWorkspaceContext?.ref.current?.interpret()) || false
   }, [blocklyWorkspaceContext])
 
   return (
     <Base
       panelCount={2}
+      interpretCommands={interpretBlocklyWorkspace}
       onClear={clearBlocklyWorkspace}
-      onRun={runBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
     />
@@ -178,18 +176,18 @@ const Blockly: FC = () => {
 
 const Python: FC = () => {
   const pythonEditorContext = usePythonEditorContext()
-  const clearPythonWorkspace = useCallback(() => {
+  const clearPythonEditor = useCallback(() => {
     pythonEditorContext?.ref.current?.clear()
   }, [pythonEditorContext])
-  const runPythonWorkspace = useCallback(() => {
-    pythonEditorContext?.ref.current?.run()
+  const interpretPythonEditor = useCallback(async () => {
+    return (await pythonEditorContext?.ref.current?.interpret()) || false
   }, [pythonEditorContext])
 
   return (
     <Base
       panelCount={2}
-      onClear={clearPythonWorkspace}
-      onRun={runPythonWorkspace}
+      onClear={clearPythonEditor}
+      interpretCommands={interpretPythonEditor}
     />
   )
 }
@@ -200,14 +198,15 @@ const BlocklyAndPython: FC = () => {
   const clearBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
   }, [blocklyWorkspaceContext])
-  const clearPythonWorkspace = useCallback(() => {
+  const clearPythonEditor = useCallback(() => {
     pythonEditorContext?.ref.current?.clear()
   }, [pythonEditorContext])
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
-  const runBlocklyWorkspace = useCallback(() => {
-    blocklyWorkspaceContext?.ref.current?.run()
+  const interpretBlocklyWorkspace = useCallback(async () => {
+    const interpret = blocklyWorkspaceContext?.ref.current?.interpret
+    return (await interpret?.("python")) || false
   }, [blocklyWorkspaceContext])
 
   return (
@@ -215,9 +214,9 @@ const BlocklyAndPython: FC = () => {
       panelCount={3}
       onClear={() => {
         clearBlocklyWorkspace()
-        clearPythonWorkspace()
+        clearPythonEditor()
       }}
-      onRun={runBlocklyWorkspace}
+      interpretCommands={interpretBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
     />

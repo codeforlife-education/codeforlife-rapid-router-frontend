@@ -25,27 +25,25 @@ import { getMaxInstances, getToolboxContents } from "../../blockly/workspace"
 import type { CharacterCommand } from "../../app/character"
 import Controls from "./Controls"
 import Panels from "./Panels"
-import PlayIntervalContext from "../../app/PlayIntervalContext"
 import { paths } from "../../routes"
-import { usePlayInterval } from "../../app/hooks"
 
 const Base: FC<Pick<LevelModel, "id" | "mode">> = level => (
-  <PlayIntervalContext.Provider value={usePlayInterval()}>
-    <Box sx={{ display: "flex" }}>
-      <Controls level={level} />
-      {/* TODO: fix style*/}
-      <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
-        <Panels level={level} />
-      </Box>
+  <Box sx={{ display: "flex" }}>
+    <Controls level={level} />
+    {/* TODO: fix style*/}
+    <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
+      <Panels level={level} />
     </Box>
-  </PlayIntervalContext.Provider>
+  </Box>
 )
 
-type BlocklyProps = Pick<LevelModel, "blockly_toolbox_block_types">
+type BlocklyProps = Pick<LevelModel, "id" | "blockly_toolbox_block_types">
 
-const BlocklyContext: FC<
-  Pick<LevelModel, "id"> & BlocklyProps & { children: ReactNode }
-> = ({ id, blockly_toolbox_block_types, children }) => {
+const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
+  id,
+  blockly_toolbox_block_types,
+  children,
+}) => {
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
   const [code, setCode] = useState("")
 
@@ -77,26 +75,20 @@ const BlocklyContext: FC<
   )
 }
 
-type PythonProps = {}
+type PythonProps = Pick<LevelModel, "id">
 
 const PythonContext: FC<
-  PythonProps &
-    Pick<LevelModel, "id"> & {
-      mode: "python" | "blocklyAndPython"
-      commands?: CharacterCommand[]
-      children: ReactNode
-    }
-> = ({ id, mode, commands, children }) => {
-  const pythonWorkspaceRef = useRef<PythonEditorRef>(null)
+  PythonProps & {
+    editable: boolean
+    commands?: CharacterCommand[]
+    children: ReactNode
+  }
+> = ({ id, editable, commands, children }) => {
+  const pythonEditorRef = useRef<PythonEditorRef>(null)
 
   return (
     <PythonEditorContext.Provider
-      value={{
-        ref: pythonWorkspaceRef,
-        levelId: id,
-        editable: mode === "python",
-        commands,
-      }}
+      value={{ ref: pythonEditorRef, levelId: id, editable, commands }}
     >
       {children}
     </PythonEditorContext.Provider>
@@ -123,12 +115,11 @@ const Custom: FC = () =>
   })
 
 export type LevelProps =
-  | (Pick<LevelModel, "id"> &
-      (
-        | (BlocklyProps & { mode: "blockly" })
-        | (PythonProps & { mode: "python"; commands: CharacterCommand[] })
-        | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
-      ))
+  | (
+      | (BlocklyProps & { mode: "blockly" })
+      | (PythonProps & { mode: "python"; commands: CharacterCommand[] })
+      | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
+    )
   | {}
 
 const Level: FC<LevelProps> = level => {
@@ -145,13 +136,13 @@ const Level: FC<LevelProps> = level => {
             <Base {...level} />
           </BlocklyContext>
         ) : level.mode === "python" ? (
-          <PythonContext {...level}>
+          <PythonContext {...level} editable={true}>
             <Base {...level} />
           </PythonContext>
         ) : (
           // blocklyAndPython
           <BlocklyContext {...level}>
-            <PythonContext {...level}>
+            <PythonContext {...level} editable={false}>
               <Base {...level} />
             </PythonContext>
           </BlocklyContext>

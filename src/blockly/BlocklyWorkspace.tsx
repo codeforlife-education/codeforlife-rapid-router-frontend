@@ -17,7 +17,6 @@ import {
   useCurrentGameCommand,
   useGameHasFinishedEarly,
   useGameInPlay,
-  usePlayIntervalContext,
 } from "../app/hooks"
 import type { BlocklyWorkspaceRef } from "./BlocklyWorkspaceContext"
 import { LevelSimulator } from "../phaser"
@@ -26,6 +25,7 @@ import { getTilemap } from "../phaser/tilemaps/load"
 import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
 
+type Blockly = ReturnType<typeof initializeBlockly>
 type HighlightedBlock = { id: string; originalColour?: string }
 
 export interface BlocklyWorkspaceProps {
@@ -37,20 +37,15 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 }) => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const divRef = useRef<HTMLDivElement | null>(null)
-  const [blockly, setBlockly] = useState<null | ReturnType<
-    typeof initializeBlockly
-  >>(null)
+  const [blockly, setBlockly] = useState<null | Blockly>(null)
   const highlightedBlockRef = useRef<HighlightedBlock | null>(null)
-  const runRef = useRef<BlocklyWorkspaceRef["run"]>(() => {})
+  const interpretRef = useRef<{
+    (blockly: Blockly, generator?: string): Promise<boolean>
+  }>(async () => new Promise<boolean>(resolve => resolve(false)))
   const dispatch = useAppDispatch()
   const gameInPlay = useGameInPlay()
   const gameHasFinishedEarly = useGameHasFinishedEarly()
   const currentGameCommand = useCurrentGameCommand()
-  const playIntervalContext = usePlayIntervalContext()
-
-  if (!playIntervalContext)
-    throw new ReferenceError("Play interval context not provided.")
-  const [, setPlayInterval] = playIntervalContext
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
@@ -86,17 +81,15 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     [],
   )
 
-  // Interprets and runs the Blockly workspace.
-  runRef.current = generator => {
-    if (!blockly) return
-
+  // Interprets the Blockly workspace.
+  interpretRef.current = async (blockly, generator) => {
     unhighlightBlock(blockly) // Unhighlight any previously highlighted blocks.
 
     // Generate the code from the start block if needed, tracking which line
     // each block ID maps to so playback commands can highlight the right line.
     let lineByBlockId: Map<string, number> | undefined
     if (generator) {
-      let code: string
+      let code = ""
       switch (generator) {
         case "python": {
           const mapped = mapBlocksToPythonLines(
@@ -112,37 +105,41 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     // Interpret the blocks using the headless simulator.
     dispatch(setGameCommands([])) // Clear previous game commands.
-    void getTilemap(levelId).then(tilemap => {
-      const simulator = new LevelSimulator(tilemap)
-      const result = runBlockly(blockly.startBlock, simulator)
-      if (result.ok) {
-        dispatch(
-          setGameCommands(
-            simulator.commands.map(({ command, blockId }) => ({
-              command,
-              blockId,
-              lineNo: blockId ? lineByBlockId?.get(blockId) : undefined,
-            })),
-          ),
-        )
-        setPlayInterval()
-      } else if (result.blockId) {
-        highlightBlock(blockly, result.blockId, { error: true })
-      }
-    })
+    const tilemap = await getTilemap(levelId)
+    const simulator = new LevelSimulator(tilemap)
+    const result = runBlockly(blockly.startBlock, simulator)
+    if (result.ok) {
+      dispatch(
+        setGameCommands(
+          simulator.commands.map(({ command, blockId }) => ({
+            command,
+            blockId,
+            lineNo: blockId ? lineByBlockId?.get(blockId) : undefined,
+          })),
+        ),
+      )
+    } else if (result.blockId) {
+      highlightBlock(blockly, result.blockId, { error: true })
+    }
+
+    return result.ok
   }
 
   // Expose workspace methods to parent components.
   useImperativeHandle(
     ref,
     () =>
-      blockly
+      (blockly
         ? {
             resize: resizeWorkspace(blockly.workspace),
             clear: () => clearWorkspace(blockly.workspace, blockly.startBlock),
-            run: () => runRef.current(),
+            interpret: generator => interpretRef.current(blockly, generator),
           }
-        : { resize: () => {}, clear: () => {}, run: () => {} },
+        : {
+            resize: () => {},
+            clear: () => {},
+            interpret: async () => {},
+          }) as BlocklyWorkspaceRef,
     [blockly],
   )
 

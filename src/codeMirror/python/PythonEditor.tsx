@@ -5,7 +5,6 @@ import { python } from "@codemirror/lang-python"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
-  usePlayIntervalContext,
   usePythonEditorContext,
 } from "../../app/hooks"
 import BaseEditableEditor from "../BaseEditableEditor"
@@ -25,28 +24,17 @@ const EditablePythonEditor: FC<{
 }> = ({ ref, levelId, commands }) => {
   const dispatch = useAppDispatch()
   const { run, ready } = usePyodideRunner()
-  const playIntervalContext = usePlayIntervalContext()
-  if (!playIntervalContext)
-    throw new ReferenceError("Play interval context not provided.")
-  const [, setPlayInterval, clearPlayInterval] = playIntervalContext
   const [error, setError] = useState<string | null>(null)
   const [commandsModalOpen, setCommandsModalOpen] = useState(false)
 
-  // Runs the given code through Pyodide - only invoked when the player
-  // presses Play/Run Program, never automatically on edit. The editor is
-  // locked (see `editable` below) for the whole time the game is in play,
-  // so playback only starts once the full command list is ready.
-  const handleRun = (code: string) => {
+  // Interpret the given code using Pyodide.
+  const handleInterpret = async (code: string) => {
     setError(null)
     dispatch(setGameCommands([]))
-    void run(code, levelId).then(result => {
-      if (result.ok) {
-        dispatch(setGameCommands(result.commands))
-        setPlayInterval()
-      } else {
-        setError(result.message)
-      }
-    })
+    const result = await run(code, levelId)
+    if (result.ok) dispatch(setGameCommands(result.commands))
+    else setError(result.message)
+    return result.ok
   }
 
   return (
@@ -90,7 +78,7 @@ const EditablePythonEditor: FC<{
           ref={ref}
           starterCode={PYTHON_STARTER_CODE}
           extensions={[python()]}
-          onRun={handleRun}
+          interpret={handleInterpret}
         />
       </Box>
       <Box
@@ -138,7 +126,7 @@ const EditablePythonEditor: FC<{
  * it highlights whichever line produced the command currently being
  * animated (see `mapBlocksToPythonLines` for how that line is determined
  * without ever executing this code). */
-const ReadOnlyPythonEditor: FC = () => {
+const NonEditablePythonEditor: FC = () => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
 
   return (
@@ -165,7 +153,7 @@ const PythonEditor: FC<PythonEditorProps> = () => {
       commands={pythonEditorContext.commands}
     />
   ) : (
-    <ReadOnlyPythonEditor />
+    <NonEditablePythonEditor />
   )
 }
 

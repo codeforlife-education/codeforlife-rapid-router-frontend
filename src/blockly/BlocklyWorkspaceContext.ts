@@ -11,7 +11,7 @@ import type { CodingLanguage } from "../codeMirror"
 export type BlocklyWorkspaceRef = {
   resize: () => void
   clear: () => void
-  run: (generator?: CodingLanguage) => void
+  interpret: (generator?: CodingLanguage) => Promise<boolean>
 }
 
 export type BlocklyWorkspaceContextValue = {
