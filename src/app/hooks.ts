@@ -5,7 +5,7 @@
 // for importing and re-exporting the typed versions of hooks.
 /* eslint-disable @typescript-eslint/no-restricted-imports */
 import { type Breakpoint, useMediaQuery, useTheme } from "@mui/material"
-import { useCallback, useContext, useEffect, useRef } from "react"
+import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 
 import type { AppDispatch, RootState } from "./store"
@@ -56,11 +56,13 @@ export function usePlayInterval() {
   const gameOver = useGameOver()
   const gameIsDefined = useGameIsDefined()
   const intervalRef = useRef<null | ReturnType<typeof setInterval>>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const clearPlayInterval = useCallback(() => {
     if (!intervalRef.current) return false
     clearInterval(intervalRef.current)
     intervalRef.current = null
+    setIsPlaying(false)
     return true
   }, [])
 
@@ -69,6 +71,7 @@ export function usePlayInterval() {
     intervalRef.current = setInterval(() => {
       dispatch(nextGameCommand())
     }, 1000 / playSpeed)
+    setIsPlaying(true)
   }, [clearPlayInterval, dispatch, playSpeed])
 
   // Clear interval on game over.
@@ -93,7 +96,7 @@ export function usePlayInterval() {
     if (clearPlayInterval()) setPlayInterval()
   }, [clearPlayInterval, setPlayInterval])
 
-  return [intervalRef.current, setPlayInterval, clearPlayInterval] as const
+  return [isPlaying, setPlayInterval, clearPlayInterval] as const
 }
 
 // Slice selectors

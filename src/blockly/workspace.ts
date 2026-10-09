@@ -420,3 +420,27 @@ export function clearWorkspace(
     if (block.id !== startBlock.id) disposeBlock(block)
   }
 }
+
+/**
+ * Serializes everything connected to `startBlock` plus every defined
+ * procedure, as a plain string, so callers can diff it against a previous
+ * snapshot to detect whether the program has actually changed (added/
+ * removed/reconnected/edited a block) rather than e.g. just being dragged
+ * around - positions are excluded, and procedure definitions are sorted by
+ * id, so neither affects the result.
+ */
+export function getProgramSnapshot(
+  workspace: Blockly.Workspace,
+  startBlock: Blockly.Block,
+) {
+  const procedureDefs = workspace
+    .getTopBlocks(false)
+    .filter(block => block.type === defaults.PROCEDURES_DEFINE_BLOCK_TYPE)
+    .sort((a, b) => a.id.localeCompare(b.id))
+
+  return JSON.stringify(
+    [startBlock, ...procedureDefs].map(block =>
+      Blockly.serialization.blocks.save(block, { addCoordinates: false }),
+    ),
+  )
+}

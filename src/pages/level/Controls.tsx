@@ -52,7 +52,7 @@ const Base: FC<
   const gameHasStarted = useGameHasStarted()
   const gameInPlay = useGameInPlay()
   const gameOnLastStep = useGameOnLastStep()
-  const [playInterval, setPlayInterval, clearPlayInterval] = usePlayInterval()
+  const [isPlaying, setPlayInterval, clearPlayInterval] = usePlayInterval()
   const { activeSceneKeys } = usePhaserGameContext()
 
   // Helper to map panel layout options to menu items.
@@ -82,11 +82,14 @@ const Base: FC<
       >
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
-          text={gameInPlay && playInterval ? "Pause" : "Play"}
-          icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
+          text={gameInPlay && isPlaying ? "Pause" : "Play"}
+          icon={gameInPlay && isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
           onClick={() => {
-            if (!clearPlayInterval())
-              void interpretCommands().then(ok => ok && setPlayInterval())
+            if (clearPlayInterval()) return
+            if (gameIsDefined) {
+              if (gameOnLastStep) dispatch(restartGame())
+              setPlayInterval()
+            } else void interpretCommands().then(ok => ok && setPlayInterval())
           }}
         />
         <miniDrawers.MenuItem

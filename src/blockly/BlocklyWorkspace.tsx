@@ -1,4 +1,5 @@
 import "blockly/blocks"
+import { Box, debounce } from "@mui/material"
 import {
   type FC,
   useCallback,
@@ -7,9 +8,13 @@ import {
   useRef,
   useState,
 } from "react"
-import { Box } from "@mui/material"
 
-import { clearWorkspace, initializeBlockly, resizeWorkspace } from "./workspace"
+import {
+  clearWorkspace,
+  getProgramSnapshot,
+  initializeBlockly,
+  resizeWorkspace,
+} from "./workspace"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -39,6 +44,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const divRef = useRef<HTMLDivElement | null>(null)
   const [blockly, setBlockly] = useState<null | Blockly>(null)
   const highlightedBlocksRef = useRef<HighlightedBlock[]>([])
+  const programSnapshotRef = useRef<string | null>(null)
   const interpretRef = useRef<{
     (blockly: Blockly, generator?: string): Promise<boolean>
   }>(async () => new Promise<boolean>(resolve => resolve(false)))
@@ -148,11 +154,28 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       maxInstances,
     )
     setBlockly(blockly)
+    programSnapshotRef.current = getProgramSnapshot(
+      blockly.workspace,
+      blockly.startBlock,
+    )
+
+    // Set up event listeners.
+    const onChange = debounce(() => {
+      const snapshot = getProgramSnapshot(blockly.workspace, blockly.startBlock)
+      const changed = snapshot !== programSnapshotRef.current
+      programSnapshotRef.current = snapshot
+      if (!changed) return
+      dispatch(setGameCommands([]))
+      setCode("")
+    }, 250)
+
+    blockly.workspace.addChangeListener(onChange)
 
     return () => {
+      blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [divRef, startBlockType, toolboxContents, maxInstances, setCode])
+  }, [divRef, startBlockType, toolboxContents, maxInstances, setCode, dispatch])
 
   // Highlight the current block during game play.
   useEffect(() => {
