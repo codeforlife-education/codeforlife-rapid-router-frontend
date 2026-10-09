@@ -84,7 +84,7 @@ const Base: FC<
           icon={gameInPlay && playInterval ? <PauseIcon /> : <PlayArrowIcon />}
           onClick={() => {
             if (!clearPlayInterval())
-              void interpretCommands().then(ok => ok && setPlayInterval)
+              void interpretCommands().then(ok => ok && setPlayInterval())
           }}
         />
         <miniDrawers.MenuItem
@@ -116,7 +116,7 @@ const Base: FC<
             clearPlayInterval()
             const step = () => dispatch(nextGameCommand())
             if (gameIsDefined) step()
-            else void interpretCommands().then(ok => ok && step)
+            else void interpretCommands().then(ok => ok && step())
           }}
         />
         <miniDrawers.MenuItem

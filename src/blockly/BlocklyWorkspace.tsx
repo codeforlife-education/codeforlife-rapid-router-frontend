@@ -128,8 +128,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   // Expose workspace methods to parent components.
   useImperativeHandle(
     ref,
-    () =>
-      (blockly
+    (): BlocklyWorkspaceRef =>
+      blockly
         ? {
             resize: resizeWorkspace(blockly.workspace),
             clear: () => clearWorkspace(blockly.workspace, blockly.startBlock),
@@ -138,8 +138,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
         : {
             resize: () => {},
             clear: () => {},
-            interpret: async () => {},
-          }) as BlocklyWorkspaceRef,
+            interpret: () => new Promise(resolve => resolve(false)),
+          },
     [blockly],
   )
 
