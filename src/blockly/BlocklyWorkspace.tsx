@@ -60,7 +60,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
   const highlightBlock = useCallback(
     (
-      { workspace }: NonNullable<typeof blockly>,
+      workspace: Blockly["workspace"],
       blockIds: string[],
       { error }: { error: boolean },
     ) => {
@@ -79,21 +79,17 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     [],
   )
 
-  const unhighlightBlock = useCallback(
-    ({ workspace }: NonNullable<typeof blockly>) => {
-      workspace.highlightBlock(null) // Unhighlight all blocks.
-      for (const { id, originalColour } of highlightedBlocksRef.current) {
-        if (originalColour)
-          workspace.getBlockById(id)?.setColour(originalColour)
-      }
-      highlightedBlocksRef.current = []
-    },
-    [],
-  )
+  const unhighlightBlock = useCallback((workspace: Blockly["workspace"]) => {
+    workspace.highlightBlock(null) // Unhighlight all blocks.
+    for (const { id, originalColour } of highlightedBlocksRef.current) {
+      if (originalColour) workspace.getBlockById(id)?.setColour(originalColour)
+    }
+    highlightedBlocksRef.current = []
+  }, [])
 
   // Interprets the Blockly workspace.
-  interpretRef.current = async (blockly, generator) => {
-    unhighlightBlock(blockly) // Unhighlight any previously highlighted blocks.
+  interpretRef.current = async ({ workspace, startBlock }, generator) => {
+    unhighlightBlock(workspace) // Unhighlight any previously highlighted blocks.
 
     // Generate the code from the start block if needed, tracking which line
     // each block ID maps to so playback commands can highlight the right line.
@@ -102,7 +98,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       let code = ""
       switch (generator) {
         case "python": {
-          const python = getPythonCodeFromStartBlock(blockly.startBlock)
+          const python = getPythonCodeFromStartBlock(startBlock)
           code = python.code
           lineByBlockId = python.lineByBlockId
           break
@@ -115,13 +111,9 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     dispatch(setGameCommands([])) // Clear previous game commands.
     const tilemap = await getTilemap(levelId)
     const simulator = new LevelSimulator(tilemap)
-    const result = runBlockly(blockly.startBlock, simulator, lineByBlockId)
-    if (result.ok) {
-      dispatch(setGameCommands(simulator.commands))
-    } else {
-      highlightBlock(blockly, result.blockIds, { error: true })
-    }
-
+    const result = runBlockly(startBlock, simulator, lineByBlockId)
+    if (result.ok) dispatch(setGameCommands(simulator.commands))
+    else highlightBlock(workspace, result.blockIds, { error: true })
     return result.ok
   }
 
@@ -180,11 +172,12 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   // Highlight the current block during game play.
   useEffect(() => {
     if (!blockly) return
+    const { workspace } = blockly
 
-    unhighlightBlock(blockly) // Unhighlight any previously highlighted blocks.
+    unhighlightBlock(workspace) // Unhighlight previously highlighted blocks.
 
     if (!currentGameCommand?.blockIds.length) return
-    highlightBlock(blockly, currentGameCommand.blockIds, {
+    highlightBlock(workspace, currentGameCommand.blockIds, {
       error: gameHasFinishedEarly,
     })
   }, [
