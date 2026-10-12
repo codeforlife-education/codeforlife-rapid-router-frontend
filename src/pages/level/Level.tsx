@@ -7,6 +7,7 @@ import { useParamsRequired } from "codeforlife/hooks"
 import {
   BlocklyWorkspaceContext,
   type BlocklyWorkspaceRef,
+  type GeneratedCode,
 } from "../../blockly"
 import {
   type GamePhase,
@@ -46,10 +47,12 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
   children,
 }) => {
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
-  const [code, setCode] = useState("")
-  const [lineNos, setLineNos] = useState<(number | undefined)[]>([])
+  const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({
+    code: "",
+    lineNos: [],
+  })
 
-  // Stable references across re-renders (e.g. from `setCode` itself) -
+  // Stable references across re-renders (e.g. from `setGeneratedCode` itself) -
   // otherwise `BlocklyWorkspace`'s init effect would see "new" values on
   // every edit and recreate the workspace, wiping out the player's blocks.
   const toolboxContents = useMemo(
@@ -67,10 +70,8 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
         ref: blocklyWorkspaceRef,
         toolboxContents,
         maxInstances,
-        code,
-        setCode,
-        lineNos,
-        setLineNos,
+        generatedCode,
+        setGeneratedCode,
         levelId: id,
       }}
     >

@@ -9,6 +9,10 @@ import {
   useState,
 } from "react"
 
+import type {
+  BlocklyWorkspaceRef,
+  GeneratedCode,
+} from "./BlocklyWorkspaceContext"
 import {
   clearWorkspace,
   getProgramSnapshot,
@@ -21,7 +25,6 @@ import {
   useGameCommandIndex,
   usePhaserGameContext,
 } from "../app/hooks"
-import type { BlocklyWorkspaceRef } from "./BlocklyWorkspaceContext"
 import type { GameCommand } from "../app/slices/game"
 import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
@@ -55,7 +58,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
-  const { ref, toolboxContents, maxInstances, setCode, setLineNos, levelId } =
+  const { ref, toolboxContents, maxInstances, setGeneratedCode, levelId } =
     blocklyWorkspaceContext
 
   // Sets the current game state.
@@ -63,13 +66,13 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     (
       commands: GameCommand[],
       blockIds: string[][],
-      lineNos: (number | undefined)[],
+      generatedCode: GeneratedCode,
     ) => {
       dispatch(setGameCommands(commands))
       setGameCommandBlockIds(blockIds)
-      setLineNos(lineNos)
+      setGeneratedCode(generatedCode)
     },
-    [dispatch, setLineNos],
+    [dispatch, setGeneratedCode],
   )
 
   // Highlights a block (and its related blocks), optionally marking them as
@@ -108,11 +111,13 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   interpretRef.current = async ({ workspace, startBlock }, generator) => {
     unhighlightBlock(workspace) // Unhighlight any previously highlighted blocks.
 
+    let code = ""
+    setGame([], [], { code, lineNos: [] }) // Clear previous game commands.
+
     // Generate the code from the start block if needed, tracking which line
     // each block ID maps to so playback commands can highlight the right line.
     let lineByBlockId: Map<string, number> | undefined
     if (generator) {
-      let code = ""
       switch (generator) {
         case "python": {
           const python = getPythonCodeFromStartBlock(startBlock)
@@ -121,11 +126,9 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
           break
         }
       }
-      setCode(code)
     }
 
     // Interpret the blocks using the headless simulator.
-    setGame([], [], []) // Clear previous game commands.
     const tilemap = await getTilemap(levelId)
     const simulator = new LevelSimulator(tilemap)
     const result = runBlockly(startBlock, simulator, lineByBlockId)
@@ -133,7 +136,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       setGame(
         simulator.commands.map(c => c.command),
         simulator.commands.map(c => c.blockIds ?? []),
-        simulator.commands.map(c => c.lineNo),
+        { code, lineNos: simulator.commands.map(c => c.lineNo) },
       )
     } else highlightBlock(workspace, result.blockIds, { error: true })
     return result.ok
@@ -179,8 +182,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       const changed = snapshot !== programSnapshotRef.current
       programSnapshotRef.current = snapshot
       if (!changed) return
-      setGame([], [], [])
-      setCode("")
+      setGame([], [], { code: "", lineNos: [] })
     }, 250)
 
     blockly.workspace.addChangeListener(onChange)
@@ -189,7 +191,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [startBlockType, toolboxContents, maxInstances, setCode, setGame])
+  }, [startBlockType, toolboxContents, maxInstances, setGame])
 
   // Highlight the current block during game play.
   useEffect(() => {
