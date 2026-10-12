@@ -13,13 +13,8 @@ export const GAME_COMMANDS = [
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
 export interface GameState {
-  gameCommands: {
-    command: GameCommand
-    /** The originating Blockly block IDs. */
-    blockIds?: string[]
-    /** The source line (1-indexed). */
-    lineNo?: number
-  }[]
+  /** The interpreted command sequence. */
+  gameCommands: GameCommand[]
   /** The index of the current game command being executed. */
   gameCommandIndex: number
   /** Bumped on every (re)start, so Phaser can detect a fresh run regardless

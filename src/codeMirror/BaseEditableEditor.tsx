@@ -5,9 +5,8 @@ import {
   useRef,
   useState,
 } from "react"
-import type { Extension } from "@codemirror/state"
 
-import BaseEditor from "./BaseEditor"
+import BaseEditor, { type BaseEditorProps } from "./BaseEditor"
 import { usePhaserGameContext } from "../app/hooks"
 
 export type BaseEditableEditorRef = {
@@ -19,11 +18,10 @@ export type BaseEditableEditorRef = {
   interpret: () => Promise<boolean>
 }
 
-export interface BaseEditableEditorProps {
+export interface BaseEditableEditorProps
+  extends Pick<BaseEditorProps, "lineNo" | "extensions"> {
   ref: RefObject<BaseEditableEditorRef | null>
   starterCode: string
-  /** Language-specific CodeMirror extensions (e.g. `python()`). */
-  extensions: Extension[]
   interpret: (code: string) => Promise<boolean>
 }
 
@@ -34,6 +32,7 @@ export interface BaseEditableEditorProps {
 const BaseEditableEditor: FC<BaseEditableEditorProps> = ({
   ref,
   starterCode,
+  lineNo,
   extensions,
   interpret,
 }) => {
@@ -57,6 +56,7 @@ const BaseEditableEditor: FC<BaseEditableEditorProps> = ({
     <BaseEditor
       value={code}
       editable={phase === "playing" || phase === "paused"}
+      lineNo={lineNo}
       extensions={extensions}
       onChange={setCode}
     />

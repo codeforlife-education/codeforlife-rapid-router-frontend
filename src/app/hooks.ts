@@ -51,15 +51,6 @@ export const useGameRunId = () => useSelector(selectGameRunId)
 export const useGameIsDefined = () => useSelector(selectGameIsDefined)
 export const useGameOnLastStep = () => useSelector(selectGameOnLastStep)
 
-// The command currently being displayed/acted on - `undefined` before the
-// game has ever been played/stepped this run (see `GamePhase`).
-export function useCurrentGameCommand() {
-  const commands = useGameCommands()
-  const index = useGameCommandIndex()
-  const { phase } = usePhaserGameContext()
-  return phase === "idle" ? undefined : commands[index]
-}
-
 // Contexts
 export const useBlocklyWorkspaceContext = () =>
   useContext(BlocklyWorkspaceContext)

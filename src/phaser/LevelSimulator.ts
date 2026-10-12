@@ -7,18 +7,25 @@ import {
   turnLeft,
   turnRight,
 } from "./tilegrid/navigation"
-import type { GameCommand, GameState } from "../app/slices"
 import { type RoadID, decode } from "./layers/tile/data"
+import type { GameCommand } from "../app/slices"
 import type { OrthogonalTilemap } from "./tilemaps"
 import { createRoadNavigator } from "./tilegrid/road"
 
 export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"
 
+/** A single interpreted command, alongside the presentation metadata needed
+ * to highlight whatever produced it (Blockly blocks and/or a source line) -
+ * callers split this apart into whatever each consumer actually stores. */
+export type SimulatorCommand = {
+  command: GameCommand
+  blockIds?: string[]
+  lineNo?: number
+}
+
 type Tile = Phaser.Types.Tilemaps.Tile
-type CommandOptions = Partial<
-  Pick<GameState["gameCommands"][number], "blockIds" | "lineNo">
->
+type CommandOptions = Partial<Pick<SimulatorCommand, "blockIds" | "lineNo">>
 
 const CFC_IDS: readonly number[] = tilesets.endpoints.cfc.IDs
 const HOUSE_IDS: readonly number[] = tilesets.endpoints.house.IDs
@@ -61,7 +68,7 @@ export default class LevelSimulator {
     colour: TrafficLightColour
   }[]
   private readonly animalTiles: Tile[]
-  readonly commands: GameState["gameCommands"] = []
+  readonly commands: SimulatorCommand[] = []
 
   constructor(tilemap: OrthogonalTilemap) {
     const roadLayer = tilemap.layers[0]

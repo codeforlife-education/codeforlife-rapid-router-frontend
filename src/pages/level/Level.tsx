@@ -47,6 +47,7 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
 }) => {
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
   const [code, setCode] = useState("")
+  const [lineNos, setLineNos] = useState<(number | undefined)[]>([])
 
   // Stable references across re-renders (e.g. from `setCode` itself) -
   // otherwise `BlocklyWorkspace`'s init effect would see "new" values on
@@ -68,6 +69,8 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
         maxInstances,
         code,
         setCode,
+        lineNos,
+        setLineNos,
         levelId: id,
       }}
     >

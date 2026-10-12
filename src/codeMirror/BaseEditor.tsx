@@ -3,8 +3,6 @@ import { Decoration, type DecorationSet, EditorView } from "@codemirror/view"
 import { type Extension, StateEffect, StateField } from "@codemirror/state"
 import { type FC, useEffect, useRef } from "react"
 
-import { useCurrentGameCommand } from "../app/hooks"
-
 /** Set to a 1-indexed line number to highlight it, or `null` to clear. */
 const setHighlightedLine = StateEffect.define<number | null>()
 
@@ -50,6 +48,10 @@ function dispatchHighlightedLine(view: EditorView, line: number | null) {
 export interface BaseEditorProps {
   value: string
   editable: boolean
+  /** The source line (1-indexed) currently being animated, or `undefined` to
+   * clear the highlight - resolved by the caller, which owns whatever
+   * mapping of command index to line applies to its own mode. */
+  lineNo?: number
   /** Language-specific CodeMirror extensions (e.g. `python()`). */
   extensions: Extension[]
   onChange?: (value: string) => void
@@ -63,17 +65,17 @@ export interface BaseEditorProps {
 const BaseEditor: FC<BaseEditorProps> = ({
   value,
   editable,
+  lineNo,
   extensions,
   onChange,
 }) => {
-  const currentGameCommand = useCurrentGameCommand()
   const editorRef = useRef<ReactCodeMirrorRef>(null)
 
   useEffect(() => {
     const view = editorRef.current?.view
     if (!view) return
-    dispatchHighlightedLine(view, currentGameCommand?.lineNo ?? null)
-  }, [currentGameCommand])
+    dispatchHighlightedLine(view, lineNo ?? null)
+  }, [lineNo])
 
   return (
     <CodeMirror

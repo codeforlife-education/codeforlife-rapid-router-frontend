@@ -18,10 +18,11 @@ import {
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
-  useCurrentGameCommand,
+  useGameCommandIndex,
   usePhaserGameContext,
 } from "../app/hooks"
 import type { BlocklyWorkspaceRef } from "./BlocklyWorkspaceContext"
+import type { GameCommand } from "../app/slices/game"
 import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
 import { getPythonCodeFromStartBlock } from "./python"
@@ -49,13 +50,30 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   }>(async () => new Promise<boolean>(resolve => resolve(false)))
   const dispatch = useAppDispatch()
   const { phase } = usePhaserGameContext()
-  const currentGameCommand = useCurrentGameCommand()
+  const gameCommandIndex = useGameCommandIndex()
+  const [gameCommandBlockIds, setGameCommandBlockIds] = useState<string[][]>([])
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
-  const { ref, toolboxContents, maxInstances, setCode, levelId } =
+  const { ref, toolboxContents, maxInstances, setCode, setLineNos, levelId } =
     blocklyWorkspaceContext
 
+  // Sets the current game state.
+  const setGame = useCallback(
+    (
+      commands: GameCommand[],
+      blockIds: string[][],
+      lineNos: (number | undefined)[],
+    ) => {
+      dispatch(setGameCommands(commands))
+      setGameCommandBlockIds(blockIds)
+      setLineNos(lineNos)
+    },
+    [dispatch, setLineNos],
+  )
+
+  // Highlights a block (and its related blocks), optionally marking them as
+  // errors.
   const highlightBlock = useCallback(
     (
       workspace: Blockly["workspace"],
@@ -77,6 +95,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     [],
   )
 
+  // Unhighlights all previously highlighted blocks.
   const unhighlightBlock = useCallback((workspace: Blockly["workspace"]) => {
     workspace.highlightBlock(null) // Unhighlight all blocks.
     for (const { id, originalColour } of highlightedBlocksRef.current) {
@@ -106,12 +125,17 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     }
 
     // Interpret the blocks using the headless simulator.
-    dispatch(setGameCommands([])) // Clear previous game commands.
+    setGame([], [], []) // Clear previous game commands.
     const tilemap = await getTilemap(levelId)
     const simulator = new LevelSimulator(tilemap)
     const result = runBlockly(startBlock, simulator, lineByBlockId)
-    if (result.ok) dispatch(setGameCommands(simulator.commands))
-    else highlightBlock(workspace, result.blockIds, { error: true })
+    if (result.ok) {
+      setGame(
+        simulator.commands.map(c => c.command),
+        simulator.commands.map(c => c.blockIds ?? []),
+        simulator.commands.map(c => c.lineNo),
+      )
+    } else highlightBlock(workspace, result.blockIds, { error: true })
     return result.ok
   }
 
@@ -155,7 +179,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       const changed = snapshot !== programSnapshotRef.current
       programSnapshotRef.current = snapshot
       if (!changed) return
-      dispatch(setGameCommands([]))
+      setGame([], [], [])
       setCode("")
     }, 250)
 
@@ -165,7 +189,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [divRef, startBlockType, toolboxContents, maxInstances, setCode, dispatch])
+  }, [startBlockType, toolboxContents, maxInstances, setCode, setGame])
 
   // Highlight the current block during game play.
   useEffect(() => {
@@ -174,11 +198,17 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     unhighlightBlock(workspace) // Unhighlight previously highlighted blocks.
 
-    if (!currentGameCommand?.blockIds?.length) return
-    highlightBlock(workspace, currentGameCommand.blockIds, {
-      error: phase === "crashed",
-    })
-  }, [blockly, phase, currentGameCommand, highlightBlock, unhighlightBlock])
+    const blockIds = gameCommandBlockIds[gameCommandIndex]
+    if (!blockIds?.length) return
+    highlightBlock(workspace, blockIds, { error: phase === "crashed" })
+  }, [
+    blockly,
+    phase,
+    gameCommandIndex,
+    gameCommandBlockIds,
+    highlightBlock,
+    unhighlightBlock,
+  ])
 
   return (
     <Box

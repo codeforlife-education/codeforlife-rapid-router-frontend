@@ -20,6 +20,8 @@ export type BlocklyWorkspaceContextValue = {
   maxInstances: Record<string, number>
   code: string
   setCode: Dispatch<SetStateAction<string>>
+  lineNos: (number | undefined)[]
+  setLineNos: Dispatch<SetStateAction<(number | undefined)[]>>
   levelId: number
 }
 
