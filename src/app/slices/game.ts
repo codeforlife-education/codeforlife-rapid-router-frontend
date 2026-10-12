@@ -16,47 +16,32 @@ export interface GameState {
   gameCommands: {
     command: GameCommand
     /** The originating Blockly block IDs. */
-    blockIds: string[]
+    blockIds?: string[]
     /** The source line (1-indexed). */
     lineNo?: number
   }[]
+  /** The index of the current game command being executed. */
   gameCommandIndex: number
-  gameOver: boolean
+  /** Bumped on every (re)start, so Phaser can detect a fresh run regardless
+   * of where `gameCommandIndex` happens to land. */
+  runId: number
 }
 
-const startGameCommandIndex = -1 // indicates start before the first command
 const initialState: GameState = Object.freeze({
   gameCommands: [],
-  gameCommandIndex: startGameCommandIndex,
-  gameOver: false,
+  gameCommandIndex: 0,
+  runId: 0,
 })
 
 // Helper functions to determine game state.
 function gameIsDefined(state: GameState): boolean {
   return state.gameCommands.length > 0
 }
-function gameHasStarted(state: GameState): boolean {
-  return state.gameCommandIndex > startGameCommandIndex
-}
-function gameHasFinished(state: GameState): boolean {
-  return state.gameCommandIndex === state.gameCommands.length
-}
 function gameOnLastStep(state: GameState): boolean {
-  return state.gameCommandIndex === state.gameCommands.length - 1
-}
-function gameHasFinishedEarly(state: GameState): boolean {
-  return state.gameOver && gameHasStarted(state) && !gameHasFinished(state)
-}
-function gameInPlay(state: GameState): boolean {
-  return !state.gameOver && gameHasStarted(state) && !gameHasFinished(state)
-}
-
-function _restartGame(
-  state: GameState,
-  gameCommandIndex = startGameCommandIndex,
-): void {
-  state.gameCommandIndex = gameCommandIndex
-  state.gameOver = false
+  return (
+    gameIsDefined(state) &&
+    state.gameCommandIndex === state.gameCommands.length - 1
+  )
 }
 
 export const gameSlice = createSlice({
@@ -66,55 +51,33 @@ export const gameSlice = createSlice({
     setGameCommands: create.reducer(
       (state, action: PayloadAction<GameState["gameCommands"]>) => {
         state.gameCommands = action.payload
-        _restartGame(state)
+        state.gameCommandIndex = 0
+        state.runId += 1
       },
     ),
     nextGameCommand: create.reducer(state => {
-      if (!gameIsDefined(state)) return
-      if (state.gameOver) _restartGame(state)
-      state.gameCommandIndex = state.gameCommandIndex + 1
-      if (gameHasFinished(state)) state.gameOver = true
+      if (!gameIsDefined(state) || gameOnLastStep(state)) return
+      state.gameCommandIndex += 1
     }),
-    restartGame: create.reducer(
-      (state, action: PayloadAction<number | undefined>) => {
-        _restartGame(
-          state,
-          action.payload === undefined
-            ? undefined
-            : action.payload < startGameCommandIndex
-              ? startGameCommandIndex
-              : action.payload >= state.gameCommands.length
-                ? state.gameCommands.length - 1
-                : action.payload,
-        )
-      },
-    ),
+    restartGame: create.reducer(state => {
+      state.gameCommandIndex = 0
+      state.runId += 1
+    }),
     finishGameEarly: create.reducer((state, action: PayloadAction<number>) => {
       if (
         gameIsDefined(state) &&
         action.payload >= 0 &&
         action.payload < state.gameCommands.length
-      ) {
+      )
         state.gameCommandIndex = action.payload
-        state.gameOver = true
-      } else _restartGame(state)
     }),
   }),
   selectors: {
     selectGameCommands: state => state.gameCommands,
     selectGameCommandIndex: state => state.gameCommandIndex,
-    selectGameOver: state => state.gameOver,
-    selectCurrentGameCommand: state =>
-      gameHasStarted(state) && !gameHasFinished(state)
-        ? state.gameCommands[state.gameCommandIndex]
-        : undefined,
+    selectGameRunId: state => state.runId,
     selectGameIsDefined: gameIsDefined,
-    selectGameHasStarted: gameHasStarted,
-    selectGameHasFinished: gameHasFinished,
-    selectGameHasFinishedEarly: gameHasFinishedEarly,
-    selectGameOnLastStep: state =>
-      gameIsDefined(state) && gameOnLastStep(state),
-    selectGameInPlay: gameInPlay,
+    selectGameOnLastStep: gameOnLastStep,
   },
 })
 
@@ -127,12 +90,7 @@ export const {
 export const {
   selectGameCommands,
   selectGameCommandIndex,
-  selectGameOver,
-  selectCurrentGameCommand,
+  selectGameRunId,
   selectGameIsDefined,
-  selectGameHasStarted,
-  selectGameHasFinished,
-  selectGameHasFinishedEarly,
   selectGameOnLastStep,
-  selectGameInPlay,
 } = gameSlice.selectors

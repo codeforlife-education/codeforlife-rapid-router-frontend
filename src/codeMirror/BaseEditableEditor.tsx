@@ -8,7 +8,7 @@ import {
 import type { Extension } from "@codemirror/state"
 
 import BaseEditor from "./BaseEditor"
-import { useGameInPlay } from "../app/hooks"
+import { usePhaserGameContext } from "../app/hooks"
 
 export type BaseEditableEditorRef = {
   /** Resets the editor back to its starter code. */
@@ -37,7 +37,7 @@ const BaseEditableEditor: FC<BaseEditableEditorProps> = ({
   extensions,
   interpret,
 }) => {
-  const gameInPlay = useGameInPlay()
+  const { phase } = usePhaserGameContext()
   const [code, setCode] = useState(starterCode)
 
   // Avoids a stale closure in the imperative `interpret` below.
@@ -56,7 +56,7 @@ const BaseEditableEditor: FC<BaseEditableEditorProps> = ({
   return (
     <BaseEditor
       value={code}
-      editable={!gameInPlay}
+      editable={phase === "playing" || phase === "paused"}
       extensions={extensions}
       onChange={setCode}
     />

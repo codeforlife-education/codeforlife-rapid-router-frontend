@@ -9,14 +9,15 @@ import {
   type BlocklyWorkspaceRef,
 } from "../../blockly"
 import {
-  type Level as LevelModel,
-  useRetrieveLevelQuery,
-} from "../../api/level"
-import {
+  type GamePhase,
   PhaserGameContext,
   type PhaserGameRef,
   type SceneKey,
 } from "../../phaser"
+import {
+  type Level as LevelModel,
+  useRetrieveLevelQuery,
+} from "../../api/level"
 import {
   PythonEditorContext,
   type PythonEditorRef,
@@ -125,10 +126,17 @@ export type LevelProps =
 const Level: FC<LevelProps> = level => {
   const phaserGameRef = useRef<PhaserGameRef>(null)
   const [activeSceneKeys, setActiveSceneKeys] = useState<SceneKey[]>([])
+  const [phase, setPhase] = useState<GamePhase>("idle")
 
   return (
     <PhaserGameContext.Provider
-      value={{ ref: phaserGameRef, activeSceneKeys, setActiveSceneKeys }}
+      value={{
+        ref: phaserGameRef,
+        activeSceneKeys,
+        setActiveSceneKeys,
+        phase,
+        setPhase,
+      }}
     >
       {"id" in level ? (
         level.mode === "blockly" ? (

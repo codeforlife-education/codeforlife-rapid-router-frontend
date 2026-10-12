@@ -45,6 +45,8 @@ export default class CharacterManager {
   private currentCommandIndex = -1
   /** The last command index actually applied, to detect/catch up on any skipped in between. */
   private lastCommandIndex = -1
+  /** The last run id seen, to detect a restart regardless of where the new index lands. */
+  private lastRunId = 0
 
   constructor(level: Level) {
     this.level = level
@@ -54,6 +56,7 @@ export default class CharacterManager {
         undefined,
     )
     this.spawn()
+    this.lastRunId = level.commandIndex.runId
 
     const onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
       if (key === "commandIndex") this.onGameCommandIndexChanged()
@@ -113,16 +116,13 @@ export default class CharacterManager {
     // Skip any still-running animation straight to its end state first.
     this.level.characterSprite.finishAnimation()
 
-    const index = this.level.commandIndex
-    // Respawn if the game restarts or the command index has moved backwards.
-    if (index === -1 || index < this.lastCommandIndex) {
+    const { runId, index } = this.level.commandIndex
+    // Respawn whenever a new run begins, however the index itself changed.
+    if (runId !== this.lastRunId) {
+      this.lastRunId = runId
       this.spawn()
-      return
     }
-    // A restart-then-resume (e.g. Step/Play after a crash) can jump straight
-    // from the crashed index to the first (0) in a single dispatch, without
-    // ever passing through -1 - so respawn on the start before continuing.
-    if (this.crashed) this.spawn()
+    if (index === -1) return // Not playing yet this run.
 
     // React/redux can coalesce several index changes into a single push to
     // Phaser (e.g. clicking Step twice quickly), skipping past intermediate

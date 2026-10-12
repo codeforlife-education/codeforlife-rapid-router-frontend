@@ -21,6 +21,7 @@ import {
   useAppDispatch,
   useGameCommandIndex,
   useGameCommands,
+  useGameRunId,
   usePhaserGameContext,
 } from "../app/hooks"
 import type { Level } from "../api/level"
@@ -36,13 +37,14 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   const dispatch = useAppDispatch()
   const gameCommands = useGameCommands()
   const gameCommandIndex = useGameCommandIndex()
+  const gameRunId = useGameRunId()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Phaser.Game>(null)
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
-  const { ref, setActiveSceneKeys } = phaserGameContext
+  const { ref, setActiveSceneKeys, phase, setPhase } = phaserGameContext
 
   const getVariable = useCallback(
     (<T,>(
@@ -189,10 +191,16 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
       )
   }, [mode, gameCommands, setVariable])
 
-  // Pass the current game command index to Phaser when in play mode.
+  // Pass the current run id and command index to Phaser together, as a
+  // single value, when in play mode - so a restart is always observed
+  // atomically, never as a torn update where only one half has arrived.
   useEffect(() => {
-    if (mode === "play") setVariable("commandIndex", gameCommandIndex)
-  }, [mode, gameCommandIndex, setVariable])
+    if (mode === "play")
+      setVariable("commandIndex", {
+        runId: gameRunId,
+        index: phase === "idle" ? -1 : gameCommandIndex,
+      } as Phaser.Types.Variables.CommandIndex)
+  }, [mode, gameRunId, gameCommandIndex, phase, setVariable])
 
   // Listen for Phaser reporting a crash, and end the game early at whichever
   // command index it passes.
@@ -202,12 +210,13 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
 
     const onFinishEarly: Phaser.Events.FinishEarly = commandIndex => {
       dispatch(finishGameEarly(commandIndex))
+      setPhase("crashed")
     }
     events.on(Events.FINISH_EARLY, onFinishEarly)
     return () => {
       events.off(Events.FINISH_EARLY, onFinishEarly)
     }
-  }, [mode, gameIsInitialized, dispatch])
+  }, [mode, gameIsInitialized, dispatch, setPhase])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

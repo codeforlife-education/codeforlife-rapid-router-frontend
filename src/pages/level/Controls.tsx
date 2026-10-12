@@ -24,17 +24,15 @@ import {
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
-  useGameHasStarted,
-  useGameInPlay,
   useGameIsDefined,
   useGameOnLastStep,
   usePhaserGameContext,
-  usePlayInterval,
   usePythonEditorContext,
   useSettings,
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
 import { ZoomControls } from "../../phaser"
+import { usePlayInterval } from "../../phaser/usePlayInterval"
 
 export type ControlsProps = { level: Pick<Level, "mode"> }
 
@@ -49,11 +47,9 @@ const Base: FC<
   const dispatch = useAppDispatch()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
-  const gameHasStarted = useGameHasStarted()
-  const gameInPlay = useGameInPlay()
   const gameOnLastStep = useGameOnLastStep()
-  const [isPlaying, setPlayInterval, clearPlayInterval] = usePlayInterval()
-  const { activeSceneKeys } = usePhaserGameContext()
+  const [setPlayInterval, clearPlayInterval] = usePlayInterval()
+  const { activeSceneKeys, phase, setPhase } = usePhaserGameContext()
 
   // Helper to map panel layout options to menu items.
   function mapPanelLayoutsToMenuItems<
@@ -82,10 +78,13 @@ const Base: FC<
       >
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
-          text={gameInPlay && isPlaying ? "Pause" : "Play"}
-          icon={gameInPlay && isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+          text={phase === "playing" ? "Pause" : "Play"}
+          icon={phase === "playing" ? <PauseIcon /> : <PlayArrowIcon />}
           onClick={() => {
-            if (clearPlayInterval()) return
+            if (clearPlayInterval()) {
+              setPhase("paused")
+              return
+            }
             if (gameIsDefined) {
               if (gameOnLastStep) dispatch(restartGame())
               setPlayInterval()
@@ -107,10 +106,11 @@ const Base: FC<
           isDrawerOpen={isDrawerOpen}
           text="Stop"
           icon={<StopIcon />}
-          disabled={!gameHasStarted}
+          disabled={phase === "idle"}
           onClick={() => {
             clearPlayInterval()
             dispatch(restartGame())
+            setPhase("idle")
           }}
         />
         <miniDrawers.ButtonItem
@@ -119,10 +119,11 @@ const Base: FC<
           icon={<RedoIcon />}
           onClick={() => {
             clearPlayInterval()
+            setPhase("paused")
             const step = () => dispatch(nextGameCommand())
             if (gameIsDefined) {
               if (!gameOnLastStep) step()
-              else dispatch(restartGame(0))
+              else dispatch(restartGame())
             } else void interpretCommands().then(ok => ok && step())
           }}
         />

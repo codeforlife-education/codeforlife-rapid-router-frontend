@@ -10,6 +10,7 @@ export {
 } from "./globals"
 export {
   default as PhaserGameContext,
+  type GamePhase,
   type PhaserGameContextValue,
   type PhaserGameRef,
 } from "./PhaserGameContext"

@@ -19,8 +19,7 @@ import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
   useCurrentGameCommand,
-  useGameHasFinishedEarly,
-  useGameInPlay,
+  usePhaserGameContext,
 } from "../app/hooks"
 import type { BlocklyWorkspaceRef } from "./BlocklyWorkspaceContext"
 import { LevelSimulator } from "../phaser"
@@ -49,8 +48,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     (blockly: Blockly, generator?: string): Promise<boolean>
   }>(async () => new Promise<boolean>(resolve => resolve(false)))
   const dispatch = useAppDispatch()
-  const gameInPlay = useGameInPlay()
-  const gameHasFinishedEarly = useGameHasFinishedEarly()
+  const { phase } = usePhaserGameContext()
   const currentGameCommand = useCurrentGameCommand()
 
   if (!blocklyWorkspaceContext)
@@ -176,24 +174,22 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     unhighlightBlock(workspace) // Unhighlight previously highlighted blocks.
 
-    if (!currentGameCommand?.blockIds.length) return
+    if (!currentGameCommand?.blockIds?.length) return
     highlightBlock(workspace, currentGameCommand.blockIds, {
-      error: gameHasFinishedEarly,
+      error: phase === "crashed",
     })
-  }, [
-    blockly,
-    gameHasFinishedEarly,
-    currentGameCommand,
-    highlightBlock,
-    unhighlightBlock,
-  ])
+  }, [blockly, phase, currentGameCommand, highlightBlock, unhighlightBlock])
 
   return (
     <Box
       component="div"
       id="blockly-workspace"
       ref={divRef}
-      sx={{ height: "100%", pointerEvents: gameInPlay ? "none" : "auto" }}
+      sx={{
+        height: "100%",
+        pointerEvents:
+          phase === "playing" || phase === "paused" ? "none" : "auto",
+      }}
     />
   )
 }
