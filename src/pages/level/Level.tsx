@@ -23,7 +23,7 @@ import {
 import {
   PythonEditorContext,
   type PythonEditorRef,
-} from "../../codeMirror/python"
+} from "../../codeMirror/editors/python"
 import { getMaxInstances, getToolboxContents } from "../../blockly/workspace"
 import type { CharacterCommand } from "../../app/character"
 import Controls from "./Controls"

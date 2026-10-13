@@ -6,12 +6,12 @@ import {
   createContext,
 } from "react"
 
-import type { CodingLanguage } from "../codeMirror"
+import type * as generators from "./generators"
 
 export type BlocklyWorkspaceRef = {
   resize: () => void
   clear: () => void
-  interpret: (generator?: CodingLanguage) => Promise<boolean>
+  interpret: (generator?: keyof typeof generators) => Promise<boolean>
 }
 
 export type GeneratedCode = {

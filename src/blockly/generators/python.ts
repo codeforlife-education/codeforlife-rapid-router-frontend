@@ -1,8 +1,8 @@
 import type * as Blockly from "blockly/core"
 import { Order, pythonGenerator } from "blockly/python"
 
-import { IF_BLOCK_TYPE, PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
-import { PYTHON_STARTER_CODE } from "../codeMirror/python"
+import { IF_BLOCK_TYPE, PROCEDURES_DEFINE_BLOCK_TYPE } from "../blocks/defaults"
+import { PYTHON_STARTER_CODE } from "../../codeMirror/editors/python"
 
 // Tags every generated statement (including ones nested inside a repeat/if
 // body) with its originating block's ID, as an inert Python comment, See
@@ -92,7 +92,7 @@ export const pythonChoiceArg = (block: Blockly.Block) =>
  * @returns The Python source code equivalent to the given blocks, and the
  * line each block's command maps to (see `mapBlocksToPythonLines`).
  */
-export function getPythonCodeFromStartBlock(startBlock: Blockly.BlockSvg) {
+export function getCodeFromStartBlock(startBlock: Blockly.BlockSvg) {
   // Only follow the chain of blocks actually connected to the start block -
   // `workspaceToCode` would instead generate code for every top-level block
   // stack in the workspace, including ones the player has merely dragged in

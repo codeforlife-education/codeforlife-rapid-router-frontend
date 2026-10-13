@@ -8,7 +8,7 @@ import {
 import cowIcon from "../../images/blocks/cow_crossing.svg"
 import emptyIcon from "../../images/blocks/empty.svg"
 import pigeonIcon from "../../images/blocks/pigeon_crossing.svg"
-import { pythonChoiceArg } from "../python"
+import { pythonChoiceArg } from "../generators/python"
 
 function defineBooleanBlock<T extends string>(
   blockDefinition: Omit<BlockDefinition<T>, "output" | "colour">,

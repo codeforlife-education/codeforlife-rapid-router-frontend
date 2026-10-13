@@ -25,7 +25,7 @@ import { BlocklyWorkspace } from "../../blockly"
 import { ConsoleLog } from "../../codeMirror"
 import type { Level } from "../../api/level"
 import { PhaserGame } from "../../phaser"
-import { PythonEditor } from "../../codeMirror/python"
+import { PythonEditor } from "../../codeMirror/editors/python"
 
 type PanelProps = { defaultSize: string }
 

@@ -7,7 +7,7 @@ import {
 } from "react"
 
 import BaseEditor, { type BaseEditorProps } from "./BaseEditor"
-import { usePhaserGameContext } from "../app/hooks"
+import { usePhaserGameContext } from "../../app/hooks"
 
 export type BaseEditableEditorRef = {
   /** Resets the editor back to its starter code. */
@@ -55,7 +55,7 @@ const BaseEditableEditor: FC<BaseEditableEditorProps> = ({
   return (
     <BaseEditor
       value={code}
-      editable={phase === "playing" || phase === "paused"}
+      editable={phase === "idle" || phase === "finished" || phase === "crashed"}
       lineNo={lineNo}
       extensions={extensions}
       onChange={setCode}

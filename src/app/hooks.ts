@@ -20,7 +20,7 @@ import {
 import { BlocklyWorkspaceContext } from "../blockly"
 import { ConsoleLogContext } from "../codeMirror"
 import { PhaserGameContext } from "../phaser"
-import { PythonEditorContext } from "../codeMirror/python"
+import { PythonEditorContext } from "../codeMirror/editors/python"
 
 export type ScreenOrientation = "portrait" | "landscape"
 

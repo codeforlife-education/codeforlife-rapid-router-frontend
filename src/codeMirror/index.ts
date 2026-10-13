@@ -4,5 +4,3 @@ export {
   type ConsoleLogContextValue,
   type Log,
 } from "./ConsoleLogContext"
-
-export type CodingLanguage = "python"

@@ -7,9 +7,10 @@
 import { type PyodideInterface, loadPyodide } from "pyodide"
 import type { PyProxy } from "pyodide/ffi"
 
-import type { GameCommand } from "../../app/slices"
-import { LevelSimulator } from "../../phaser"
-import { getTilemap } from "../../phaser/tilemaps/load"
+import LevelSimulator, {
+  type SimulatorCommand,
+} from "../../../phaser/LevelSimulator"
+import { getTilemap } from "../../../phaser/tilemaps/load"
 
 // Defines the `van` module's `Van` class (see PYTHON_STARTER_CODE) in terms
 // of the underscore-prefixed JS functions set on `globals` for this run, so
@@ -35,7 +36,7 @@ export type WorkerResponse =
   | {
       type: "result"
       id: number
-      commands: { command: GameCommand; lineNo?: number }[]
+      commands: SimulatorCommand[]
     }
   | { type: "error"; id: number; message: string }
 

@@ -9,6 +9,7 @@ import {
   useState,
 } from "react"
 
+import * as generators from "./generators"
 import type {
   BlocklyWorkspaceRef,
   GeneratedCode,
@@ -28,7 +29,6 @@ import {
 import type { GameCommand } from "../app/slices/game"
 import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
-import { getPythonCodeFromStartBlock } from "./python"
 import { getTilemap } from "../phaser/tilemaps/load"
 import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
@@ -120,7 +120,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     if (generator) {
       switch (generator) {
         case "python": {
-          const python = getPythonCodeFromStartBlock(startBlock)
+          const python = generators.python.getCodeFromStartBlock(startBlock)
           code = python.code
           lineByBlockId = python.lineByBlockId
           break

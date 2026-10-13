@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import type { RunRequest, WorkerResponse } from "./pyodide.worker"
-import type { GameCommand } from "../../app/slices"
+import type { SimulatorCommand } from "../../../phaser"
 
 export type PyodideRunResult =
-  | { ok: true; commands: { command: GameCommand; lineNo?: number }[] }
+  | { ok: true; commands: SimulatorCommand[] }
   | { ok: false; message: string }
 
 type Pending = {
