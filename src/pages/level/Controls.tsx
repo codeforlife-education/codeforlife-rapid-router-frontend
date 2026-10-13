@@ -24,6 +24,7 @@ import {
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
+  useConsoleLogContext,
   useGameIsDefined,
   useGameOnLastStep,
   usePhaserGameContext,
@@ -184,17 +185,19 @@ const Blockly: FC = () => {
 
 const Python: FC = () => {
   const pythonEditorContext = usePythonEditorContext()
-  const clearPythonEditor = useCallback(() => {
+  const consoleLogContext = useConsoleLogContext()
+  const clearPythonEditorAndConsoleLogs = useCallback(() => {
     pythonEditorContext?.ref.current?.clear()
-  }, [pythonEditorContext])
+    consoleLogContext?.setLogs([])
+  }, [pythonEditorContext, consoleLogContext])
   const interpretPythonEditor = useCallback(async () => {
     return (await pythonEditorContext?.ref.current?.interpret()) || false
   }, [pythonEditorContext])
 
   return (
     <Base
-      panelCount={2}
-      onClear={clearPythonEditor}
+      panelCount={3}
+      onClear={clearPythonEditorAndConsoleLogs}
       interpretCommands={interpretPythonEditor}
     />
   )
@@ -203,12 +206,10 @@ const Python: FC = () => {
 const BlocklyAndPython: FC = () => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const pythonEditorContext = usePythonEditorContext()
-  const clearBlocklyWorkspace = useCallback(() => {
+  const clearBlocklyWorkspaceAndPythonEditor = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
-  }, [blocklyWorkspaceContext])
-  const clearPythonEditor = useCallback(() => {
     pythonEditorContext?.ref.current?.clear()
-  }, [pythonEditorContext])
+  }, [blocklyWorkspaceContext, pythonEditorContext])
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
@@ -220,10 +221,7 @@ const BlocklyAndPython: FC = () => {
   return (
     <Base
       panelCount={3}
-      onClear={() => {
-        clearBlocklyWorkspace()
-        clearPythonEditor()
-      }}
+      onClear={clearBlocklyWorkspaceAndPythonEditor}
       interpretCommands={interpretBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
