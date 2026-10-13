@@ -9,6 +9,7 @@ import {
   type BlocklyWorkspaceRef,
   type GeneratedCode,
 } from "../../blockly"
+import { ConsoleLogContext, type Log } from "../../codeMirror"
 import {
   type GamePhase,
   PhaserGameContext,
@@ -90,13 +91,16 @@ const PythonContext: FC<
   }
 > = ({ id, editable, commands, children }) => {
   const pythonEditorRef = useRef<PythonEditorRef>(null)
+  const [logs, setLogs] = useState<Log[]>([])
 
   return (
-    <PythonEditorContext.Provider
-      value={{ ref: pythonEditorRef, levelId: id, editable, commands }}
-    >
-      {children}
-    </PythonEditorContext.Provider>
+    <ConsoleLogContext.Provider value={{ logs, setLogs }}>
+      <PythonEditorContext.Provider
+        value={{ ref: pythonEditorRef, levelId: id, editable, commands }}
+      >
+        {children}
+      </PythonEditorContext.Provider>
+    </ConsoleLogContext.Provider>
   )
 }
 

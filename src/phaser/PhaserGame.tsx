@@ -191,11 +191,11 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   // single value, when in play mode - so a restart is always observed
   // atomically, never as a torn update where only one half has arrived.
   useEffect(() => {
-    if (mode === "play")
-      setVariable("commandIndex", {
-        runId: gameRunId,
-        index: phase === "idle" ? -1 : gameCommandIndex,
-      } as Phaser.Types.Variables.CommandIndex)
+    if (mode !== "play") return
+    setVariable("commandIndex", {
+      runId: gameRunId,
+      index: phase === "idle" ? -1 : gameCommandIndex,
+    } as Phaser.Types.Variables.CommandIndex)
   }, [mode, gameRunId, gameCommandIndex, phase, setVariable])
 
   // Listen for Phaser reporting a crash, and end the game early at whichever

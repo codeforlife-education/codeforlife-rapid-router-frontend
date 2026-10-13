@@ -18,6 +18,7 @@ import {
   selectSettings,
 } from "./slices"
 import { BlocklyWorkspaceContext } from "../blockly"
+import { ConsoleLogContext } from "../codeMirror"
 import { PhaserGameContext } from "../phaser"
 import { PythonEditorContext } from "../codeMirror/python"
 
@@ -56,3 +57,4 @@ export const useBlocklyWorkspaceContext = () =>
   useContext(BlocklyWorkspaceContext)
 export const usePhaserGameContext = () => useContext(PhaserGameContext)
 export const usePythonEditorContext = () => useContext(PythonEditorContext)
+export const useConsoleLogContext = () => useContext(ConsoleLogContext)
