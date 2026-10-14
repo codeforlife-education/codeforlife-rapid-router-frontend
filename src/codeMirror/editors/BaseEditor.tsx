@@ -10,6 +10,7 @@ import {
 import type { Extension } from "@codemirror/state"
 
 import { dispatchHighlightedLine, highlightLine } from "../extensions"
+import type { GameCommand } from "../../app/slices"
 import { usePhaserGameContext } from "../../app/hooks"
 
 type EditorProps = {
@@ -65,16 +66,16 @@ const ReadOnlyEditor: FC<ReadOnlyEditorProps> = props => (
 export type WriteableEditorRef = {
   /** Resets the editor back to its starter code. */
   clear: () => void
-  /** Interprets the editor's current code and returns a promise that resolves
-   * to a boolean indicating success.
+  /** Interprets the editor's current code and returns a promise that
+   * resolves to the interpreted commands, or `undefined` on failure.
    */
-  interpret: () => Promise<boolean>
+  interpret: () => Promise<GameCommand[] | undefined>
 }
 
 type WriteableEditorProps = Pick<EditorProps, "lineNo" | "extensions"> & {
   ref: RefObject<WriteableEditorRef | null>
   starterCode: string
-  interpret: (code: string) => Promise<boolean>
+  interpret: (code: string) => Promise<GameCommand[] | undefined>
 }
 
 const WriteableEditor: FC<WriteableEditorProps> = ({

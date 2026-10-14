@@ -7,11 +7,14 @@ import {
 } from "react"
 
 import type * as generators from "./generators"
+import type { GameCommand } from "../app/slices/game"
 
 export type BlocklyWorkspaceRef = {
   resize: () => void
   clear: () => void
-  interpret: (generator?: keyof typeof generators) => Promise<boolean>
+  interpret: (
+    generator?: keyof typeof generators,
+  ) => Promise<GameCommand[] | undefined>
 }
 
 export type GeneratedCode = {

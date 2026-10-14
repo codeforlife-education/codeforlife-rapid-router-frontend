@@ -62,15 +62,14 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
     setLineNos([])
     const result = await run(code, levelId)
     if (result.ok) {
-      dispatch(setGameCommands(result.commands.map(c => c.command)))
+      const commands = result.commands.map(c => c.command)
+      dispatch(setGameCommands(commands))
       setLineNos(result.commands.map(c => c.lineNo))
-    } else {
-      setPhase("idle")
-      consoleLogContext?.setLogs([
-        { message: result.message, severity: "error" },
-      ])
+      return commands
     }
-    return result.ok
+    setPhase("idle")
+    consoleLogContext?.setLogs([{ message: result.message, severity: "error" }])
+    return undefined
   }
 
   return (

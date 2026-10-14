@@ -12,6 +12,7 @@ import type { PayloadAction } from "@reduxjs/toolkit"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import {
+  type GameCommand,
   PLAY_SPEEDS,
   THREE_PANEL_LAYOUTS,
   TWO_PANEL_LAYOUTS,
@@ -41,7 +42,7 @@ const Base: FC<
   Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
     panelCount: number
     onClear: () => void
-    interpretCommands: () => Promise<boolean>
+    interpretCommands: () => Promise<GameCommand[] | undefined>
   }
 > = ({ panelCount, onClear, interpretCommands, onOpened, onClosed }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -89,7 +90,10 @@ const Base: FC<
             if (gameIsDefined) {
               if (gameOnLastStep) dispatch(restartGame())
               setPlayInterval()
-            } else void interpretCommands().then(ok => ok && setPlayInterval())
+            } else
+              void interpretCommands().then(
+                commands => commands?.length && setPlayInterval(),
+              )
           }}
         />
         <miniDrawers.MenuItem
@@ -107,7 +111,7 @@ const Base: FC<
           isDrawerOpen={isDrawerOpen}
           text="Stop"
           icon={<StopIcon />}
-          disabled={phase === "idle"}
+          disabled={phase === "idle" || !gameIsDefined}
           onClick={() => {
             clearPlayInterval()
             dispatch(restartGame())
@@ -121,7 +125,9 @@ const Base: FC<
           onClick={() => {
             clearPlayInterval()
             if (!gameIsDefined) {
-              void interpretCommands().then(ok => ok && setPhase("paused"))
+              void interpretCommands().then(
+                commands => commands?.length && setPhase("paused"),
+              )
               return
             }
             // Reveal the current index without advancing past it when
@@ -174,7 +180,7 @@ const Blockly: FC = () => {
     blocklyWorkspaceContext?.ref.current?.resize()
   }, [blocklyWorkspaceContext])
   const interpretBlocklyWorkspace = useCallback(async () => {
-    return (await blocklyWorkspaceContext?.ref.current?.interpret()) || false
+    return await blocklyWorkspaceContext?.ref.current?.interpret()
   }, [blocklyWorkspaceContext])
 
   return (
@@ -197,8 +203,8 @@ const Python: FC = () => {
     consoleLogContext?.setLogs([])
   }, [pythonEditorContext, consoleLogContext])
   const interpretPythonEditor = useCallback(async () => {
-    if (pythonEditorContext?.mode !== "write") return false
-    return (await pythonEditorContext.ref.current?.interpret()) || false
+    if (pythonEditorContext?.mode !== "write") return undefined
+    return await pythonEditorContext.ref.current?.interpret()
   }, [pythonEditorContext])
 
   return (
@@ -223,7 +229,7 @@ const BlocklyAndPython: FC = () => {
   }, [blocklyWorkspaceContext])
   const interpretBlocklyWorkspace = useCallback(async () => {
     const interpret = blocklyWorkspaceContext?.ref.current?.interpret
-    return (await interpret?.("python")) || false
+    return await interpret?.("python")
   }, [blocklyWorkspaceContext])
 
   return (

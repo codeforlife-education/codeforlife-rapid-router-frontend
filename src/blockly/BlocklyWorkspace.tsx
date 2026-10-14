@@ -49,8 +49,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const highlightedBlocksRef = useRef<HighlightedBlock[]>([])
   const programSnapshotRef = useRef<string | null>(null)
   const interpretRef = useRef<{
-    (blockly: Blockly, generator?: string): Promise<boolean>
-  }>(async () => new Promise<boolean>(resolve => resolve(false)))
+    (blockly: Blockly, generator?: string): Promise<GameCommand[] | undefined>
+  }>(async () => new Promise(resolve => resolve(undefined)))
   const dispatch = useAppDispatch()
   const { phase, setPhase } = usePhaserGameContext()
   const gameCommandIndex = useGameCommandIndex()
@@ -133,16 +133,17 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     const simulator = new LevelSimulator(tilemap)
     const result = runBlockly(startBlock, simulator, lineByBlockId)
     if (result.ok) {
+      const commands = simulator.commands.map(c => c.command)
       setGame(
-        simulator.commands.map(c => c.command),
+        commands,
         simulator.commands.map(c => c.blockIds ?? []),
         { code, lineNos: simulator.commands.map(c => c.lineNo) },
       )
-    } else {
-      setPhase("crashed")
-      highlightBlock(workspace, result.blockIds, { error: true })
+      return commands
     }
-    return result.ok
+    setPhase("crashed")
+    highlightBlock(workspace, result.blockIds, { error: true })
+    return undefined
   }
 
   // Expose workspace methods to parent components.
@@ -158,7 +159,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
         : {
             resize: () => {},
             clear: () => {},
-            interpret: () => new Promise(resolve => resolve(false)),
+            interpret: () => new Promise(resolve => resolve(undefined)),
           },
     [blockly],
   )
