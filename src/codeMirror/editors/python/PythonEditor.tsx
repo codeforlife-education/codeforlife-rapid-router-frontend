@@ -39,7 +39,7 @@ export type WriteablePythonEditorProps = {
   /** Needed to load the right level's tile data into the Pyodide worker. */
   levelId: number
   /** The `my_van` commands relevant to this level for autocomplete. */
-  commands?: CharacterCommand[]
+  commands: CharacterCommand[]
 }
 
 /** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
@@ -94,7 +94,7 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
               pythonLanguage,
               /my_van\.\w*/,
               "my_van.",
-              (commands ?? []).map(command => ({
+              commands.map(command => ({
                 label: command,
                 type: "method",
                 apply: `${command}()`,

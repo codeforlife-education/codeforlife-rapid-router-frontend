@@ -22,10 +22,10 @@ import {
 } from "../../api/level"
 import {
   PythonEditorContext,
-  type PythonEditorContextValue,
+  type ReadOnlyPythonEditorProps,
+  type WriteablePythonEditorProps,
 } from "../../codeMirror/editors/python"
 import { getMaxInstances, getToolboxContents } from "../../blockly/workspace"
-import type { CharacterCommand } from "../../app/character"
 import Controls from "./Controls"
 import Panels from "./Panels"
 import { type WriteableEditorRef } from "../../codeMirror/editors"
@@ -82,22 +82,28 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
   )
 }
 
-type PythonProps = Pick<LevelModel, "id">
+type BasePythonProps = Pick<LevelModel, "id">
+type ReadPythonProps = BasePythonProps & ReadOnlyPythonEditorProps
+type WritePythonProps = BasePythonProps &
+  Pick<WriteablePythonEditorProps, "commands">
 
 const PythonContext: FC<
-  PythonProps & {
-    mode: PythonEditorContextValue["mode"]
-    commands?: CharacterCommand[]
-    children: ReactNode
-  }
-> = ({ id, mode, commands, children }) => {
+  { children: ReactNode } & (
+    | ({ mode: "read" } & ReadPythonProps)
+    | ({ mode: "write" } & WritePythonProps)
+  )
+> = ({ id, children, ...props }) => {
   const pythonEditorRef = useRef<WriteableEditorRef>(null)
   const [logs, setLogs] = useState<Log[]>([])
 
   return (
     <ConsoleLogContext.Provider value={{ logs, setLogs }}>
       <PythonEditorContext.Provider
-        value={{ ref: pythonEditorRef, levelId: id, mode, commands }}
+        value={
+          props.mode === "read"
+            ? props
+            : { ...props, ref: pythonEditorRef, levelId: id }
+        }
       >
         {children}
       </PythonEditorContext.Provider>
@@ -127,8 +133,8 @@ const Custom: FC = () =>
 export type LevelProps =
   | (
       | (BlocklyProps & { mode: "blockly" })
-      | (PythonProps & { mode: "python"; commands: CharacterCommand[] })
-      | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
+      | (WritePythonProps & { mode: "python" })
+      | (BlocklyProps & ReadPythonProps & { mode: "blocklyAndPython" })
     )
   | {}
 
