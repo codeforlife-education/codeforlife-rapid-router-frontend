@@ -38,7 +38,7 @@ export type WorkerResponse =
       id: number
       commands: SimulatorCommand[]
     }
-  | { type: "error"; id: number; message: string }
+  | { type: "error"; id: number; message: string; lineNo?: number }
 
 let pyodidePromise: Promise<PyodideInterface> | null = null
 function getPyodide() {
@@ -56,6 +56,7 @@ void getPyodide().then(() => {
 
 self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
   const { id, code, levelId } = data
+  let errorLine: number | undefined
   try {
     const [pyodide, tilemap] = await Promise.all([
       getPyodide(),
@@ -67,6 +68,9 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     // `LevelSimulator`'s command methods take an options object; Python
     // only ever supplies a line number, hence the thin adapters below.
     const globals = pyodide.toPy({
+      _report_error: (lineNo?: number) => {
+        errorLine = lineNo
+      },
       _move_forwards: (lineNo?: number) => simulator.moveForwards({ lineNo }),
       _turn_left: (lineNo?: number) => simulator.turnLeft({ lineNo }),
       _turn_right: (lineNo?: number) => simulator.turnRight({ lineNo }),
@@ -97,7 +101,12 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     self.postMessage(response)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    const response: WorkerResponse = { type: "error", id, message }
+    const response: WorkerResponse = {
+      type: "error",
+      id,
+      message,
+      lineNo: errorLine,
+    }
     self.postMessage(response)
   }
 }

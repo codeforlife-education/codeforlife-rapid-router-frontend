@@ -5,7 +5,7 @@ import type { SimulatorCommand } from "../../../phaser"
 
 export type PyodideRunResult =
   | { ok: true; commands: SimulatorCommand[] }
-  | { ok: false; message: string }
+  | { ok: false; message: string; lineNo?: number }
 
 type Pending = {
   resolve: (result: PyodideRunResult) => void
@@ -49,7 +49,7 @@ export function usePyodideRunner() {
       pending.resolve(
         data.type === "result"
           ? { ok: true, commands: data.commands }
-          : { ok: false, message: data.message },
+          : { ok: false, message: data.message, lineNo: data.lineNo },
       )
     }
     workerRef.current = worker

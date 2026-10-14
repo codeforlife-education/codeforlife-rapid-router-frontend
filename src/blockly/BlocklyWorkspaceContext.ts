@@ -23,6 +23,10 @@ export type GeneratedCode = {
    * the same as `gameCommands` - only meaningful once `code` has been
    * generated (see the "python" `interpret` generator). */
   lineNos: (number | undefined)[]
+  /** The source line (1-indexed) of the block that errored, if interpretation
+   * failed before producing any commands - a fallback for when `lineNos` has
+   * nothing to point at. */
+  errorLineNo?: number
 }
 
 export type BlocklyWorkspaceContextValue = {

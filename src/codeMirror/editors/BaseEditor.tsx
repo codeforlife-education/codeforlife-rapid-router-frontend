@@ -20,6 +20,9 @@ type EditorProps = {
    * clear the highlight - resolved by the caller, which owns whatever
    * mapping of command index to line applies to its own mode. */
   lineNo?: number
+  /** Highlights `lineNo` in red (e.g. to point at a runtime error) instead of
+   * the default "currently animating" colour. */
+  error?: boolean
   /** Language-specific CodeMirror extensions (e.g. `python()`). */
   extensions: Extension[]
   onChange?: (value: string) => void
@@ -34,6 +37,7 @@ const Editor: FC<EditorProps> = ({
   value,
   editable,
   lineNo,
+  error,
   extensions,
   onChange,
 }) => {
@@ -42,8 +46,8 @@ const Editor: FC<EditorProps> = ({
   useEffect(() => {
     const view = editorRef.current?.view
     if (!view) return
-    dispatchHighlightedLine(view, lineNo ?? null)
-  }, [lineNo])
+    dispatchHighlightedLine(view, lineNo ?? null, error)
+  }, [lineNo, error])
 
   return (
     <CodeMirror
@@ -57,7 +61,10 @@ const Editor: FC<EditorProps> = ({
   )
 }
 
-type ReadOnlyEditorProps = Pick<EditorProps, "value" | "lineNo" | "extensions">
+type ReadOnlyEditorProps = Pick<
+  EditorProps,
+  "value" | "lineNo" | "error" | "extensions"
+>
 
 const ReadOnlyEditor: FC<ReadOnlyEditorProps> = props => (
   <Editor {...props} editable={false} />
@@ -72,7 +79,10 @@ export type WriteableEditorRef = {
   interpret: () => Promise<GameCommand[] | undefined>
 }
 
-type WriteableEditorProps = Pick<EditorProps, "lineNo" | "extensions"> & {
+type WriteableEditorProps = Pick<
+  EditorProps,
+  "lineNo" | "error" | "extensions"
+> & {
   ref: RefObject<WriteableEditorRef | null>
   starterCode: string
   interpret: (code: string) => Promise<GameCommand[] | undefined>

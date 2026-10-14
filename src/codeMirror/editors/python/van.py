@@ -37,6 +37,17 @@ def _run_traced(source):
     _sys.settrace(_tracer.trace)
     try:
         exec(compile(source, "<student_code>", "exec"), _run_traced.__globals__)
+    except Exception:
+        # Walk the traceback for the deepest frame actually in the student's
+        # own code - frames from this module itself don't count.
+        tb = _sys.exc_info()[2]
+        line = None
+        while tb is not None:
+            if tb.tb_frame.f_code.co_filename == "<student_code>":
+                line = tb.tb_lineno
+            tb = tb.tb_next
+        _report_error(line)
+        raise
     finally:
         _sys.settrace(None)
         _tracer.finish()

@@ -143,6 +143,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     }
     setPhase("crashed")
     highlightBlock(workspace, result.blockIds, { error: true })
+    setGeneratedCode(prev => ({
+      ...prev,
+      // The statement block itself is always first - see `collectConnectedBlockIds`.
+      errorLineNo: lineByBlockId?.get(result.blockIds[0]),
+    }))
     return undefined
   }
 

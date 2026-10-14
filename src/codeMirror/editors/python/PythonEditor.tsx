@@ -52,14 +52,16 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
   const gameCommandIndex = useGameCommandIndex()
   const { run, ready } = usePyodideRunner()
   const [lineNos, setLineNos] = useState<(number | undefined)[]>([])
+  const [errorLineNo, setErrorLineNo] = useState<number | undefined>()
   const consoleLogContext = useConsoleLogContext()
-  const { setPhase } = usePhaserGameContext()
+  const { phase, setPhase } = usePhaserGameContext()
 
   // Interpret the given code using Pyodide.
   const handleInterpret = async (code: string) => {
     consoleLogContext?.setLogs([])
     dispatch(setGameCommands([]))
     setLineNos([])
+    setErrorLineNo(undefined)
     const result = await run(code, levelId)
     if (result.ok) {
       const commands = result.commands.map(c => c.command)
@@ -67,7 +69,8 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
       setLineNos(result.commands.map(c => c.lineNo))
       return commands
     }
-    setPhase("idle")
+    setPhase("crashed")
+    setErrorLineNo(result.lineNo)
     consoleLogContext?.setLogs([{ message: result.message, severity: "error" }])
     return undefined
   }
@@ -86,7 +89,8 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
           mode="write"
           ref={ref}
           starterCode={PYTHON_STARTER_CODE}
-          lineNo={lineNos[gameCommandIndex]}
+          lineNo={errorLineNo ?? lineNos[gameCommandIndex]}
+          error={phase === "crashed"}
           extensions={[
             readOnlyPrefix(PYTHON_STARTER_CODE),
             autocomplete(
@@ -122,12 +126,17 @@ export type ReadOnlyPythonEditorProps = {}
 const ReadOnlyPythonEditor: FC<ReadOnlyPythonEditorProps> = () => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const gameCommandIndex = useGameCommandIndex()
+  const { phase } = usePhaserGameContext()
+  const generatedCode = blocklyWorkspaceContext?.generatedCode
 
   return (
     <BasePythonEditor
       mode="read"
-      value={blocklyWorkspaceContext?.generatedCode.code ?? PYTHON_STARTER_CODE}
-      lineNo={blocklyWorkspaceContext?.generatedCode.lineNos[gameCommandIndex]}
+      value={generatedCode?.code ?? PYTHON_STARTER_CODE}
+      lineNo={
+        generatedCode?.errorLineNo ?? generatedCode?.lineNos[gameCommandIndex]
+      }
+      error={phase === "crashed"}
       extensions={[]}
     />
   )
