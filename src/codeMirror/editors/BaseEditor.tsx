@@ -1,10 +1,18 @@
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror"
-import { type FC, useEffect, useRef } from "react"
+import {
+  type FC,
+  type RefObject,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react"
 import type { Extension } from "@codemirror/state"
 
 import { dispatchHighlightedLine, highlightLine } from "../extensions"
+import { usePhaserGameContext } from "../../app/hooks"
 
-export interface BaseEditorProps {
+type EditorProps = {
   value: string
   editable: boolean
   /** The source line (1-indexed) currently being animated, or `undefined` to
@@ -21,7 +29,7 @@ export interface BaseEditorProps {
  * editable or not - highlights whichever line produced the command
  * currently being animated, scrolling it into view.
  */
-const BaseEditor: FC<BaseEditorProps> = ({
+const Editor: FC<EditorProps> = ({
   value,
   editable,
   lineNo,
@@ -47,5 +55,69 @@ const BaseEditor: FC<BaseEditorProps> = ({
     />
   )
 }
+
+type ReadOnlyEditorProps = Pick<EditorProps, "value" | "lineNo" | "extensions">
+
+const ReadOnlyEditor: FC<ReadOnlyEditorProps> = props => (
+  <Editor {...props} editable={false} />
+)
+
+export type WriteableEditorRef = {
+  /** Resets the editor back to its starter code. */
+  clear: () => void
+  /** Interprets the editor's current code and returns a promise that resolves
+   * to a boolean indicating success.
+   */
+  interpret: () => Promise<boolean>
+}
+
+type WriteableEditorProps = Pick<EditorProps, "lineNo" | "extensions"> & {
+  ref: RefObject<WriteableEditorRef | null>
+  starterCode: string
+  interpret: (code: string) => Promise<boolean>
+}
+
+const WriteableEditor: FC<WriteableEditorProps> = ({
+  ref,
+  starterCode,
+  interpret,
+  ...props
+}) => {
+  const { phase } = usePhaserGameContext()
+  const [code, setCode] = useState(starterCode)
+
+  // Avoids a stale closure in the imperative `interpret` below.
+  const codeRef = useRef(code)
+  codeRef.current = code
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      clear: () => setCode(starterCode),
+      interpret: () => interpret(codeRef.current),
+    }),
+    [starterCode, interpret],
+  )
+
+  return (
+    <Editor
+      {...props}
+      value={code}
+      editable={phase === "idle" || phase === "finished" || phase === "crashed"}
+      onChange={setCode}
+    />
+  )
+}
+
+export type BaseEditorProps =
+  | ({ mode: "read" } & ReadOnlyEditorProps)
+  | ({ mode: "write" } & WriteableEditorProps)
+
+const BaseEditor: FC<BaseEditorProps> = props =>
+  props.mode === "write" ? (
+    <WriteableEditor {...props} />
+  ) : (
+    <ReadOnlyEditor {...props} />
+  )
 
 export default BaseEditor

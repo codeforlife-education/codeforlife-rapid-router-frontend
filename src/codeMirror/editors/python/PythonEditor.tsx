@@ -9,6 +9,10 @@ import { type FC, type RefObject, useState } from "react"
 import { python, pythonLanguage } from "@codemirror/lang-python"
 import { InfoOutline as InfoOutlineIcon } from "@mui/icons-material"
 
+import BaseEditor, {
+  type BaseEditorProps,
+  type WriteableEditorRef,
+} from "../BaseEditor"
 import { autocomplete, readOnlyPrefix } from "../../extensions"
 import {
   useAppDispatch,
@@ -18,20 +22,32 @@ import {
   usePhaserGameContext,
   usePythonEditorContext,
 } from "../../../app/hooks"
-import BaseEditableEditor from "../BaseEditableEditor"
-import BaseNonEditableEditor from "../BaseNonEditableEditor"
 import type { CharacterCommand } from "../../../app/character"
 import PYTHON_STARTER_CODE from "./starterCode.py?raw"
-import type { PythonEditorRef } from "./PythonEditorContext"
 import { setGameCommands } from "../../../app/slices"
 import { usePyodideRunner } from "./usePyodideRunner"
 
-/** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
-const EditablePythonEditor: FC<{
-  ref: RefObject<PythonEditorRef | null>
+type BasePythonEditorProps = BaseEditorProps
+
+const BasePythonEditor: FC<BasePythonEditorProps> = ({
+  extensions,
+  ...props
+}) => <BaseEditor extensions={[python(), ...extensions]} {...props} />
+
+export type WriteablePythonEditorProps = {
+  ref: RefObject<WriteableEditorRef | null>
+  /** Needed to load the right level's tile data into the Pyodide worker. */
   levelId: number
+  /** The `my_van` commands relevant to this level for autocomplete. */
   commands?: CharacterCommand[]
-}> = ({ ref, levelId, commands }) => {
+}
+
+/** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
+const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
+  ref,
+  levelId,
+  commands,
+}) => {
   const dispatch = useAppDispatch()
   const gameCommandIndex = useGameCommandIndex()
   const { run, ready } = usePyodideRunner()
@@ -67,12 +83,12 @@ const EditablePythonEditor: FC<{
       </Stack>
       <Divider />
       {ready ? (
-        <BaseEditableEditor
+        <BasePythonEditor
+          mode="write"
           ref={ref}
           starterCode={PYTHON_STARTER_CODE}
           lineNo={lineNos[gameCommandIndex]}
           extensions={[
-            python(),
             readOnlyPrefix(PYTHON_STARTER_CODE),
             autocomplete(
               pythonLanguage,
@@ -97,20 +113,23 @@ const EditablePythonEditor: FC<{
   )
 }
 
+export type ReadOnlyPythonEditorProps = {}
+
 /** Mode "blocklyAndPython" - a read-only view of the code generated from
  * the current Blockly blocks; the player can't type into it directly, but
  * it highlights whichever line produced the command currently being
  * animated (see `mapBlocksToPythonLines` for how that line is determined
  * without ever executing this code). */
-const NonEditablePythonEditor: FC = () => {
+const ReadOnlyPythonEditor: FC<ReadOnlyPythonEditorProps> = () => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const gameCommandIndex = useGameCommandIndex()
 
   return (
-    <BaseNonEditableEditor
+    <BasePythonEditor
+      mode="read"
       value={blocklyWorkspaceContext?.generatedCode.code ?? PYTHON_STARTER_CODE}
       lineNo={blocklyWorkspaceContext?.generatedCode.lineNos[gameCommandIndex]}
-      extensions={[python()]}
+      extensions={[]}
     />
   )
 }
@@ -122,14 +141,14 @@ const PythonEditor: FC<PythonEditorProps> = () => {
   if (!pythonEditorContext)
     throw new ReferenceError("Python workspace context not provided.")
 
-  return pythonEditorContext.editable ? (
-    <EditablePythonEditor
+  return pythonEditorContext.mode === "write" ? (
+    <WriteablePythonEditor
       ref={pythonEditorContext.ref}
       levelId={pythonEditorContext.levelId}
       commands={pythonEditorContext.commands}
     />
   ) : (
-    <NonEditablePythonEditor />
+    <ReadOnlyPythonEditor />
   )
 }
 

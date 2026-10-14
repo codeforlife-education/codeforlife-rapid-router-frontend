@@ -1,20 +1,13 @@
-import { type RefObject, createContext } from "react"
+import { createContext } from "react"
 
-import type { BaseEditableEditorRef } from "../BaseEditableEditor"
-import type { CharacterCommand } from "../../../app/character"
+import type {
+  ReadOnlyPythonEditorProps,
+  WriteablePythonEditorProps,
+} from "./PythonEditor"
 
-export type PythonEditorRef = BaseEditableEditorRef
-
-export type PythonEditorContextValue = {
-  ref: RefObject<PythonEditorRef | null>
-  /** Needed to load the right level's tile data into the Pyodide worker. */
-  levelId: number
-  /** Whether the editor is editable. If false, the editor is read-only. */
-  editable: boolean
-  /** The `my_van` commands relevant to this level, shown in the Commands
-   * modal. Only set for "python" mode levels. */
-  commands?: CharacterCommand[]
-}
+export type PythonEditorContextValue =
+  | ({ mode: "read" } & ReadOnlyPythonEditorProps)
+  | ({ mode: "write" } & WriteablePythonEditorProps)
 
 const PythonEditorContext = createContext<PythonEditorContextValue | null>(null)
 

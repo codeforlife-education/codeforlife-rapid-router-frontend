@@ -187,11 +187,13 @@ const Python: FC = () => {
   const pythonEditorContext = usePythonEditorContext()
   const consoleLogContext = useConsoleLogContext()
   const clearPythonEditorAndConsoleLogs = useCallback(() => {
-    pythonEditorContext?.ref.current?.clear()
+    if (pythonEditorContext?.mode === "write")
+      pythonEditorContext.ref.current?.clear()
     consoleLogContext?.setLogs([])
   }, [pythonEditorContext, consoleLogContext])
   const interpretPythonEditor = useCallback(async () => {
-    return (await pythonEditorContext?.ref.current?.interpret()) || false
+    if (pythonEditorContext?.mode !== "write") return false
+    return (await pythonEditorContext.ref.current?.interpret()) || false
   }, [pythonEditorContext])
 
   return (
@@ -208,7 +210,8 @@ const BlocklyAndPython: FC = () => {
   const pythonEditorContext = usePythonEditorContext()
   const clearBlocklyWorkspaceAndPythonEditor = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
-    pythonEditorContext?.ref.current?.clear()
+    if (pythonEditorContext?.mode === "write")
+      pythonEditorContext.ref.current?.clear()
   }, [blocklyWorkspaceContext, pythonEditorContext])
   const resizeBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.resize()

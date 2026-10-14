@@ -22,12 +22,13 @@ import {
 } from "../../api/level"
 import {
   PythonEditorContext,
-  type PythonEditorRef,
+  type PythonEditorContextValue,
 } from "../../codeMirror/editors/python"
 import { getMaxInstances, getToolboxContents } from "../../blockly/workspace"
 import type { CharacterCommand } from "../../app/character"
 import Controls from "./Controls"
 import Panels from "./Panels"
+import { type WriteableEditorRef } from "../../codeMirror/editors"
 import { paths } from "../../routes"
 
 const Base: FC<Pick<LevelModel, "id" | "mode">> = level => (
@@ -85,18 +86,18 @@ type PythonProps = Pick<LevelModel, "id">
 
 const PythonContext: FC<
   PythonProps & {
-    editable: boolean
+    mode: PythonEditorContextValue["mode"]
     commands?: CharacterCommand[]
     children: ReactNode
   }
-> = ({ id, editable, commands, children }) => {
-  const pythonEditorRef = useRef<PythonEditorRef>(null)
+> = ({ id, mode, commands, children }) => {
+  const pythonEditorRef = useRef<WriteableEditorRef>(null)
   const [logs, setLogs] = useState<Log[]>([])
 
   return (
     <ConsoleLogContext.Provider value={{ logs, setLogs }}>
       <PythonEditorContext.Provider
-        value={{ ref: pythonEditorRef, levelId: id, editable, commands }}
+        value={{ ref: pythonEditorRef, levelId: id, mode, commands }}
       >
         {children}
       </PythonEditorContext.Provider>
@@ -152,13 +153,13 @@ const Level: FC<LevelProps> = level => {
             <Base {...level} />
           </BlocklyContext>
         ) : level.mode === "python" ? (
-          <PythonContext {...level} editable={true}>
+          <PythonContext {...level} mode="write">
             <Base {...level} />
           </PythonContext>
         ) : (
           // blocklyAndPython
           <BlocklyContext {...level}>
-            <PythonContext {...level} editable={false}>
+            <PythonContext {...level} mode="read">
               <Base {...level} />
             </PythonContext>
           </BlocklyContext>
