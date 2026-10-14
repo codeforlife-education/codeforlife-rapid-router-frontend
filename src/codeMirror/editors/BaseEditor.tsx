@@ -42,12 +42,17 @@ const Editor: FC<EditorProps> = ({
   onChange,
 }) => {
   const editorRef = useRef<ReactCodeMirrorRef>(null)
+  const { phase } = usePhaserGameContext()
 
   useEffect(() => {
     const view = editorRef.current?.view
     if (!view) return
-    dispatchHighlightedLine(view, lineNo ?? null, error)
-  }, [lineNo, error])
+    dispatchHighlightedLine(
+      view,
+      phase === "idle" ? null : (lineNo ?? null),
+      error,
+    )
+  }, [lineNo, error, phase])
 
   return (
     <CodeMirror

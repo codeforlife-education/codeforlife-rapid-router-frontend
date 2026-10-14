@@ -191,7 +191,12 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       const changed = snapshot !== programSnapshotRef.current
       programSnapshotRef.current = snapshot
       if (!changed) return
-      setGame([], [], { code: "", lineNos: [] })
+      // Regenerate the Python preview on every edit so students can see it
+      // update live as they connect blocks, without running anything yet.
+      const { code } = generators.python.getCodeFromStartBlock(
+        blockly.startBlock,
+      )
+      setGame([], [], { code, lineNos: [] })
     }, 250)
 
     blockly.workspace.addChangeListener(onChange)
