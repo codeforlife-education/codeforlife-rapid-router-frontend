@@ -52,7 +52,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     (blockly: Blockly, generator?: string): Promise<boolean>
   }>(async () => new Promise<boolean>(resolve => resolve(false)))
   const dispatch = useAppDispatch()
-  const { phase } = usePhaserGameContext()
+  const { phase, setPhase } = usePhaserGameContext()
   const gameCommandIndex = useGameCommandIndex()
   const [gameCommandBlockIds, setGameCommandBlockIds] = useState<string[][]>([])
 
@@ -138,7 +138,10 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
         simulator.commands.map(c => c.blockIds ?? []),
         { code, lineNos: simulator.commands.map(c => c.lineNo) },
       )
-    } else highlightBlock(workspace, result.blockIds, { error: true })
+    } else {
+      setPhase("crashed")
+      highlightBlock(workspace, result.blockIds, { error: true })
+    }
     return result.ok
   }
 
@@ -200,6 +203,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     unhighlightBlock(workspace) // Unhighlight previously highlighted blocks.
 
+    if (phase === "idle") return
     const blockIds = gameCommandBlockIds[gameCommandIndex]
     if (!blockIds?.length) return
     highlightBlock(workspace, blockIds, { error: phase === "crashed" })

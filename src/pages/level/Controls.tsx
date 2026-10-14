@@ -120,12 +120,17 @@ const Base: FC<
           icon={<RedoIcon />}
           onClick={() => {
             clearPlayInterval()
+            if (!gameIsDefined) {
+              void interpretCommands().then(ok => ok && setPhase("paused"))
+              return
+            }
+            // Reveal the current index without advancing past it when
+            // nothing has been shown yet - only advance once something has.
+            if (phase !== "idle") {
+              if (gameOnLastStep) dispatch(restartGame())
+              else dispatch(nextGameCommand())
+            }
             setPhase("paused")
-            const step = () => dispatch(nextGameCommand())
-            if (gameIsDefined) {
-              if (!gameOnLastStep) step()
-              else dispatch(restartGame())
-            } else void interpretCommands().then(ok => ok && step())
           }}
         />
         <miniDrawers.MenuItem
