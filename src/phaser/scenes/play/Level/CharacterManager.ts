@@ -113,15 +113,21 @@ export default class CharacterManager {
   }
 
   private onGameCommandIndexChanged() {
-    // Skip any still-running animation straight to its end state first.
-    this.level.characterSprite.finishAnimation()
-
     const { runId, index } = this.level.commandIndex
     // Respawn whenever a new run begins, however the index itself changed.
     if (runId !== this.lastRunId) {
       this.lastRunId = runId
       this.spawn()
+    } else if (index === this.lastCommandIndex) {
+      // A phase change alone (e.g. reaching the last step, or pausing)
+      // re-broadcasts the same index without it actually advancing - ignore,
+      // or it'd replay the current command a second time.
+      return
     }
+
+    // Skip any still-running animation straight to its end state first.
+    this.level.characterSprite.finishAnimation()
+
     if (index === -1) return // Not playing yet this run.
 
     // React/redux can coalesce several index changes into a single push to
