@@ -45,9 +45,11 @@ function readOnlyPrefixFilter(protectedLength: number) {
   })
 }
 
-/** Makes the first `protectedLength` characters of the document immutable
- * and visually dimmed - e.g. to keep a starter-code preamble permanent. */
-export default function readOnlyPrefix(protectedLength: number): Extension {
+/** Makes `prefix`'s content immutable and visually dimmed - e.g. to keep a
+ * starter-code preamble permanent - while leaving any trailing blank lines
+ * (and everything after them) fully editable and undecorated. */
+export default function readOnlyPrefix(prefix: string): Extension {
+  const protectedLength = prefix.replace(/\n+$/, "").length
   return [
     readOnlyPrefixFilter(protectedLength),
     readOnlyPrefixField(protectedLength),

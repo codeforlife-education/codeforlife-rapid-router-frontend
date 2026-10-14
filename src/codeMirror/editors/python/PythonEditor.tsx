@@ -73,7 +73,7 @@ const EditablePythonEditor: FC<{
           lineNo={lineNos[gameCommandIndex]}
           extensions={[
             python(),
-            readOnlyPrefix(PYTHON_STARTER_CODE.length),
+            readOnlyPrefix(PYTHON_STARTER_CODE),
             autocomplete(
               pythonLanguage,
               /my_van\.\w*/,
