@@ -88,7 +88,7 @@ const Base: FC<
               return
             }
             if (gameIsDefined) {
-              if (gameOnLastStep) dispatch(restartGame())
+              if (gameOnLastStep || phase === "crashed") dispatch(restartGame())
               setPlayInterval()
             } else
               void interpretCommands().then(
@@ -133,7 +133,7 @@ const Base: FC<
             // Reveal the current index without advancing past it when
             // nothing has been shown yet - only advance once something has.
             if (phase !== "idle") {
-              if (gameOnLastStep) dispatch(restartGame())
+              if (gameOnLastStep || phase === "crashed") dispatch(restartGame())
               else dispatch(nextGameCommand())
             }
             setPhase("paused")
