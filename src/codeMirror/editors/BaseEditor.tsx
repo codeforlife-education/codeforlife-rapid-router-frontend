@@ -9,9 +9,9 @@ import {
 } from "react"
 import type { Extension } from "@codemirror/state"
 
+import { type GameCommand, setGameCommands } from "../../app/slices"
 import { dispatchHighlightedLine, highlightLine } from "../extensions"
-import type { GameCommand } from "../../app/slices"
-import { usePhaserGameContext } from "../../app/hooks"
+import { useAppDispatch, usePhaserGameContext } from "../../app/hooks"
 
 type EditorProps = {
   value: string
@@ -91,15 +91,21 @@ type WriteableEditorProps = Pick<
   ref: RefObject<WriteableEditorRef | null>
   starterCode: string
   interpret: (code: string) => Promise<GameCommand[] | undefined>
+  /** Called whenever the code is edited, in addition to the generic game-
+   * command reset below - for mode-specific state (e.g. line highlights)
+   * that's similarly invalidated by the edit. */
+  onEdit?: () => void
 }
 
 const WriteableEditor: FC<WriteableEditorProps> = ({
   ref,
   starterCode,
   interpret,
+  onEdit,
   ...props
 }) => {
   const { phase } = usePhaserGameContext()
+  const dispatch = useAppDispatch()
   const [code, setCode] = useState(starterCode)
 
   // Avoids a stale closure in the imperative `interpret` below.
@@ -115,12 +121,19 @@ const WriteableEditor: FC<WriteableEditorProps> = ({
     [starterCode, interpret],
   )
 
+  // Any edit invalidates the last interpretation, same as a Blockly edit.
+  const handleChange = (value: string) => {
+    setCode(value)
+    dispatch(setGameCommands([]))
+    onEdit?.()
+  }
+
   return (
     <Editor
       {...props}
       value={code}
       editable={phase === "idle" || phase === "finished" || phase === "crashed"}
-      onChange={setCode}
+      onChange={handleChange}
     />
   )
 }

@@ -91,6 +91,10 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
           starterCode={PYTHON_STARTER_CODE}
           lineNo={errorLineNo ?? lineNos[gameCommandIndex]}
           error={phase === "crashed"}
+          onEdit={() => {
+            setLineNos([])
+            setErrorLineNo(undefined)
+          }}
           extensions={[
             readOnlyPrefix(PYTHON_STARTER_CODE),
             autocomplete(
