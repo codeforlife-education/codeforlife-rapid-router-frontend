@@ -2,10 +2,15 @@ import sys as _sys
 import types as _types
 
 class _LineTracer:
-    def __init__(self):
+    # `start_line` is the last line of the static starter prefix (e.g. the
+    # `from van import Van` / `my_van = Van()` boilerplate) - lines at or
+    # before it never synthesise a "wait", so that prefix never shows up as
+    # its own commands.
+    def __init__(self, start_line=0):
         self.top_frame = None
         self.last_line = -1
         self.issued_on_line = False
+        self.start_line = start_line
 
     def mark_issued(self):
         self.issued_on_line = True
@@ -19,21 +24,21 @@ class _LineTracer:
         if frame is not self.top_frame:
             return None
         if event == "line":
-            if self.last_line != -1 and not self.issued_on_line:
+            if self.last_line > self.start_line and not self.issued_on_line:
                 _wait(self.last_line)
             self.last_line = frame.f_lineno
             self.issued_on_line = False
         return self.trace
 
     def finish(self):
-        if self.last_line != -1 and not self.issued_on_line:
+        if self.last_line > self.start_line and not self.issued_on_line:
             _wait(self.last_line)
 
 _tracer = None
 
-def _run_traced(source):
+def _run_traced(source, start_line=0):
     global _tracer
-    _tracer = _LineTracer()
+    _tracer = _LineTracer(start_line)
     _sys.settrace(_tracer.trace)
     try:
         exec(compile(source, "<student_code>", "exec"), _run_traced.__globals__)

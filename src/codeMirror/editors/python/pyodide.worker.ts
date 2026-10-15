@@ -22,6 +22,7 @@ import { getTilemap } from "../../../phaser/tilemaps/load"
 // that call a Van method. Each Van command method still passes the CALLER's
 // line number (`f_back.f_lineno`) through, so its own JS call is tagged with
 // the exact line that issued it.
+import PYTHON_STARTER_CODE from "./starterCode.py?raw"
 import VAN_MODULE_PREAMBLE from "./van.py?raw"
 
 export type RunRequest = {
@@ -71,6 +72,8 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       _report_error: (lineNo?: number) => {
         errorLine = lineNo
       },
+      // The static prefix's own lines never issue commands - see van.py.
+      _starter_line_count: PYTHON_STARTER_CODE.split("\n").length - 1,
       _move_forwards: (lineNo?: number) => simulator.moveForwards({ lineNo }),
       _turn_left: (lineNo?: number) => simulator.turnLeft({ lineNo }),
       _turn_right: (lineNo?: number) => simulator.turnRight({ lineNo }),
@@ -91,7 +94,9 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       _student_code: code,
     }) as PyProxy
     pyodide.runPython(VAN_MODULE_PREAMBLE, { globals })
-    pyodide.runPython("_run_traced(_student_code)", { globals })
+    pyodide.runPython("_run_traced(_student_code, _starter_line_count)", {
+      globals,
+    })
 
     const response: WorkerResponse = {
       type: "result",
