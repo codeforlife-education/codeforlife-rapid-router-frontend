@@ -1,3 +1,10 @@
+import {
+  CircularProgress,
+  Divider,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material"
 import CodeMirror, { type ReactCodeMirrorRef } from "@uiw/react-codemirror"
 import {
   type FC,
@@ -8,6 +15,7 @@ import {
   useState,
 } from "react"
 import type { Extension } from "@codemirror/state"
+import { InfoOutline as InfoOutlineIcon } from "@mui/icons-material"
 
 import { type GameCommand, setGameCommands } from "../../app/slices"
 import { dispatchHighlightedLine, highlightLine } from "../extensions"
@@ -16,13 +24,14 @@ import { useAppDispatch, usePhaserGameContext } from "../../app/hooks"
 type EditorProps = {
   value: string
   editable: boolean
+  /** Whether the editor is ready to be displayed. */
+  ready: boolean
+  /** The programming language of the editor (e.g. "Python"). */
+  language: string
   /** The source line (1-indexed) currently being animated, or `undefined` to
    * clear the highlight - resolved by the caller, which owns whatever
    * mapping of command index to line applies to its own mode. */
   lineNo?: number
-  /** Highlights `lineNo` in red (e.g. to point at a runtime error) instead of
-   * the default "currently animating" colour. */
-  error?: boolean
   /** Language-specific CodeMirror extensions (e.g. `python()`). */
   extensions: Extension[]
   onChange?: (value: string) => void
@@ -36,8 +45,9 @@ type EditorProps = {
 const Editor: FC<EditorProps> = ({
   value,
   editable,
+  ready,
+  language,
   lineNo,
-  error,
   extensions,
   onChange,
 }) => {
@@ -50,29 +60,52 @@ const Editor: FC<EditorProps> = ({
     dispatchHighlightedLine(
       view,
       phase === "idle" ? null : (lineNo ?? null),
-      error,
+      phase === "crashed",
     )
-  }, [lineNo, error, phase])
+  }, [lineNo, phase])
 
   return (
-    <CodeMirror
-      ref={editorRef}
-      value={value}
-      editable={editable}
-      extensions={[...extensions, highlightLine]}
-      onChange={onChange}
-      height="100%"
-    />
+    <Stack direction="column" height="100%">
+      <Stack direction="row" alignItems="center" spacing={1} p={1}>
+        <Typography variant="h6">{language} Program</Typography>
+        {editable && (
+          <Tooltip
+            title={
+              `Use the ${language} editor below to design your program, then` +
+              " click Play to try it out!"
+            }
+          >
+            <InfoOutlineIcon fontSize="small" />
+          </Tooltip>
+        )}
+      </Stack>
+      <Divider />
+      {ready ? (
+        <CodeMirror
+          ref={editorRef}
+          value={value}
+          editable={editable}
+          extensions={[...extensions, highlightLine]}
+          onChange={onChange}
+          height="100%"
+        />
+      ) : (
+        <Stack direction="row" spacing={1} p={1} alignItems="center">
+          <CircularProgress size={16} />
+          <Typography variant="body2">Loading {language}...</Typography>
+        </Stack>
+      )}
+    </Stack>
   )
 }
 
-type ReadOnlyEditorProps = Pick<
+export type ReadOnlyEditorProps = Pick<
   EditorProps,
-  "value" | "lineNo" | "error" | "extensions"
+  "value" | "lineNo" | "extensions" | "language"
 >
 
 const ReadOnlyEditor: FC<ReadOnlyEditorProps> = props => (
-  <Editor {...props} editable={false} />
+  <Editor {...props} editable={false} ready={true} />
 )
 
 export type WriteableEditorRef = {
@@ -84,9 +117,9 @@ export type WriteableEditorRef = {
   interpret: () => Promise<GameCommand[] | undefined>
 }
 
-type WriteableEditorProps = Pick<
+export type WriteableEditorProps = Pick<
   EditorProps,
-  "lineNo" | "error" | "extensions"
+  "lineNo" | "extensions" | "language" | "ready"
 > & {
   ref: RefObject<WriteableEditorRef | null>
   starterCode: string
@@ -104,7 +137,7 @@ const WriteableEditor: FC<WriteableEditorProps> = ({
   onEdit,
   ...props
 }) => {
-  const { phase } = usePhaserGameContext()
+  const { phase, setPhase } = usePhaserGameContext()
   const dispatch = useAppDispatch()
   const [code, setCode] = useState(starterCode)
 
@@ -116,9 +149,14 @@ const WriteableEditor: FC<WriteableEditorProps> = ({
     ref,
     () => ({
       clear: () => setCode(starterCode),
-      interpret: () => interpret(codeRef.current),
+      interpret: () =>
+        interpret(codeRef.current).then(commands => {
+          if (commands === undefined) setPhase("crashed")
+          else dispatch(setGameCommands(commands))
+          return commands
+        }),
     }),
-    [starterCode, interpret],
+    [starterCode, interpret, setPhase, dispatch],
   )
 
   // Any edit invalidates the last interpretation, same as a Blockly edit.
