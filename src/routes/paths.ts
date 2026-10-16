@@ -144,6 +144,4 @@ const paths = _("", {
   }),
 })
 
-console.log(paths.rapidRouter.level.id[1]._)
-
 export default paths
