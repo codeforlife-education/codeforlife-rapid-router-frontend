@@ -12,9 +12,24 @@ export const GAME_COMMANDS = [
 ] as const
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
+/** The amount of fuel each command costs to execute. */
+export const FUEL_COST: Record<GameCommand, number> = {
+  move_forwards: 1,
+  turn_left: 1,
+  turn_right: 1,
+  turn_around: 1,
+  wait: 1,
+  deliver: 1,
+  sound_horn: 1,
+}
+
 export interface GameState {
   /** The interpreted command sequence. */
   gameCommands: GameCommand[]
+  /** True for `gameCommands` entries synthesised purely for editor
+   * highlighting (e.g. a loop/if header line) - not a real command the
+   * player issued, so it must not cost fuel (see `FUEL_COST`). */
+  gameCommandSynthetic: boolean[]
   /** The index of the current game command being executed. */
   gameCommandIndex: number
   /** Bumped on every (re)start, so Phaser can detect a fresh run regardless
@@ -24,6 +39,7 @@ export interface GameState {
 
 const initialState: GameState = Object.freeze({
   gameCommands: [],
+  gameCommandSynthetic: [],
   gameCommandIndex: 0,
   runId: 0,
 })
@@ -50,6 +66,15 @@ export const gameSlice = createSlice({
         state.runId += 1
       },
     ),
+    /** Sets which of the current `gameCommands` are synthetic (editor-
+     * highlight-only) - dispatched separately from `setGameCommands` since
+     * only the Python run pipeline knows this (Blockly-derived commands are
+     * never synthetic). */
+    setGameCommandSynthetic: create.reducer(
+      (state, action: PayloadAction<boolean[]>) => {
+        state.gameCommandSynthetic = action.payload
+      },
+    ),
     nextGameCommand: create.reducer(state => {
       if (!gameIsDefined(state) || gameOnLastStep(state)) return
       state.gameCommandIndex += 1
@@ -69,6 +94,7 @@ export const gameSlice = createSlice({
   }),
   selectors: {
     selectGameCommands: state => state.gameCommands,
+    selectGameCommandSynthetic: state => state.gameCommandSynthetic,
     selectGameCommandIndex: state => state.gameCommandIndex,
     selectGameRunId: state => state.runId,
     selectGameIsDefined: gameIsDefined,
@@ -78,12 +104,14 @@ export const gameSlice = createSlice({
 
 export const {
   setGameCommands,
+  setGameCommandSynthetic,
   nextGameCommand,
   restartGame,
   finishGameEarly,
 } = gameSlice.actions
 export const {
   selectGameCommands,
+  selectGameCommandSynthetic,
   selectGameCommandIndex,
   selectGameRunId,
   selectGameIsDefined,

@@ -11,6 +11,7 @@ import { useContext } from "react"
 import type { AppDispatch, RootState } from "./store"
 import {
   selectGameCommandIndex,
+  selectGameCommandSynthetic,
   selectGameCommands,
   selectGameIsDefined,
   selectGameOnLastStep,
@@ -47,6 +48,8 @@ export function useBreakpoint() {
 // Slice selectors
 export const useSettings = () => useSelector(selectSettings)
 export const useGameCommands = () => useSelector(selectGameCommands)
+export const useGameCommandSynthetic = () =>
+  useSelector(selectGameCommandSynthetic)
 export const useGameCommandIndex = () => useSelector(selectGameCommandIndex)
 export const useGameRunId = () => useSelector(selectGameRunId)
 export const useGameIsDefined = () => useSelector(selectGameIsDefined)

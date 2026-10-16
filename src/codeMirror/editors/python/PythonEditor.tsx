@@ -11,6 +11,7 @@ import type {
   TilemapGroup,
 } from "../../../phaser/tilemaps"
 import { autocomplete, readOnlyPrefix } from "../../extensions"
+import { setGameCommandSynthetic, setGameCommands } from "../../../app/slices"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -20,7 +21,6 @@ import {
 } from "../../../app/hooks"
 import type { CharacterCommand } from "../../../app/character"
 import PYTHON_STARTER_CODE from "./starterCode.py?raw"
-import { setGameCommands } from "../../../app/slices"
 import { usePyodideRunner } from "./usePyodideRunner"
 
 type BasePythonEditorProps =
@@ -68,11 +68,15 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
   const handleInterpret = async (code: string) => {
     consoleLogContext?.setLogs([])
     dispatch(setGameCommands([]))
+    dispatch(setGameCommandSynthetic([]))
     setLineNos([])
     setErrorLineNo(undefined)
     const result = await run({ code, levelId, tilemapGroup, tilemap })
     if (result.ok) {
       setLineNos(result.commands.map(c => c.lineNo))
+      dispatch(
+        setGameCommandSynthetic(result.commands.map(c => c.synthetic ?? false)),
+      )
       return result.commands.map(c => c.command)
     }
     setErrorLineNo(result.lineNo)
