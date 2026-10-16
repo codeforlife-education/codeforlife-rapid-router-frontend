@@ -20,6 +20,7 @@ import {
   initializeBlockly,
   resizeWorkspace,
 } from "./workspace"
+import { setGameCommandSynthetic, setGameCommands } from "../app/slices"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -32,7 +33,6 @@ import { type StartBlockType } from "./blocks"
 import { getTilemap } from "../phaser/tilemaps/load"
 import { importOrthogonal } from "../phaser/tilemaps"
 import { runBlockly } from "./interpreter"
-import { setGameCommands } from "../app/slices"
 
 type Blockly = ReturnType<typeof initializeBlockly>
 type HighlightedBlock = { id: string; originalColour?: string }
@@ -77,6 +77,9 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       generatedCode: GeneratedCode,
     ) => {
       dispatch(setGameCommands(commands))
+      // Blockly-derived commands are never synthetic - only the Python run
+      // pipeline's line tracer produces those (see `FuelManager`).
+      dispatch(setGameCommandSynthetic([]))
       setGameCommandBlockIds(blockIds)
       setGeneratedCode(generatedCode)
     },

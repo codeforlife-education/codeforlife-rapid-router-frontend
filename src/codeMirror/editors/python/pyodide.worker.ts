@@ -92,6 +92,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       _turn_right: (lineNo?: number) => simulator.turnRight({ lineNo }),
       _turn_around: (lineNo?: number) => simulator.turnAround({ lineNo }),
       _wait: (lineNo?: number) => simulator.wait({ lineNo }),
+      _synthetic_wait: (lineNo?: number) => simulator.syntheticWait({ lineNo }),
       _deliver: (lineNo?: number) => simulator.deliver({ lineNo }),
       _sound_horn: (lineNo?: number) => simulator.soundHorn({ lineNo }),
       _is_road: simulator.isRoad,
