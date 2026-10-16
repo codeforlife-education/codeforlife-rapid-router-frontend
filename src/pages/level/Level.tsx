@@ -131,11 +131,11 @@ const Custom: FC = () =>
   })
 
 export type LevelProps =
-  | (
+  | ({ derivative: "rapidRouter" | "pythonDen" } & (
       | (BlocklyProps & { mode: "blockly" })
       | (WritePythonProps & { mode: "python" })
       | (BlocklyProps & ReadPythonProps & { mode: "blocklyAndPython" })
-    )
+    ))
   | {}
 
 const Level: FC<LevelProps> = level => {
