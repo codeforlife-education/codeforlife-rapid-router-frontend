@@ -1,10 +1,12 @@
 import general from "./general"
-import level from "./level"
+import pythonDen from "./pythonDen"
+import rapidRouter from "./rapidRouter"
 
 const routes = (
   <>
     {general}
-    {level}
+    {rapidRouter}
+    {pythonDen}
   </>
 )
 
