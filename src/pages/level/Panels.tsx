@@ -10,6 +10,10 @@ import { type Breakpoint } from "@mui/material"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 
 import type {
+  ExportedOrthogonalTilemap,
+  TilemapGroup,
+} from "../../phaser/tilemaps"
+import type {
   PanelLayout,
   ThreePanelLayout,
   TwoPanelLayout,
@@ -22,11 +26,18 @@ import {
   useSettings,
 } from "../../app/hooks"
 import { BlocklyWorkspace } from "../../blockly"
+import { ConsoleLog } from "../../codeMirror"
 import type { Level } from "../../api/level"
 import { PhaserGame } from "../../phaser"
-import PythonEditor from "./PythonEditor"
+import { PythonEditor } from "../../codeMirror/editors/python"
 
 type PanelProps = { defaultSize: string }
+
+/** Identifies which tilemap to load - a predefined group+id pair (dynamically
+ * imported), or an already-fetched custom level's exported tilemap. */
+type TilemapProps =
+  | { tilemapGroup: TilemapGroup; tilemap: undefined }
+  | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
 
 type AutoPanelLayout<PL extends PanelLayout> = Record<
   ScreenOrientation,
@@ -81,6 +92,12 @@ const PythonEditorPanel: FC<PanelProps> = ({ defaultSize }) => (
   </Panel>
 )
 
+const ConsoleLogPanel: FC<PanelProps> = ({ defaultSize }) => (
+  <Panel id="console-log-panel" defaultSize={defaultSize} minSize="20%">
+    <ConsoleLog />
+  </Panel>
+)
+
 const StyledSeparator = styled(_Separator)(({ theme }: { theme: Theme }) => ({
   alignItems: "center",
   backgroundColor: theme.palette.divider,
@@ -105,12 +122,11 @@ const Separator: FC<Pick<GroupProps, "orientation">> = ({ orientation }) => (
   </StyledSeparator>
 )
 
-const PhaserGamePanel: FC<PanelProps & { levelId: Level["id"] }> = ({
-  defaultSize,
-  levelId,
-}) => (
+const PhaserGamePanel: FC<
+  PanelProps & { levelId: Level["id"] } & TilemapProps
+> = ({ defaultSize, levelId, ...tilemapProps }) => (
   <Panel id="phaser-game-panel" defaultSize={defaultSize} minSize="20%">
-    <PhaserGame mode="play" levelId={levelId} />
+    <PhaserGame mode="play" levelId={levelId} {...tilemapProps} />
   </Panel>
 )
 
@@ -141,104 +157,122 @@ const BlocklyGroup: FC<Omit<GroupProps, "onLayoutChanged">> = props => {
   return <Group onLayoutChanged={resizeBlocklyWorkspace} {...props} />
 }
 
-const Flat2PanelLayout: FC<
+const BlocklyPanelLayout: FC<
   Pick<GroupProps, "orientation"> & {
     reverseOrder?: boolean
-    level: { id: Level["id"]; mode: "blockly" | "python" }
-  }
-> = ({ orientation, reverseOrder = false, level }) => {
+    levelId: Level["id"]
+  } & TilemapProps
+> = ({ orientation, reverseOrder = false, levelId, ...tilemapProps }) => {
   const panels = [
-    level.mode === "blockly" ? (
-      <BlocklyPanel key="blockly-panel" defaultSize="50%" />
-    ) : (
-      <PythonEditorPanel key="python-editor-panel" defaultSize="50%" />
-    ),
+    <BlocklyPanel key="blockly-panel" defaultSize="50%" />,
     <PhaserGamePanel
       key="phaser-game-panel"
       defaultSize="50%"
-      levelId={level.id}
-    />,
-  ]
-  if (reverseOrder) panels.reverse()
-  return (level.mode === "blockly" ? BlocklyGroup : Group)({
-    orientation,
-    panels,
-  })
-}
-
-const Flat3PanelLayout: FC<
-  Pick<GroupProps, "orientation"> & {
-    reverseOrder?: boolean
-    level: Pick<Level, "id">
-  }
-> = ({ orientation, reverseOrder = false, level }) => {
-  const panels = [
-    <BlocklyPanel key="blockly-panel" defaultSize="34%" />,
-    <PythonEditorPanel key="python-editor-panel" defaultSize="33%" />,
-    <PhaserGamePanel
-      key="phaser-game-panel"
-      defaultSize="33%"
-      levelId={level.id}
+      levelId={levelId}
+      {...tilemapProps}
     />,
   ]
   if (reverseOrder) panels.reverse()
   return <BlocklyGroup orientation={orientation} panels={panels} />
 }
 
-const Nested3PanelLayout: FC<{ level: Pick<Level, "id"> }> = ({ level }) => (
-  <BlocklyGroup
-    orientation="horizontal"
-    panels={[
-      <Panel
-        key="blockly-and-python-editor-panel"
-        defaultSize="50%"
-        minSize="20%"
-      >
-        <BlocklyGroup
-          orientation="vertical"
-          panels={[
-            <BlocklyPanel key="blockly-panel" defaultSize="50%" />,
-            <PythonEditorPanel key="python-editor-panel" defaultSize="50%" />,
-          ]}
-        />
-      </Panel>,
-      <PhaserGamePanel
-        key="phaser-game-panel"
-        defaultSize="50%"
-        levelId={level.id}
-      />,
-    ]}
-  />
-)
-
-export interface PanelsProps {
-  level: Pick<Level, "id" | "mode">
+const Flat3PanelLayout: FC<
+  Pick<GroupProps, "orientation"> & {
+    reverseOrder?: boolean
+    level: Pick<Level, "id"> & {
+      mode: "blocklyAndPython" | "python"
+    } & TilemapProps
+  }
+> = ({ orientation, reverseOrder = false, level }) => {
+  const { id, mode, ...tilemapProps } = level
+  const panels = [
+    ...(mode === "blocklyAndPython"
+      ? [
+          <BlocklyPanel key="blockly-panel" defaultSize="34%" />,
+          <PythonEditorPanel key="python-editor-panel" defaultSize="33%" />,
+        ]
+      : [
+          <PythonEditorPanel key="python-editor-panel" defaultSize="34%" />,
+          <ConsoleLogPanel key="console-log-panel" defaultSize="33%" />,
+        ]),
+    <PhaserGamePanel
+      key="phaser-game-panel"
+      defaultSize="33%"
+      levelId={id}
+      {...tilemapProps}
+    />,
+  ]
+  if (reverseOrder) panels.reverse()
+  return (mode === "blocklyAndPython" ? BlocklyGroup : Group)({
+    orientation,
+    panels,
+  })
 }
 
-const Panels: FC<PanelsProps> = ({ level: { id, mode } }) => {
+const Nested3PanelLayout: FC<{
+  level: Pick<Level, "id"> & {
+    mode: "blocklyAndPython" | "python"
+  } & TilemapProps
+}> = ({ level }) => {
+  const { id, mode, ...tilemapProps } = level
+  let _Group: FC<GroupProps>
+  let nestedPanels: GroupProps["panels"]
+  if (mode === "blocklyAndPython") {
+    _Group = BlocklyGroup
+    nestedPanels = [
+      <BlocklyPanel key="blockly-panel" defaultSize="50%" />,
+      <PythonEditorPanel key="python-editor-panel" defaultSize="50%" />,
+    ]
+  } else {
+    _Group = Group
+    nestedPanels = [
+      <PythonEditorPanel key="python-editor-panel" defaultSize="50%" />,
+      <ConsoleLogPanel key="console-log-panel" defaultSize="50%" />,
+    ]
+  }
+
+  return (
+    <_Group
+      orientation="horizontal"
+      panels={[
+        <Panel key="nested-panels" defaultSize="50%" minSize="20%">
+          <_Group orientation="vertical" panels={nestedPanels} />
+        </Panel>,
+        <PhaserGamePanel
+          key="phaser-game-panel"
+          defaultSize="50%"
+          levelId={id}
+          {...tilemapProps}
+        />,
+      ]}
+    />
+  )
+}
+
+export interface PanelsProps {
+  level: Pick<Level, "id" | "mode"> & TilemapProps
+}
+
+const Panels: FC<PanelsProps> = ({ level: { id, mode, ...tilemapProps } }) => {
   const settings = useSettings()
   const screenOrientation = useScreenOrientation()
   const breakpoint = useBreakpoint()
 
-  if (mode === "blockly" || mode === "python") {
-    switch (
+  // Blockly mode only has 2 panel layouts.
+  if (mode === "blockly") {
+    let orientation =
       settings.twoPanelLayout ??
-      AUTO_TWO_PANEL_LAYOUTS[screenOrientation][breakpoint]
-    ) {
-      case "horizontal":
-        return (
-          <Flat2PanelLayout
-            orientation="vertical"
-            reverseOrder
-            level={{ id, mode }}
-          />
-        )
-      case "vertical":
-      default:
-        return (
-          <Flat2PanelLayout orientation="horizontal" level={{ id, mode }} />
-        )
-    }
+      AUTO_TWO_PANEL_LAYOUTS[screenOrientation][breakpoint] ??
+      "vertical"
+    orientation = orientation === "vertical" ? "horizontal" : "vertical"
+    return (
+      <BlocklyPanelLayout
+        reverseOrder={orientation === "vertical"}
+        orientation={orientation}
+        levelId={id}
+        {...tilemapProps}
+      />
+    )
   }
 
   switch (
@@ -246,14 +280,23 @@ const Panels: FC<PanelsProps> = ({ level: { id, mode } }) => {
     AUTO_THREE_PANEL_LAYOUTS[screenOrientation][breakpoint]
   ) {
     case "verticalWithLeftHorizontal":
-      return <Nested3PanelLayout level={{ id }} />
+      return <Nested3PanelLayout level={{ id, mode, ...tilemapProps }} />
     case "horizontal":
       return (
-        <Flat3PanelLayout orientation="vertical" reverseOrder level={{ id }} />
+        <Flat3PanelLayout
+          orientation="vertical"
+          reverseOrder
+          level={{ id, mode, ...tilemapProps }}
+        />
       )
     case "vertical":
     default:
-      return <Flat3PanelLayout orientation="horizontal" level={{ id }} />
+      return (
+        <Flat3PanelLayout
+          orientation="horizontal"
+          level={{ id, mode, ...tilemapProps }}
+        />
+      )
   }
 }
 

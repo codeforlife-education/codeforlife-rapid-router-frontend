@@ -7,3 +7,5 @@ export {
   type ExportedFreeObject,
   type ExportedRoadObject,
 } from "./tilemaps"
+
+export type TilemapGroup = "rapidRouter" | "pythonDen"

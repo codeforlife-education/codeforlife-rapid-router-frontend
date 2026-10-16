@@ -1,7 +1,7 @@
 import { type FC, useLayoutEffect, useRef } from "react"
 import { type BlockType } from "./blocks"
 import { Box } from "@mui/material"
-import { initializeBlockPreview } from "./utils"
+import { initializeBlockPreview } from "./workspace"
 
 export interface BlockPreviewProps {
   blockType: BlockType

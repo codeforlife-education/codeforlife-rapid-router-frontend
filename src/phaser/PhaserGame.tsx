@@ -17,10 +17,12 @@ import { CircularProgress } from "@mui/material"
 import type Phaser from "phaser"
 
 import { Events, type Variable } from "./globals"
+import type { ExportedOrthogonalTilemap, TilemapGroup } from "./tilemaps"
 import {
   useAppDispatch,
   useGameCommandIndex,
   useGameCommands,
+  useGameRunId,
   usePhaserGameContext,
 } from "../app/hooks"
 import type { Level } from "../api/level"
@@ -28,21 +30,28 @@ import type { PhaserGameRef } from "./PhaserGameContext"
 import { finishGameEarly } from "../app/slices"
 
 export type PhaserGameProps =
-  | { mode: "play"; levelId: Level["id"] }
+  | ({ mode: "play"; levelId: Level["id"] } & (
+      | { tilemapGroup: TilemapGroup; tilemap: undefined }
+      | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
+    ))
   | { mode: "create"; levelId?: never }
 
-const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
+const PhaserGame: FC<PhaserGameProps> = props => {
+  const { mode, levelId } = props
+  const tilemapGroup = props.mode === "play" ? props.tilemapGroup : undefined
+  const tilemap = props.mode === "play" ? props.tilemap : undefined
   const phaserGameContext = usePhaserGameContext()
   const dispatch = useAppDispatch()
   const gameCommands = useGameCommands()
   const gameCommandIndex = useGameCommandIndex()
+  const gameRunId = useGameRunId()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Phaser.Game>(null)
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
-  const { ref, setActiveSceneKeys } = phaserGameContext
+  const { ref, setActiveSceneKeys, phase, setPhase } = phaserGameContext
 
   const getVariable = useCallback(
     (<T,>(
@@ -180,15 +189,30 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
     if (mode === "play") setVariable("levelId", levelId)
   }, [mode, levelId, setVariable])
 
+  // Pass which tilemap to load to Phaser when in play mode - a predefined
+  // group (dynamically imported) or an already-fetched custom level's
+  // exported tilemap (reusing the same variable the level creator writes).
+  useEffect(() => {
+    if (mode !== "play") return
+    setVariable("tilemapGroup", tilemapGroup)
+    setVariable("exportedLevel", tilemap)
+  }, [mode, tilemapGroup, tilemap, setVariable])
+
   // Pass the current game commands to Phaser when in play mode.
   useEffect(() => {
     if (mode === "play") setVariable("commands", gameCommands)
   }, [mode, gameCommands, setVariable])
 
-  // Pass the current game command index to Phaser when in play mode.
+  // Pass the current run id and command index to Phaser together, as a
+  // single value, when in play mode - so a restart is always observed
+  // atomically, never as a torn update where only one half has arrived.
   useEffect(() => {
-    if (mode === "play") setVariable("commandIndex", gameCommandIndex)
-  }, [mode, gameCommandIndex, setVariable])
+    if (mode !== "play") return
+    setVariable("commandIndex", {
+      runId: gameRunId,
+      index: phase === "idle" ? -1 : gameCommandIndex,
+    } as Phaser.Types.Variables.CommandIndex)
+  }, [mode, gameRunId, gameCommandIndex, phase, setVariable])
 
   // Listen for Phaser reporting a crash, and end the game early at whichever
   // command index it passes.
@@ -198,12 +222,13 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
 
     const onFinishEarly: Phaser.Events.FinishEarly = commandIndex => {
       dispatch(finishGameEarly(commandIndex))
+      setPhase("crashed")
     }
     events.on(Events.FINISH_EARLY, onFinishEarly)
     return () => {
       events.off(Events.FINISH_EARLY, onFinishEarly)
     }
-  }, [mode, gameIsInitialized, dispatch])
+  }, [mode, gameIsInitialized, dispatch, setPhase])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

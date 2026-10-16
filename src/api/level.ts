@@ -9,7 +9,8 @@ import {
   tagData,
 } from "codeforlife/utils/api"
 
-import { type BlockToolboxEntry } from "../blockly/blocks"
+import type { BlockToolboxEntry } from "../blockly/blocks"
+import type { ExportedOrthogonalTilemap } from "../phaser/tilemaps"
 import api from "."
 
 export type Level = Model<
@@ -18,6 +19,7 @@ export type Level = Model<
     name: string
     mode: "blockly" | "blocklyAndPython" | "python"
     blockly_toolbox_block_types: BlockToolboxEntry[]
+    tilemap: ExportedOrthogonalTilemap
   }
 >
 
@@ -25,7 +27,7 @@ const levelUrls = modelUrls("levels/", "levels/<id>/")
 
 export type RetrieveLevelResult = RetrieveResult<
   Level,
-  "name" | "mode" | "blockly_toolbox_block_types"
+  "name" | "mode" | "blockly_toolbox_block_types" | "tilemap"
 >
 export type RetrieveLevelArg = RetrieveArg<Level>
 
