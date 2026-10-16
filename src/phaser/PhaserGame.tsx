@@ -17,6 +17,7 @@ import { CircularProgress } from "@mui/material"
 import type Phaser from "phaser"
 
 import { Events, type Variable } from "./globals"
+import type { ExportedOrthogonalTilemap, TilemapGroup } from "./tilemaps"
 import {
   useAppDispatch,
   useGameCommandIndex,
@@ -29,10 +30,16 @@ import type { PhaserGameRef } from "./PhaserGameContext"
 import { finishGameEarly } from "../app/slices"
 
 export type PhaserGameProps =
-  | { mode: "play"; levelId: Level["id"] }
+  | ({ mode: "play"; levelId: Level["id"] } & (
+      | { tilemapGroup: TilemapGroup; tilemap: undefined }
+      | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
+    ))
   | { mode: "create"; levelId?: never }
 
-const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
+const PhaserGame: FC<PhaserGameProps> = props => {
+  const { mode, levelId } = props
+  const tilemapGroup = props.mode === "play" ? props.tilemapGroup : undefined
+  const tilemap = props.mode === "play" ? props.tilemap : undefined
   const phaserGameContext = usePhaserGameContext()
   const dispatch = useAppDispatch()
   const gameCommands = useGameCommands()
@@ -181,6 +188,15 @@ const PhaserGame: FC<PhaserGameProps> = ({ mode, levelId }) => {
   useEffect(() => {
     if (mode === "play") setVariable("levelId", levelId)
   }, [mode, levelId, setVariable])
+
+  // Pass which tilemap to load to Phaser when in play mode - a predefined
+  // group (dynamically imported) or an already-fetched custom level's
+  // exported tilemap (reusing the same variable the level creator writes).
+  useEffect(() => {
+    if (mode !== "play") return
+    setVariable("tilemapGroup", tilemapGroup)
+    setVariable("exportedLevel", tilemap)
+  }, [mode, tilemapGroup, tilemap, setVariable])
 
   // Pass the current game commands to Phaser when in play mode.
   useEffect(() => {

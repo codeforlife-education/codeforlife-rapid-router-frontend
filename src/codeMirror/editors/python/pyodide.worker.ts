@@ -7,6 +7,12 @@
 import { type PyodideInterface, loadPyodide } from "pyodide"
 import type { PyProxy } from "pyodide/ffi"
 
+import {
+  type ExportedOrthogonalTilemap,
+  type OrthogonalTilemap,
+  type TilemapGroup,
+  importOrthogonal,
+} from "../../../phaser/tilemaps"
 import LevelSimulator, {
   type SimulatorCommand,
 } from "../../../phaser/LevelSimulator"
@@ -30,7 +36,10 @@ export type RunRequest = {
   id: number
   code: string
   levelId: number
-}
+} & (
+  | { tilemapGroup: TilemapGroup; tilemap: undefined }
+  | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
+)
 
 export type WorkerResponse =
   | { type: "ready" }
@@ -56,14 +65,18 @@ void getPyodide().then(() => {
 })
 
 self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
-  const { id, code, levelId } = data
+  const { id, code, levelId, tilemapGroup, tilemap } = data
   let errorLine: number | undefined
   try {
-    const [pyodide, tilemap] = await Promise.all([
+    const [pyodide, resolvedTilemap] = await Promise.all([
       getPyodide(),
-      getTilemap(levelId),
+      tilemap
+        ? new Promise<OrthogonalTilemap>(resolve =>
+            resolve(importOrthogonal(tilemap)),
+          )
+        : getTilemap(levelId, tilemapGroup),
     ])
-    const simulator = new LevelSimulator(tilemap)
+    const simulator = new LevelSimulator(resolvedTilemap)
 
     // A fresh globals dict per run - keeps runs isolated from each other.
     // `LevelSimulator`'s command methods take an options object; Python

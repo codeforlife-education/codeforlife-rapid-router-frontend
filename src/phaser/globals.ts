@@ -36,6 +36,7 @@ export const Variables = createIdRegistry({
   maxSceneryObjectCount: "MAX_SCENERY_OBJECT_COUNT",
   sceneryObjectCount: "SCENERY_OBJECT_COUNT",
   exportedLevel: "EXPORTED_LEVEL",
+  tilemapGroup: "TILEMAP_GROUP",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
 

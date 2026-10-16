@@ -7,91 +7,91 @@ import paths from "./paths"
 const levels = [
   // Rapid Router
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 1,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 2,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 3,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 4,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 5,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 6,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 7,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 8,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 9,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 10,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 11,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 12,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 13,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 14,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 15,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -102,7 +102,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 16,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -113,7 +113,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 17,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -124,7 +124,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 18,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -135,7 +135,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 19,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -146,7 +146,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 20,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -157,7 +157,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 21,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -168,7 +168,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 22,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -179,7 +179,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 23,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -190,7 +190,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 24,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -201,7 +201,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 25,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -212,7 +212,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 26,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -223,7 +223,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 27,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -234,7 +234,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 28,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -245,7 +245,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 29,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -257,7 +257,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 30,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -269,7 +269,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 31,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -281,7 +281,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 32,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -293,7 +293,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 33,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -307,7 +307,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 34,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -321,7 +321,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 35,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -335,7 +335,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 36,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -349,7 +349,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 37,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -363,7 +363,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 38,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -379,7 +379,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 39,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -398,7 +398,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 40,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -415,7 +415,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 41,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -432,7 +432,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 42,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -449,7 +449,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 43,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -466,7 +466,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 44,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -481,7 +481,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 45,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -496,7 +496,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 46,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -512,7 +512,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 47,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -529,7 +529,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 48,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -549,7 +549,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 49,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -568,7 +568,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -587,7 +587,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 51,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -597,7 +597,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 52,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -607,7 +607,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 53,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -618,7 +618,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 54,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -628,7 +628,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 55,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -641,7 +641,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 56,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -655,7 +655,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 57,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -670,7 +670,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 58,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -684,7 +684,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 59,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -695,7 +695,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 60,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -706,7 +706,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 61,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -719,7 +719,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 62,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -735,7 +735,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 63,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -747,7 +747,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 64,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -760,7 +760,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 65,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -773,7 +773,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 66,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -786,7 +786,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 67,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -799,7 +799,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 68,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -812,7 +812,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 69,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -827,7 +827,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 70,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -840,7 +840,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 71,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -854,7 +854,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 72,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -868,7 +868,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 73,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -886,7 +886,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 74,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -900,7 +900,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 75,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -915,7 +915,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 76,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -930,7 +930,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 77,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -944,7 +944,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 78,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -961,7 +961,7 @@ const levels = [
     ],
   },
   {
-    derivative: "rapidRouter",
+    tilemapGroup: "rapidRouter",
     id: 79,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -977,43 +977,43 @@ const levels = [
   },
   // Python Den
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 1,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 2,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 3,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 4,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 5,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 6,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 7,
     mode: "blockly",
     blockly_toolbox_block_types: [
@@ -1027,7 +1027,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 8,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1042,7 +1042,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 9,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1058,31 +1058,31 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 10,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 11,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 12,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 13,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 14,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1099,7 +1099,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 15,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1117,25 +1117,25 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 16,
     mode: "python",
     commands: ["turn_left", "turn_right", "is_animal_crossing", "sound_horn"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 17,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right", "is_road_left"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 18,
     mode: "python",
     commands: ["move_forwards", "turn_left", "is_road_left"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 19,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1153,13 +1153,13 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 20,
     mode: "python",
     commands: ["turn_left", "turn_right", "is_road_left"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 21,
     mode: "python",
     commands: [
@@ -1171,7 +1171,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 22,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1189,7 +1189,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 23,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1207,7 +1207,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 24,
     mode: "python",
     commands: [
@@ -1219,7 +1219,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 25,
     mode: "python",
     commands: [
@@ -1233,7 +1233,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 26,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1246,7 +1246,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 27,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1257,7 +1257,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 28,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1269,7 +1269,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 29,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1282,13 +1282,13 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 30,
     mode: "python",
     commands: ["turn_left", "turn_right", "at_destination"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 31,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1302,7 +1302,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 32,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1316,13 +1316,13 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 33,
     mode: "python",
     commands: ["turn_left", "turn_right", "is_road_left", "at_destination"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 34,
     mode: "python",
     commands: [
@@ -1333,7 +1333,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 35,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1348,7 +1348,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 36,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1365,7 +1365,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 37,
     mode: "python",
     commands: [
@@ -1379,7 +1379,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 38,
     mode: "python",
     commands: [
@@ -1394,7 +1394,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 39,
     mode: "python",
     commands: [
@@ -1407,7 +1407,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 40,
     mode: "python",
     commands: [
@@ -1426,7 +1426,7 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 41,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1437,19 +1437,19 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 42,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 43,
     mode: "python",
     commands: ["move_forwards", "turn_left"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 44,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
@@ -1460,31 +1460,31 @@ const levels = [
     ],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 45,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 46,
     mode: "python",
     commands: ["move_forwards", "turn_right", "at_destination"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 47,
     mode: "python",
     commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 48,
     mode: "python",
     commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
-    derivative: "pythonDen",
+    tilemapGroup: "pythonDen",
     id: 49,
     mode: "python",
     commands: ["move_forwards", "turn_right", "turn_left", "at_destination"],
@@ -1494,16 +1494,23 @@ const levels = [
 export default (
   <>
     <Route path={paths.level.creator._} element={<LevelCreator />} />
-    {levels.map(({ id, derivative, ...levelProps }) => (
+    {levels.map(({ id, tilemapGroup, ...levelProps }) => (
       <Route
-        key={`${derivative}-level-${id}`}
+        key={`${tilemapGroup}-level-${id}`}
         path={
-          (derivative === "rapidRouter"
-            ? paths.level.id.rapidRouter[id]
-            : paths.level.id.pythonDen[id]
+          (tilemapGroup === "rapidRouter"
+            ? paths.level.rapidRouter[id]
+            : paths.level.pythonDen[id]
           )._
         }
-        element={<Level id={id} derivative={derivative} {...levelProps} />}
+        element={
+          <Level
+            id={id}
+            tilemap={undefined}
+            tilemapGroup={tilemapGroup}
+            {...levelProps}
+          />
+        }
       />
     ))}
     <Route path={paths.level.id._} element={<Level />} />

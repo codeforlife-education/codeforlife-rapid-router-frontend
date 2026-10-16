@@ -30,6 +30,7 @@ import type { GameCommand } from "../app/slices/game"
 import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
 import { getTilemap } from "../phaser/tilemaps/load"
+import { importOrthogonal } from "../phaser/tilemaps"
 import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
 
@@ -58,8 +59,15 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
   if (!blocklyWorkspaceContext)
     throw ReferenceError("Blockly workspace context not provided.")
-  const { ref, toolboxContents, maxInstances, setGeneratedCode, levelId } =
-    blocklyWorkspaceContext
+  const {
+    ref,
+    toolboxContents,
+    maxInstances,
+    setGeneratedCode,
+    levelId,
+    tilemapGroup,
+    tilemap,
+  } = blocklyWorkspaceContext
 
   // Sets the current game state.
   const setGame = useCallback(
@@ -129,8 +137,10 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     }
 
     // Interpret the blocks using the headless simulator.
-    const tilemap = await getTilemap(levelId)
-    const simulator = new LevelSimulator(tilemap)
+    const resolvedTilemap = tilemap
+      ? importOrthogonal(tilemap)
+      : await getTilemap(levelId, tilemapGroup)
+    const simulator = new LevelSimulator(resolvedTilemap)
     const result = runBlockly(startBlock, simulator, lineByBlockId)
     if (result.ok) {
       const commands = simulator.commands.map(c => c.command)

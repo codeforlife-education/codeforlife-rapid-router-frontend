@@ -7,7 +7,12 @@ import {
 } from "react"
 
 import type * as generators from "./generators"
+import type {
+  ExportedOrthogonalTilemap,
+  TilemapGroup,
+} from "../phaser/tilemaps"
 import type { GameCommand } from "../app/slices/game"
+import type { Level } from "../api/level"
 
 export type BlocklyWorkspaceRef = {
   resize: () => void
@@ -35,8 +40,11 @@ export type BlocklyWorkspaceContextValue = {
   maxInstances: Record<string, number>
   generatedCode: GeneratedCode
   setGeneratedCode: Dispatch<SetStateAction<GeneratedCode>>
-  levelId: number
-}
+  levelId: Level["id"]
+} & (
+  | { tilemapGroup: TilemapGroup; tilemap: undefined }
+  | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
+)
 
 const BlocklyWorkspaceContext =
   createContext<BlocklyWorkspaceContextValue | null>(null)

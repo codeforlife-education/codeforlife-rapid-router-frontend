@@ -28,10 +28,11 @@ export default class extends BasePreloader {
    */
   async lazyLoadTilemap() {
     let tilemap: tilemaps.OrthogonalTilemap
+    const tilemapGroup = this.getVariable<tilemaps.TilemapGroup>("tilemapGroup")
     const levelId = this.getVariable<number>("levelId")
-    if (levelId !== undefined) {
+    if (tilemapGroup !== undefined && levelId !== undefined) {
       tilemap = (
-        (await import(`../../tilemaps/level${levelId}.ts`)) as {
+        (await import(`../../tilemaps/${tilemapGroup}/level${levelId}.ts`)) as {
           default: tilemaps.OrthogonalTilemap
         }
       ).default

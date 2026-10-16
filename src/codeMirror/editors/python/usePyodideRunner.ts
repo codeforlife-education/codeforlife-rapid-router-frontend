@@ -62,7 +62,9 @@ export function usePyodideRunner() {
   }, [spawnWorker])
 
   const run = useCallback(
-    async (code: string, levelId: number): Promise<PyodideRunResult> => {
+    async (
+      request: Omit<RunRequest, "type" | "id">,
+    ): Promise<PyodideRunResult> => {
       await readyRef.current?.promise
       const worker = workerRef.current
       if (!worker) {
@@ -76,8 +78,7 @@ export function usePyodideRunner() {
         const id = ++nextRequestIdRef.current
         pendingRef.current.set(id, { resolve })
 
-        const request: RunRequest = { type: "run", id, code, levelId }
-        worker.postMessage(request)
+        worker.postMessage({ ...request, type: "run", id } as RunRequest)
       })
     },
     [],

@@ -6,6 +6,10 @@ import BaseEditor, {
   type WriteableEditorProps,
   type WriteableEditorRef,
 } from "../BaseEditor"
+import type {
+  ExportedOrthogonalTilemap,
+  TilemapGroup,
+} from "../../../phaser/tilemaps"
 import { autocomplete, readOnlyPrefix } from "../../extensions"
 import {
   useAppDispatch,
@@ -39,14 +43,19 @@ export type WriteablePythonEditorProps = {
   /** Needed to load the right level's tile data into the Pyodide worker. */
   levelId: number
   /** The `my_van` commands relevant to this level for autocomplete. */
-  commands: CharacterCommand[]
-}
+  commands: readonly CharacterCommand[]
+} & (
+  | { tilemapGroup: TilemapGroup; tilemap: undefined }
+  | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
+)
 
 /** Mode "python" - a real editor whose code runs via Pyodide to drive the game. */
 const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
   ref,
   levelId,
   commands,
+  tilemapGroup,
+  tilemap,
 }) => {
   const dispatch = useAppDispatch()
   const gameCommandIndex = useGameCommandIndex()
@@ -61,7 +70,7 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
     dispatch(setGameCommands([]))
     setLineNos([])
     setErrorLineNo(undefined)
-    const result = await run(code, levelId)
+    const result = await run({ code, levelId, tilemapGroup, tilemap })
     if (result.ok) {
       setLineNos(result.commands.map(c => c.lineNo))
       return result.commands.map(c => c.command)
@@ -132,11 +141,7 @@ const PythonEditor: FC<PythonEditorProps> = () => {
     throw new ReferenceError("Python workspace context not provided.")
 
   return pythonEditorContext.mode === "write" ? (
-    <WriteablePythonEditor
-      ref={pythonEditorContext.ref}
-      levelId={pythonEditorContext.levelId}
-      commands={pythonEditorContext.commands}
-    />
+    <WriteablePythonEditor {...pythonEditorContext} />
   ) : (
     <ReadOnlyPythonEditor />
   )

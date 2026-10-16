@@ -1,4 +1,4 @@
-import { type GameCommand } from "./slices"
+import { GAME_COMMANDS } from "./slices"
 
 /** The sensing commands available to a character. */
 export const SENSING_COMMANDS = [
@@ -13,7 +13,11 @@ export const SENSING_COMMANDS = [
 export type SensingCommand = (typeof SENSING_COMMANDS)[number]
 
 /** Every command available to a character. */
-export type CharacterCommand = GameCommand | SensingCommand
+export const CHARACTER_COMMANDS = [
+  ...GAME_COMMANDS,
+  ...SENSING_COMMANDS,
+] as const
+export type CharacterCommand = (typeof CHARACTER_COMMANDS)[number]
 
 /** The fixed display order of command categories. */
 const COMMAND_CATEGORIES = ["Movement", "Position", "Animals"] as const
