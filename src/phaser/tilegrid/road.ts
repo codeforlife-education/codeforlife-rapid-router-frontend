@@ -1,0 +1,76 @@
+import * as tilesets from "../tilesets"
+import {
+  type Direction,
+  STEP_BY_DIRECTION,
+  turnAround,
+  turnRight,
+} from "./navigation"
+
+/** Each road type's open sides before any rotation is applied - matching
+ * that type's own canonical (`0°`) named variant in `layers/tile/data.ts`
+ * (e.g. Straight's `VERTICAL`, Turn's `BOTTOM_LEFT`). */
+const OPEN_SIDES_AT_0_DEGREES = {
+  STRAIGHT: ["top", "bottom"],
+  TURN: ["bottom", "left"],
+  T_JUNCTION: ["top", "left", "bottom"],
+  CROSSROADS: ["top", "right", "bottom", "left"],
+  DEAD_END: ["bottom"],
+} as const satisfies Record<string, readonly Direction[]>
+
+/** Maps every material's canonical (un-rotated) road tile index to its
+ * open sides at `0°`. */
+const OPEN_SIDES_BY_INDEX = new Map<number, readonly Direction[]>(
+  [tilesets.IDs.Road.Asphalt, tilesets.IDs.Road.Dirt].flatMap(material =>
+    Object.entries(OPEN_SIDES_AT_0_DEGREES).map(([type, sides]) => [
+      material[type as keyof typeof material],
+      sides,
+    ]),
+  ),
+)
+
+/**
+ * The compass directions a road tile is actually open on, given its
+ * canonical (un-rotated) tile index and clockwise rotation in radians (as
+ * produced by `layers/tile/data.ts`'s `decode`, or a live Phaser tile's own
+ * `index`/`rotation`). `undefined` if `index` isn't a recognised road tile.
+ */
+export function roadOpenSides(
+  index: number,
+  rotation: number,
+): Set<Direction> | undefined {
+  const sidesAt0 = OPEN_SIDES_BY_INDEX.get(index)
+  if (!sidesAt0) return undefined
+
+  const steps = ((Math.round(rotation / (Math.PI / 2)) % 4) + 4) % 4
+  let sides: readonly Direction[] = sidesAt0
+  for (let i = 0; i < steps; i++) sides = sides.map(turnRight)
+  return new Set(sides)
+}
+
+/** Creates a navigator for querying road tile connectivity on a tilemap. */
+export function createRoadNavigator<Tile extends { row: number; col: number }>(
+  getTile: (tile: Tile) => { index: number; rotation: number } | undefined,
+) {
+  const moveFromTile = (tile: Tile, dir: Direction): Tile => {
+    const step = STEP_BY_DIRECTION[dir]
+    return { row: tile.row + step.row, col: tile.col + step.col } as Tile
+  }
+
+  /** The compass directions the tile at `tile` actually opens onto, or
+   * `undefined` if it isn't a road tile at all (including off the map). */
+  const openSides = (tile: Tile): Set<Direction> | undefined => {
+    const roadTile = getTile(tile)
+    return roadTile && roadOpenSides(roadTile.index, roadTile.rotation)
+  }
+
+  /** True only if `fromTile` opens onto `dir` AND the neighbouring tile in
+   * `dir` opens back onto `fromTile` - a tile merely being road isn't
+   * enough, since e.g. a dead end or turn tile only connects 1-2 sides. */
+  const roadConnects = (fromTile: Tile, dir: Direction): boolean => {
+    if (!openSides(fromTile)?.has(dir)) return false
+    const toTile = moveFromTile(fromTile, dir)
+    return openSides(toTile)?.has(turnAround(dir)) ?? false
+  }
+
+  return { moveFromTile, openSides, roadConnects }
+}

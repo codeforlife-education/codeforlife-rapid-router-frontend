@@ -1,17 +1,20 @@
 import Phaser from "phaser"
 
 import * as tilesets from "../../../tilesets"
+import {
+  type Direction,
+  STEP_BY_DIRECTION,
+  turnAround,
+  turnLeft,
+  turnRight,
+} from "../../../tilegrid/navigation"
 import { Events, TILE_WIDTH } from "../../../globals"
 import type { GameCommand } from "../../../../app/slices"
 import type Level from "."
+import { createRoadNavigator } from "../../../tilegrid/road"
 
-export type Direction = "top" | "right" | "bottom" | "left"
-
-type Point = { x: number; y: number }
+type Point = Phaser.Types.Math.Vector2Like
 type Tile = Phaser.Types.Tilemaps.Tile
-
-/** Clockwise order of directions - matches the endpoints' own rotation convention. */
-const DIRECTION_ORDER: readonly Direction[] = ["top", "right", "bottom", "left"]
 
 const ROTATION_BY_DIRECTION: Record<Direction, number> = {
   top: 0,
@@ -19,21 +22,6 @@ const ROTATION_BY_DIRECTION: Record<Direction, number> = {
   bottom: 180,
   left: 270,
 }
-
-/** Unit row/col step for each direction. */
-const STEP_BY_DIRECTION: Record<Direction, { row: number; col: number }> = {
-  top: { row: -1, col: 0 },
-  right: { row: 0, col: 1 },
-  bottom: { row: 1, col: 0 },
-  left: { row: 0, col: -1 },
-}
-
-const turnLeft = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 3) % 4]
-const turnRight = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 1) % 4]
-const turnAround = (dir: Direction) =>
-  DIRECTION_ORDER[(DIRECTION_ORDER.indexOf(dir) + 2) % 4]
 
 /** How far off the tile-boundary center the van sits, so it drives on the left. */
 const LANE_OFFSET = 0.125 * TILE_WIDTH
@@ -49,6 +37,7 @@ const LANE_OFFSET = 0.125 * TILE_WIDTH
  */
 export default class CharacterManager {
   private readonly level: Level
+  private readonly navigator: ReturnType<typeof createRoadNavigator<Tile>>
   private tile!: Tile
   private heading!: Direction
   private crashed = false
@@ -56,10 +45,18 @@ export default class CharacterManager {
   private currentCommandIndex = -1
   /** The last command index actually applied, to detect/catch up on any skipped in between. */
   private lastCommandIndex = -1
+  /** The last run id seen, to detect a restart regardless of where the new index lands. */
+  private lastRunId = 0
 
   constructor(level: Level) {
     this.level = level
+    this.navigator = createRoadNavigator<Tile>(
+      tile =>
+        this.level.tilemap.getTileAt(tile.col, tile.row, false, "Tile.ROAD") ??
+        undefined,
+    )
     this.spawn()
+    this.lastRunId = level.commandIndex.runId
 
     const onReactSetVariable: Phaser.Events.ReactSetVariable = key => {
       if (key === "commandIndex") this.onGameCommandIndexChanged()
@@ -116,18 +113,22 @@ export default class CharacterManager {
   }
 
   private onGameCommandIndexChanged() {
+    const { runId, index } = this.level.commandIndex
+    // Respawn whenever a new run begins, however the index itself changed.
+    if (runId !== this.lastRunId) {
+      this.lastRunId = runId
+      this.spawn()
+    } else if (index === this.lastCommandIndex) {
+      // A phase change alone (e.g. reaching the last step, or pausing)
+      // re-broadcasts the same index without it actually advancing - ignore,
+      // or it'd replay the current command a second time.
+      return
+    }
+
     // Skip any still-running animation straight to its end state first.
     this.level.characterSprite.finishAnimation()
 
-    const index = this.level.commandIndex
-    if (index === -1) {
-      this.spawn()
-      return
-    }
-    // A restart-then-resume (e.g. Step/Play after a crash) can jump straight
-    // from the crashed index to the first (0) in a single dispatch, without
-    // ever passing through -1 - so respawn on the start before continuing.
-    if (this.crashed) this.spawn()
+    if (index === -1) return // Not playing yet this run.
 
     // React/redux can coalesce several index changes into a single push to
     // Phaser (e.g. clicking Step twice quickly), skipping past intermediate
@@ -166,7 +167,7 @@ export default class CharacterManager {
   }
 
   private moveForwards(instant: boolean) {
-    const newTile = this.moveFromTile(this.tile, this.heading)
+    const newTile = this.navigator.moveFromTile(this.tile, this.heading)
 
     if (instant) {
       this.tile = newTile
@@ -189,7 +190,7 @@ export default class CharacterManager {
       90: turnRight(this.heading),
       180: turnAround(this.heading),
     }[deltaDeg]
-    const newTile = this.moveFromTile(this.tile, this.heading)
+    const newTile = this.navigator.moveFromTile(this.tile, this.heading)
 
     if (instant) {
       this.tile = newTile
@@ -222,22 +223,10 @@ export default class CharacterManager {
     )
   }
 
-  /** The tile after moving one step in `dir` (may be off the edge of the map). */
-  private moveFromTile(tile: Tile, dir: Direction): Tile {
-    const step = STEP_BY_DIRECTION[dir]
-    return { row: tile.row + step.row, col: tile.col + step.col }
-  }
-
-  /** `false` for any tile off the road, including off the edge of the map. */
-  private hasRoad(tile: Tile): boolean {
-    return (
-      this.level.tilemap.hasTileAt(tile.col, tile.row, "Tile.ROAD") === true
-    )
-  }
-
-  /** The van is on the road only while both tiles it straddles are road. */
+  /** The van is on the road only while both tiles it straddles are road AND
+   * actually connected to each other in its current heading. */
   private isValidState(tile: Tile, heading: Direction): boolean {
-    return this.hasRoad(tile) && this.hasRoad(this.moveFromTile(tile, heading))
+    return this.navigator.roadConnects(tile, heading)
   }
 
   /** Crashes if the van's current position has driven off the road. */

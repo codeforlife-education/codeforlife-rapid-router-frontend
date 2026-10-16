@@ -1,3 +1,5 @@
+import type Phaser from "phaser"
+
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import CharacterManager from "./CharacterManager"
 import type { GameCommand } from "../../../../app/slices"
@@ -25,9 +27,14 @@ export default class extends BaseLevel<LevelData> {
     return this.getVariable<GameCommand[]>("commands", [])
   }
 
-  /** The index of the command currently being executed, or -1 before play starts. */
+  /** The index of the command currently being executed, alongside the id of
+   * the run it belongs to (so a restart can always be detected, even if it
+   * lands back on the same index), or `-1` before this run's playback starts. */
   get commandIndex() {
-    return this.getVariable<number>("commandIndex", -1)
+    return this.getVariable<Phaser.Types.Variables.CommandIndex>(
+      "commandIndex",
+      { runId: 0, index: -1 },
+    )
   }
 
   create() {

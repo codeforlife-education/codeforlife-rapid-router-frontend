@@ -219,6 +219,10 @@ declare module "phaser" {
       type Tile = { col: number; row: number }
     }
 
+    namespace Variables {
+      type CommandIndex = { runId: number; index: number }
+    }
+
     namespace Scenes {
       namespace Create {
         namespace Toolbox {
