@@ -1,6 +1,7 @@
 import {
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
   Delete as DeleteIcon,
+  Help as HelpIcon,
   Pause as PauseIcon,
   PlayArrow as PlayArrowIcon,
   Redo as RedoIcon,
@@ -31,18 +32,21 @@ import {
   usePlayInterval,
   useSettings,
 } from "../../app/hooks"
+import HintModal from "./HintModal"
 import { type Level } from "../../api/level"
 import { ZoomControls } from "../../phaser"
 
-export type ControlsProps = { level: Pick<Level, "mode"> }
+export type ControlsProps = { level: Pick<Level, "mode">; hint: string }
 
 const Base: FC<
   Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
     panelCount: number
+    hint: string
     onClear: () => void
   }
-> = ({ panelCount, onClear, onOpened, onClosed }) => {
+> = ({ panelCount, hint, onClear, onOpened, onClosed }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [hintModalOpen, setHintModalOpen] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
@@ -143,12 +147,23 @@ const Base: FC<
             onClear()
           }}
         />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Hint"
+          icon={<HelpIcon />}
+          onClick={() => setHintModalOpen(true)}
+        />
       </miniDrawers.MiniDrawer>
+      <HintModal
+        open={hintModalOpen}
+        onClose={() => setHintModalOpen(false)}
+        hint={hint}
+      />
     </>
   )
 }
 
-const Blockly: FC = () => {
+const Blockly: FC<{ hint: string }> = ({ hint }) => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const clearBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
@@ -160,6 +175,7 @@ const Blockly: FC = () => {
   return (
     <Base
       panelCount={2}
+      hint={hint}
       onClear={clearBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
@@ -167,12 +183,13 @@ const Blockly: FC = () => {
   )
 }
 
-const Python: FC = () => {
+const Python: FC<{ hint: string }> = ({ hint }) => {
   // const clearPythonWorkspace = useClearPythonWorkspace()
 
   return (
     <Base
       panelCount={2}
+      hint={hint}
       onClear={() => {
         console.log("Clear Python Workspace")
       }}
@@ -180,7 +197,7 @@ const Python: FC = () => {
   )
 }
 
-const BlocklyAndPython: FC = () => {
+const BlocklyAndPython: FC<{ hint: string }> = ({ hint }) => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const clearBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
@@ -192,6 +209,7 @@ const BlocklyAndPython: FC = () => {
   return (
     <Base
       panelCount={3}
+      hint={hint}
       onClear={() => {
         clearBlocklyWorkspace()
         // clearPythonWorkspace()
@@ -202,11 +220,11 @@ const BlocklyAndPython: FC = () => {
   )
 }
 
-const Controls: FC<ControlsProps> = ({ level }) =>
+const Controls: FC<ControlsProps> = ({ level, hint }) =>
   ({
-    blockly: <Blockly />,
-    python: <Python />,
-    blocklyAndPython: <BlocklyAndPython />,
+    blockly: <Blockly hint={hint} />,
+    python: <Python hint={hint} />,
+    blocklyAndPython: <BlocklyAndPython hint={hint} />,
   })[level.mode]
 
 export default Controls

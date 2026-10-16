@@ -19,18 +19,44 @@ import {
 } from "../../phaser"
 import { getMaxInstances, getToolboxContents } from "../../blockly/utils"
 import Controls from "./Controls"
+import DescriptionModal from "./DescriptionModal"
 import Panels from "./Panels"
 import { paths } from "../../routes"
 
-const Base: FC<Pick<LevelModel, "id" | "mode">> = level => (
-  <Box sx={{ display: "flex" }}>
-    <Controls level={level} />
-    {/* TODO: fix style*/}
-    <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
-      <Panels level={level} />
+// Fallback copy for levels fetched from the backend, which doesn't yet
+// provide description/hint fields.
+const PLACEHOLDER_DESCRIPTION =
+  "This is a placeholder description explaining what to do in this level."
+const PLACEHOLDER_HINT =
+  "This is a placeholder hint to help you if you get stuck."
+
+const Base: FC<
+  Pick<LevelModel, "id" | "mode" | "name"> & {
+    video?: string
+    description?: string
+    hint?: string
+  }
+> = ({ video, description, hint, ...level }) => {
+  const [descriptionModalOpen, setDescriptionModalOpen] = useState(true)
+
+  return (
+    <Box sx={{ display: "flex" }}>
+      <Controls level={level} hint={hint ?? PLACEHOLDER_HINT} />
+      {/* TODO: fix style*/}
+      <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
+        <Panels level={level} />
+      </Box>
+      <DescriptionModal
+        open={descriptionModalOpen}
+        onClose={() => setDescriptionModalOpen(false)}
+        title={`Level ${level.id}`}
+        subtitle={level.name}
+        description={description ?? PLACEHOLDER_DESCRIPTION}
+        video={video}
+      />
     </Box>
-  </Box>
-)
+  )
+}
 
 type BlocklyProps = Pick<LevelModel, "blockly_toolbox_block_types">
 
@@ -79,8 +105,11 @@ const Custom: FC = () =>
   })
 
 export type LevelProps =
-  | (Pick<LevelModel, "id"> &
-      (
+  | (Pick<LevelModel, "id" | "name"> & {
+      video?: string
+      description: string
+      hint: string
+    } & (
         | (BlocklyProps & { mode: "blockly" })
         | (PythonProps & { mode: "python" })
         | (BlocklyProps & PythonProps & { mode: "blocklyAndPython" })
