@@ -2,7 +2,6 @@ import type Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import CharacterManager from "./CharacterManager"
-import FuelManager from "./FuelManager"
 import type { GameCommand } from "../../../../app/slices"
 import HUD from "../HUD"
 import { SceneKeys } from "../../../globals"
@@ -23,18 +22,9 @@ export default class extends BaseLevel<LevelData> {
   /** Character manager responsible for handling character objects. */
   character!: CharacterManager
 
-  /** Fuel manager responsible for tracking and depleting fuel. */
-  fuel!: FuelManager
-
   /** The commands compiled from the player's program. */
   get commands() {
     return this.getVariable<GameCommand[]>("commands", [])
-  }
-
-  /** True for `commands` entries that are synthetic (editor-highlight-only,
-   * not a real command the player issued) - must not cost fuel. */
-  get commandsSynthetic() {
-    return this.getVariable<boolean[]>("commandsSynthetic", [])
   }
 
   /** The index of the command currently being executed, alongside the id of
@@ -54,7 +44,6 @@ export default class extends BaseLevel<LevelData> {
 
     // Initialize the managers.
     this.character = new CharacterManager(this)
-    this.fuel = new FuelManager(this)
   }
 
   // @ts-expect-error will be used in the future

@@ -21,7 +21,6 @@ import type { ExportedOrthogonalTilemap, TilemapGroup } from "./tilemaps"
 import {
   useAppDispatch,
   useGameCommandIndex,
-  useGameCommandSynthetic,
   useGameCommands,
   useGameRunId,
   usePhaserGameContext,
@@ -46,7 +45,6 @@ const PhaserGame: FC<PhaserGameProps> = props => {
   const gameCommands = useGameCommands()
   const gameCommandIndex = useGameCommandIndex()
   const gameRunId = useGameRunId()
-  const gameCommandSynthetic = useGameCommandSynthetic()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Phaser.Game>(null)
@@ -204,13 +202,6 @@ const PhaserGame: FC<PhaserGameProps> = props => {
   useEffect(() => {
     if (mode === "play") setVariable("commands", gameCommands)
   }, [mode, gameCommands, setVariable])
-
-  // Pass which commands are synthetic (editor-highlight-only, not real
-  // player-issued commands) to Phaser when in play mode - the fuel meter
-  // must not charge for these.
-  useEffect(() => {
-    if (mode === "play") setVariable("commandsSynthetic", gameCommandSynthetic)
-  }, [mode, gameCommandSynthetic, setVariable])
 
   // Pass the current run id and command index to Phaser together, as a
   // single value, when in play mode - so a restart is always observed
