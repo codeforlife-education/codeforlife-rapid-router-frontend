@@ -3,9 +3,9 @@ import * as commands from "./commands"
 import * as defaults from "./defaults"
 import * as loops from "./loops"
 import * as starts from "./starts"
-import { type BlockDefinition } from "../utils"
+import type { BlockDefinition } from "./blocks"
 
-export { booleans, commands, defaults, loops, starts }
+export { booleans, commands, defaults, loops, starts, type BlockDefinition }
 export { type BooleanBlockType, BOOLEAN_BLOCK_TYPES } from "./booleans"
 export { type CommandBlockType, COMMAND_BLOCK_TYPES } from "./commands"
 export { type LoopBlockType, LOOP_BLOCK_TYPES } from "./loops"

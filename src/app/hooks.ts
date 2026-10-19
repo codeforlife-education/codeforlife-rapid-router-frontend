@@ -5,25 +5,22 @@
 // for importing and re-exporting the typed versions of hooks.
 /* eslint-disable @typescript-eslint/no-restricted-imports */
 import { type Breakpoint, useMediaQuery, useTheme } from "@mui/material"
-import { useCallback, useContext, useEffect, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
+import { useContext } from "react"
 
 import type { AppDispatch, RootState } from "./store"
 import {
-  nextGameCommand,
-  selectCurrentGameCommand,
   selectGameCommandIndex,
   selectGameCommands,
-  selectGameHasFinished,
-  selectGameHasFinishedEarly,
-  selectGameHasStarted,
-  selectGameInPlay,
   selectGameIsDefined,
-  selectGameOver,
+  selectGameOnLastStep,
+  selectGameRunId,
   selectSettings,
 } from "./slices"
 import { BlocklyWorkspaceContext } from "../blockly"
+import { ConsoleLogContext } from "../codeMirror"
 import { PhaserGameContext } from "../phaser"
+import { PythonEditorContext } from "../codeMirror/editors/python"
 
 export type ScreenOrientation = "portrait" | "landscape"
 
@@ -47,61 +44,17 @@ export function useBreakpoint() {
   return result as Breakpoint
 }
 
-// Game
-export function usePlayInterval() {
-  const dispatch = useAppDispatch()
-  const { playSpeed } = useSettings()
-  const gameOver = useGameOver()
-  const intervalRef = useRef<null | ReturnType<typeof setInterval>>(null)
-
-  const clearPlayInterval = useCallback(() => {
-    if (!intervalRef.current) return false
-    clearInterval(intervalRef.current)
-    intervalRef.current = null
-    return true
-  }, [])
-
-  const setPlayInterval = useCallback(() => {
-    clearPlayInterval()
-    intervalRef.current = setInterval(() => {
-      dispatch(nextGameCommand())
-    }, 1000 / playSpeed)
-  }, [clearPlayInterval, dispatch, playSpeed])
-
-  // Clear interval on game over.
-  useEffect(() => {
-    if (gameOver) clearPlayInterval()
-  }, [gameOver, clearPlayInterval])
-
-  // Clear interval on unmount.
-  useEffect(() => {
-    return () => {
-      clearPlayInterval()
-    }
-  }, [clearPlayInterval])
-
-  // Update interval if playSpeed changes.
-  useEffect(() => {
-    if (clearPlayInterval()) setPlayInterval()
-  }, [clearPlayInterval, setPlayInterval])
-
-  return [intervalRef.current, setPlayInterval, clearPlayInterval] as const
-}
-
 // Slice selectors
 export const useSettings = () => useSelector(selectSettings)
 export const useGameCommands = () => useSelector(selectGameCommands)
 export const useGameCommandIndex = () => useSelector(selectGameCommandIndex)
-export const useGameOver = () => useSelector(selectGameOver)
-export const useCurrentGameCommand = () => useSelector(selectCurrentGameCommand)
+export const useGameRunId = () => useSelector(selectGameRunId)
 export const useGameIsDefined = () => useSelector(selectGameIsDefined)
-export const useGameHasStarted = () => useSelector(selectGameHasStarted)
-export const useGameInPlay = () => useSelector(selectGameInPlay)
-export const useGameHasFinished = () => useSelector(selectGameHasFinished)
-export const useGameHasFinishedEarly = () =>
-  useSelector(selectGameHasFinishedEarly)
+export const useGameOnLastStep = () => useSelector(selectGameOnLastStep)
 
 // Contexts
 export const useBlocklyWorkspaceContext = () =>
   useContext(BlocklyWorkspaceContext)
 export const usePhaserGameContext = () => useContext(PhaserGameContext)
+export const usePythonEditorContext = () => useContext(PythonEditorContext)
+export const useConsoleLogContext = () => useContext(ConsoleLogContext)
