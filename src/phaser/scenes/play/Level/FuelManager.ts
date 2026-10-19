@@ -41,17 +41,13 @@ export default class FuelManager {
     }
 
     const commands = this.level.commands.slice(0, index + 1)
-    const synthetic = this.level.commandsSynthetic.slice(0, index + 1)
 
     // The earliest command index at which cumulative cost reaches MAX_FUEL,
     // i.e. where the game should stop for running out of fuel.
     let emptyAtIndex = -1
     let cost = 0
     for (let i = 0; i < commands.length; i++) {
-      // Synthetic commands are only injected so the editor can highlight a
-      // loop/if header or sensing-only line - the player didn't actually
-      // issue them, so they must not cost fuel.
-      if (!synthetic[i]) cost += FUEL_COST[commands[i]]
+      cost += FUEL_COST[commands[i]]
       if (emptyAtIndex === -1 && cost >= MAX_FUEL) emptyAtIndex = i
     }
 

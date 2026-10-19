@@ -22,16 +22,10 @@ export type SimulatorCommand = {
   command: GameCommand
   blockIds?: string[]
   lineNo?: number
-  /** True if this command was synthesised purely so the editor can
-   * highlight a loop/if header or sensing-only line - not a real command
-   * the player issued (see `syntheticWait`). Must not cost fuel. */
-  synthetic?: boolean
 }
 
 type Tile = Phaser.Types.Tilemaps.Tile
-type CommandOptions = Partial<
-  Pick<SimulatorCommand, "blockIds" | "lineNo" | "synthetic">
->
+type CommandOptions = Partial<Pick<SimulatorCommand, "blockIds" | "lineNo">>
 
 const CFC_IDS: readonly number[] = tilesets.endpoints.cfc.IDs
 const HOUSE_IDS: readonly number[] = tilesets.endpoints.house.IDs
@@ -129,9 +123,9 @@ export default class LevelSimulator {
   /** Records a command against `this.commands`/`commandLines`/`commandBlocks`. */
   private pushCommand(
     command: GameCommand,
-    { blockIds = [], lineNo, synthetic }: CommandOptions = {},
+    { blockIds = [], lineNo }: CommandOptions = {},
   ) {
-    this.commands.push({ command, lineNo, blockIds, synthetic })
+    this.commands.push({ command, lineNo, blockIds })
   }
 
   private turnTo(
@@ -155,11 +149,6 @@ export default class LevelSimulator {
     this.tile = this.navigator.moveFromTile(this.tile, this.heading)
   }
   wait = (options?: CommandOptions) => this.pushCommand("wait", options)
-  /** Same as `wait`, but flagged as synthetic - injected by the line tracer
-   * purely so the editor can highlight a loop/if header or sensing-only
-   * line, not a real command the player issued. Must not cost fuel. */
-  syntheticWait = (options?: CommandOptions) =>
-    this.pushCommand("wait", { ...options, synthetic: true })
   deliver = (options?: CommandOptions) => this.pushCommand("deliver", options)
   soundHorn = (options?: CommandOptions) =>
     this.pushCommand("sound_horn", options)

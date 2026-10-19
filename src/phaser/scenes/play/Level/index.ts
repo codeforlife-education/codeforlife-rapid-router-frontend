@@ -31,12 +31,6 @@ export default class extends BaseLevel<LevelData> {
     return this.getVariable<GameCommand[]>("commands", [])
   }
 
-  /** True for `commands` entries that are synthetic (editor-highlight-only,
-   * not a real command the player issued) - must not cost fuel. */
-  get commandsSynthetic() {
-    return this.getVariable<boolean[]>("commandsSynthetic", [])
-  }
-
   /** The index of the command currently being executed, alongside the id of
    * the run it belongs to (so a restart can always be detected, even if it
    * lands back on the same index), or `-1` before this run's playback starts. */

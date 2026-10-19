@@ -33,7 +33,6 @@ export type Event = (typeof Events)[keyof typeof Events]
 
 export const Variables = createIdRegistry({
   commands: "COMMANDS",
-  commandsSynthetic: "COMMANDS_SYNTHETIC",
   commandIndex: "COMMAND_INDEX",
   levelId: "LEVEL_ID",
   toolbox: "TOOLBOX",
