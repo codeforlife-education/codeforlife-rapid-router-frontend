@@ -15,7 +15,7 @@ const HintModal: FC<HintModalProps> = ({ open, onClose, hint }) => (
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        width: { xs: "90%", sm: 500 },
+        width: { xs: "90%", sm: 700 },
         maxHeight: "90%",
         overflowY: "auto",
         bgcolor: "background.paper",
