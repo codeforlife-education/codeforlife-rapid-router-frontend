@@ -30,7 +30,7 @@ import type { PhaserGameRef } from "./PhaserGameContext"
 import { finishGameEarly } from "../app/slices"
 
 export type PhaserGameProps =
-  | ({ mode: "play"; levelId: Level["id"] } & (
+  | ({ mode: "play"; levelId: Level["id"]; maxFuel?: number } & (
       | { tilemapGroup: TilemapGroup; tilemap: undefined }
       | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
     ))
@@ -38,6 +38,7 @@ export type PhaserGameProps =
 
 const PhaserGame: FC<PhaserGameProps> = props => {
   const { mode, levelId } = props
+  const maxFuel = props.mode === "play" ? props.maxFuel : undefined
   const tilemapGroup = props.mode === "play" ? props.tilemapGroup : undefined
   const tilemap = props.mode === "play" ? props.tilemap : undefined
   const phaserGameContext = usePhaserGameContext()
@@ -188,6 +189,12 @@ const PhaserGame: FC<PhaserGameProps> = props => {
   useEffect(() => {
     if (mode === "play") setVariable("levelId", levelId)
   }, [mode, levelId, setVariable])
+
+  // Pass the level's max fuel to Phaser when in play mode, if it specifies
+  // one - otherwise Phaser falls back to its own default.
+  useEffect(() => {
+    if (mode === "play") setVariable("maxFuel", maxFuel)
+  }, [mode, maxFuel, setVariable])
 
   // Pass which tilemap to load to Phaser when in play mode - a predefined
   // group (dynamically imported) or an already-fetched custom level's

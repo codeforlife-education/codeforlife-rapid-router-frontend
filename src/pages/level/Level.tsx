@@ -42,7 +42,9 @@ type TilemapProps =
   | { tilemapGroup: TilemapGroup; tilemap: undefined }
   | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
 
-const Base: FC<Pick<LevelModel, "id" | "mode"> & TilemapProps> = level => (
+const Base: FC<
+  Pick<LevelModel, "id" | "mode"> & { maxFuel?: number } & TilemapProps
+> = level => (
   <Box sx={{ display: "flex" }}>
     <Controls level={level} />
     {/* TODO: fix style*/}
@@ -52,8 +54,9 @@ const Base: FC<Pick<LevelModel, "id" | "mode"> & TilemapProps> = level => (
   </Box>
 )
 
-type BlocklyProps = Pick<LevelModel, "id" | "blockly_toolbox_block_types"> &
-  TilemapProps
+type BlocklyProps = Pick<LevelModel, "id" | "blockly_toolbox_block_types"> & {
+  maxFuel?: number
+} & TilemapProps
 
 const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
   id,
@@ -99,8 +102,9 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
 type BasePythonProps = Pick<LevelModel, "id">
 type ReadPythonProps = BasePythonProps & ReadOnlyPythonEditorProps
 type WritePythonProps = BasePythonProps &
-  Pick<WriteablePythonEditorProps, "commands"> &
-  TilemapProps
+  Pick<WriteablePythonEditorProps, "commands"> & {
+    maxFuel?: number
+  } & TilemapProps
 
 const PythonContext: FC<
   { children: ReactNode } & (

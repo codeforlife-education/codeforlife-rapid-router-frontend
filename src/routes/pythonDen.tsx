@@ -7,42 +7,49 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 1,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 2,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 3,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 4,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 5,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 6,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 7,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -57,6 +64,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 8,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -72,6 +80,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 9,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -88,30 +97,35 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 10,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 11,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 12,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 13,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 14,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -129,6 +143,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 15,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -147,24 +162,28 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 16,
+    maxFuel: 50,
     mode: "python",
     commands: ["turn_left", "turn_right", "is_animal_crossing", "sound_horn"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 17,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right", "is_road_left"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 18,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "is_road_left"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 19,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -183,12 +202,14 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 20,
+    maxFuel: 50,
     mode: "python",
     commands: ["turn_left", "turn_right", "is_road_left"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 21,
+    maxFuel: 50,
     mode: "python",
     commands: [
       "move_forwards",
@@ -201,6 +222,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 22,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -219,6 +241,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 23,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -237,6 +260,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 24,
+    maxFuel: 50,
     mode: "python",
     commands: [
       "move_forwards",
@@ -249,6 +273,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 25,
+    maxFuel: 50,
     mode: "python",
     commands: [
       "move_forwards",
@@ -263,6 +288,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 26,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -276,6 +302,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 27,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -287,6 +314,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 28,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "turn_left",
@@ -299,6 +327,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 29,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -312,12 +341,14 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 30,
+    maxFuel: 50,
     mode: "python",
     commands: ["turn_left", "turn_right", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 31,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -332,6 +363,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 32,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -346,12 +378,14 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 33,
+    maxFuel: 50,
     mode: "python",
     commands: ["turn_left", "turn_right", "is_road_left", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 34,
+    maxFuel: 50,
     mode: "python",
     commands: [
       "move_forwards",
@@ -363,6 +397,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 35,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -378,6 +413,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 36,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -395,6 +431,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 37,
+    maxFuel: 50,
     mode: "python",
     commands: [
       "move_forwards",
@@ -409,6 +446,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 38,
+    maxFuel: 50,
     mode: "python",
     commands: [
       "move_forwards",
@@ -424,6 +462,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 39,
+    maxFuel: 50,
     mode: "python",
     commands: [
       "move_forwards",
@@ -437,6 +476,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 40,
+    maxFuel: 50,
     mode: "python",
     commands: [
       "move_forwards",
@@ -456,6 +496,7 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 41,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -467,18 +508,21 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 42,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 43,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 44,
+    maxFuel: 50,
     mode: "blocklyAndPython",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -490,30 +534,35 @@ const levels = [
   {
     tilemapGroup: "pythonDen",
     id: 45,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 46,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_right", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 47,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 48,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 49,
+    maxFuel: 50,
     mode: "python",
     commands: ["move_forwards", "turn_right", "turn_left", "at_destination"],
   },

@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import { Events, MAX_FUEL } from "../../../globals"
+import { Events } from "../../../globals"
 import { FUEL_COST } from "../../../../app/slices"
 import type Level from "."
 
@@ -28,7 +28,7 @@ export default class FuelManager {
       level.game.events.off(Events.REACT_SET_VARIABLE, onReactSetVariable)
     })
 
-    this.level.setVariable("fuel", MAX_FUEL)
+    this.level.setVariable("fuel", this.level.maxFuel)
   }
 
   private onGameCommandIndexChanged() {
@@ -36,22 +36,23 @@ export default class FuelManager {
     if (runId !== this.lastRunId) this.lastRunId = runId
 
     if (index === -1) {
-      this.level.setVariable("fuel", MAX_FUEL)
+      this.level.setVariable("fuel", this.level.maxFuel)
       return
     }
 
     const commands = this.level.commands.slice(0, index + 1)
 
-    // The earliest command index at which cumulative cost reaches MAX_FUEL,
-    // i.e. where the game should stop for running out of fuel.
+    // The earliest command index at which cumulative cost reaches the
+    // level's max fuel, i.e. where the game should stop for running out.
+    const maxFuel = this.level.maxFuel
     let emptyAtIndex = -1
     let cost = 0
     for (let i = 0; i < commands.length; i++) {
       cost += FUEL_COST[commands[i]]
-      if (emptyAtIndex === -1 && cost >= MAX_FUEL) emptyAtIndex = i
+      if (emptyAtIndex === -1 && cost >= maxFuel) emptyAtIndex = i
     }
 
-    this.level.setVariable("fuel", Math.max(0, MAX_FUEL - cost))
+    this.level.setVariable("fuel", Math.max(0, maxFuel - cost))
 
     if (emptyAtIndex !== -1)
       this.level.game.events.emit(Events.FINISH_EARLY, emptyAtIndex)

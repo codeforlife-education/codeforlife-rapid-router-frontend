@@ -14,8 +14,9 @@ export const TILE_HEIGHT = 64
 export const MAP_WIDTH = COLS * TILE_WIDTH
 export const MAP_HEIGHT = ROWS * TILE_HEIGHT
 
-/** The amount of fuel a character starts a level with. */
-export const MAX_FUEL = 100
+/** The amount of fuel a character starts a level with, when the level
+ * doesn't specify its own `maxFuel`. */
+export const DEFAULT_MAX_FUEL = 50
 
 export const Events = createIdRegistry({
   "add-road": "ADD_ROAD",
@@ -41,6 +42,7 @@ export const Variables = createIdRegistry({
   exportedLevel: "EXPORTED_LEVEL",
   tilemapGroup: "TILEMAP_GROUP",
   fuel: "FUEL",
+  maxFuel: "MAX_FUEL",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
 

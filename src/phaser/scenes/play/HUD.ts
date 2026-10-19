@@ -1,7 +1,7 @@
 import Phaser from "phaser"
 
 import * as images from "../../images"
-import { Events, MAX_FUEL, SceneKeys } from "../../globals"
+import { DEFAULT_MAX_FUEL, Events, SceneKeys } from "../../globals"
 import BaseScene from "../BaseScene"
 
 const SIZE = 130
@@ -42,11 +42,11 @@ export default class extends BaseScene {
     const y = this.cameras.main.height - MARGIN_Y - SIZE / 2
     this.add.image(x, y, "gauge_dial")
     this.pointer = this.add.image(x, y, "gauge_pointer")
-    this.updateGauge(MAX_FUEL)
+    this.updateGauge(this.getVariable<number>("fuel", this.maxFuel))
 
     const onPhaserSetVariable: Phaser.Events.PhaserSetVariable = key => {
       if (key === "fuel")
-        this.updateGauge(this.getVariable<number>("fuel", MAX_FUEL))
+        this.updateGauge(this.getVariable<number>("fuel", this.maxFuel))
     }
     this.game.events.on(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -54,8 +54,13 @@ export default class extends BaseScene {
     })
   }
 
+  /** The current level's max fuel, or the default if it didn't specify one. */
+  private get maxFuel() {
+    return this.getVariable<number>("maxFuel", DEFAULT_MAX_FUEL)
+  }
+
   private updateGauge(fuel: number) {
-    const t = Phaser.Math.Clamp(fuel / MAX_FUEL, 0, 1)
+    const t = Phaser.Math.Clamp(fuel / this.maxFuel, 0, 1)
     this.pointer.setAngle(Phaser.Math.Linear(EMPTY_ANGLE, FULL_ANGLE, t))
   }
 }

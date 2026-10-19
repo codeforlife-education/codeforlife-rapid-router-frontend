@@ -8,90 +8,105 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 1,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 2,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 3,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 4,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 5,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 6,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 7,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 8,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 9,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 10,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 11,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 12,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 13,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 14,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 15,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -103,6 +118,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 16,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -114,6 +130,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 17,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -125,6 +142,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 18,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -136,6 +154,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 19,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -147,6 +166,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 20,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -158,6 +178,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 21,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -169,6 +190,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 22,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -180,6 +202,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 23,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -191,6 +214,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 24,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -202,6 +226,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 25,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -213,6 +238,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 26,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -224,6 +250,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 27,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -235,6 +262,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 28,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -246,6 +274,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 29,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -258,6 +287,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 30,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -270,6 +300,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 31,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -282,6 +313,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 32,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -294,6 +326,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 33,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -308,6 +341,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 34,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -322,6 +356,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 35,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -336,6 +371,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 36,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -350,6 +386,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 37,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -364,6 +401,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 38,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -380,6 +418,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 39,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -399,6 +438,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 40,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -416,6 +456,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 41,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -433,6 +474,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 42,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -450,6 +492,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 43,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -467,6 +510,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 44,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -482,6 +526,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 45,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -497,6 +542,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 46,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -513,6 +559,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 47,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -530,6 +577,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 48,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -550,6 +598,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 49,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -569,6 +618,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 50,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -588,6 +638,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 51,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -598,6 +649,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 52,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["turn_left", 2],
@@ -608,6 +660,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 53,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
@@ -619,6 +672,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 54,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["turn_left", 2],
@@ -629,6 +683,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 55,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["turn_left", 1],
@@ -642,6 +697,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 56,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -656,6 +712,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 57,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -671,6 +728,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 58,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
@@ -685,6 +743,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 59,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["turn_left", 2],
@@ -696,6 +755,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 60,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -707,6 +767,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 61,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -720,6 +781,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 62,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -736,6 +798,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 63,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -748,6 +811,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 64,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -761,6 +825,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 65,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -774,6 +839,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 66,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -787,6 +853,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 67,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       "move_forwards",
@@ -800,6 +867,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 68,
+    maxFuel: 9,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
@@ -813,6 +881,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 69,
+    maxFuel: 16,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
@@ -828,6 +897,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 70,
+    maxFuel: 14,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["turn_left", 1],
@@ -841,6 +911,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 71,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -855,6 +926,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 72,
+    maxFuel: 14,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -869,6 +941,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 73,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -887,6 +960,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 74,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -901,6 +975,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 75,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -916,6 +991,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 76,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -931,6 +1007,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 77,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -945,6 +1022,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 78,
+    maxFuel: 99,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
@@ -962,6 +1040,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 79,
+    maxFuel: 50,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 7],

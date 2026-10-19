@@ -123,7 +123,7 @@ const Separator: FC<Pick<GroupProps, "orientation">> = ({ orientation }) => (
 )
 
 const PhaserGamePanel: FC<
-  PanelProps & { levelId: Level["id"] } & TilemapProps
+  PanelProps & { levelId: Level["id"]; maxFuel?: number } & TilemapProps
 > = ({ defaultSize, levelId, ...tilemapProps }) => (
   <Panel id="phaser-game-panel" defaultSize={defaultSize} minSize="20%">
     <PhaserGame mode="play" levelId={levelId} {...tilemapProps} />
@@ -161,6 +161,7 @@ const BlocklyPanelLayout: FC<
   Pick<GroupProps, "orientation"> & {
     reverseOrder?: boolean
     levelId: Level["id"]
+    maxFuel?: number
   } & TilemapProps
 > = ({ orientation, reverseOrder = false, levelId, ...tilemapProps }) => {
   const panels = [
@@ -181,6 +182,7 @@ const Flat3PanelLayout: FC<
     reverseOrder?: boolean
     level: Pick<Level, "id"> & {
       mode: "blocklyAndPython" | "python"
+      maxFuel?: number
     } & TilemapProps
   }
 > = ({ orientation, reverseOrder = false, level }) => {
@@ -212,6 +214,7 @@ const Flat3PanelLayout: FC<
 const Nested3PanelLayout: FC<{
   level: Pick<Level, "id"> & {
     mode: "blocklyAndPython" | "python"
+    maxFuel?: number
   } & TilemapProps
 }> = ({ level }) => {
   const { id, mode, ...tilemapProps } = level
@@ -250,7 +253,7 @@ const Nested3PanelLayout: FC<{
 }
 
 export interface PanelsProps {
-  level: Pick<Level, "id" | "mode"> & TilemapProps
+  level: Pick<Level, "id" | "mode"> & { maxFuel?: number } & TilemapProps
 }
 
 const Panels: FC<PanelsProps> = ({ level: { id, mode, ...tilemapProps } }) => {
