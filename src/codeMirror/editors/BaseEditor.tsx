@@ -111,6 +111,8 @@ const ReadOnlyEditor: FC<ReadOnlyEditorProps> = props => (
 export type WriteableEditorRef = {
   /** Resets the editor back to its starter code. */
   clear: () => void
+  /** Replaces the editor's current code (e.g. with a level's solution). */
+  load: (code: string) => void
   /** Interprets the editor's current code and returns a promise that
    * resolves to the interpreted commands, or `undefined` on failure.
    */
@@ -149,6 +151,7 @@ const WriteableEditor: FC<WriteableEditorProps> = ({
     ref,
     () => ({
       clear: () => setCode(starterCode),
+      load: (code: string) => setCode(code),
       interpret: () =>
         interpret(codeRef.current).then(commands => {
           if (commands === undefined) setPhase("crashed")

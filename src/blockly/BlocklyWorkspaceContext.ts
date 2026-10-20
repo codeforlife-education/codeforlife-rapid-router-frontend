@@ -17,6 +17,9 @@ import type { Level } from "../api/level"
 export type BlocklyWorkspaceRef = {
   resize: () => void
   clear: () => void
+  /** Replaces the current program with one parsed from a Blockly XML
+   * solution string (see `pages/level/solutions`). */
+  loadSolution: (xml: string) => void
   interpret: (
     generator?: keyof typeof generators,
   ) => Promise<GameCommand[] | undefined>

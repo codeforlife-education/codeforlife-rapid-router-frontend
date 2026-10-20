@@ -18,6 +18,7 @@ import {
   clearWorkspace,
   getProgramSnapshot,
   initializeBlockly,
+  loadSolutionXml,
   resizeWorkspace,
 } from "./workspace"
 import {
@@ -169,11 +170,14 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
         ? {
             resize: resizeWorkspace(blockly.workspace),
             clear: () => clearWorkspace(blockly.workspace, blockly.startBlock),
+            loadSolution: xml =>
+              loadSolutionXml(blockly.workspace, blockly.startBlock, xml),
             interpret: generator => interpretRef.current(blockly, generator),
           }
         : {
             resize: () => {},
             clear: () => {},
+            loadSolution: () => {},
             interpret: () => new Promise(resolve => resolve(undefined)),
           },
     [blockly],

@@ -444,3 +444,63 @@ export function getProgramSnapshot(
     ),
   )
 }
+
+/**
+ * Replace the current program with one parsed from a Blockly XML solution
+ * string (the legacy game's export format - see `pages/level/solutions`).
+ * Only the chain connected to the XML's own "start" block is reattached
+ * beneath this workspace's persistent start block; any other top-level
+ * block (e.g. a legacy procedure definition) is loaded as-is, best effort,
+ * since the solution may use block types this workspace doesn't define.
+ */
+export function loadSolutionXml(
+  workspace: Blockly.WorkspaceSvg,
+  startBlock: Blockly.BlockSvg,
+  xml: string,
+) {
+  clearWorkspace(workspace, startBlock)
+
+  let dom: Element
+  try {
+    dom = Blockly.utils.xml.textToDom(xml)
+  } catch (error) {
+    console.error("Failed to parse solution XML.", error)
+    return
+  }
+
+  for (const node of Array.from(dom.children)) {
+    if (node.tagName.toLowerCase() !== "block") continue
+
+    // The legacy "start" wrapper isn't a block type this workspace defines -
+    // reattach its own chain beneath the persistent start block instead.
+    if (node.getAttribute("type") === "start") {
+      const nextEl = Array.from(node.children).find(
+        child => child.tagName.toLowerCase() === "next",
+      )
+      const firstBlockEl = nextEl
+        ? Array.from(nextEl.children).find(
+            child => child.tagName.toLowerCase() === "block",
+          )
+        : undefined
+      if (!firstBlockEl) continue
+
+      try {
+        const block = Blockly.Xml.domToBlock(firstBlockEl, workspace)
+        if (startBlock.nextConnection && block.previousConnection)
+          startBlock.nextConnection.connect(block.previousConnection)
+      } catch (error) {
+        console.error("Failed to load solution's block chain.", error)
+      }
+      continue
+    }
+
+    // Any other top-level block (e.g. a legacy procedure definition).
+    try {
+      Blockly.Xml.domToBlock(node, workspace)
+    } catch (error) {
+      console.error("Failed to load solution block.", error)
+    }
+  }
+
+  workspace.cleanUp()
+}

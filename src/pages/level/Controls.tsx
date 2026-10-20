@@ -1,5 +1,6 @@
 import {
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
+  Check as CheckIcon,
   Delete as DeleteIcon,
   Pause as PauseIcon,
   PlayArrow as PlayArrowIcon,
@@ -34,6 +35,7 @@ import {
 } from "../../app/hooks"
 import { type Level } from "../../api/level"
 import { ZoomControls } from "../../phaser"
+import { getSolution } from "./solutions"
 import { usePlayInterval } from "../../phaser/usePlayInterval"
 
 export type ControlsProps = { level: Pick<Level, "mode"> }
@@ -42,9 +44,19 @@ const Base: FC<
   Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
     panelCount: number
     onClear: () => void
+    /** Loads the level's model solution, if one exists - the Solve button
+     * is hidden entirely when this is omitted (e.g. Custom levels). */
+    onSolve?: () => void
     interpretCommands: () => Promise<GameCommand[] | undefined>
   }
-> = ({ panelCount, onClear, interpretCommands, onOpened, onClosed }) => {
+> = ({
+  panelCount,
+  onClear,
+  onSolve,
+  interpretCommands,
+  onOpened,
+  onClosed,
+}) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
@@ -157,6 +169,17 @@ const Base: FC<
               : settings.threePanelLayout
           }
         />
+        {onSolve && (
+          <miniDrawers.ButtonItem
+            isDrawerOpen={isDrawerOpen}
+            text="Solve"
+            icon={<CheckIcon />}
+            onClick={() => {
+              clearPlayInterval()
+              onSolve()
+            }}
+          />
+        )}
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Clear"
@@ -182,12 +205,23 @@ const Blockly: FC = () => {
   const interpretBlocklyWorkspace = useCallback(async () => {
     return await blocklyWorkspaceContext?.ref.current?.interpret()
   }, [blocklyWorkspaceContext])
+  const solution =
+    blocklyWorkspaceContext?.tilemapGroup !== undefined
+      ? getSolution(
+          blocklyWorkspaceContext.tilemapGroup,
+          blocklyWorkspaceContext.levelId,
+        )
+      : undefined
+  const solveBlocklyWorkspace = useCallback(() => {
+    if (solution) blocklyWorkspaceContext?.ref.current?.loadSolution(solution)
+  }, [blocklyWorkspaceContext, solution])
 
   return (
     <Base
       panelCount={2}
       interpretCommands={interpretBlocklyWorkspace}
       onClear={clearBlocklyWorkspace}
+      onSolve={solution ? solveBlocklyWorkspace : undefined}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
     />
@@ -206,12 +240,25 @@ const Python: FC = () => {
     if (pythonEditorContext?.mode !== "write") return undefined
     return await pythonEditorContext.ref.current?.interpret()
   }, [pythonEditorContext])
+  const solution =
+    pythonEditorContext?.mode === "write" &&
+    pythonEditorContext.tilemapGroup !== undefined
+      ? getSolution(
+          pythonEditorContext.tilemapGroup,
+          pythonEditorContext.levelId,
+        )
+      : undefined
+  const solvePythonEditor = useCallback(() => {
+    if (pythonEditorContext?.mode === "write" && solution)
+      pythonEditorContext.ref.current?.load(solution)
+  }, [pythonEditorContext, solution])
 
   return (
     <Base
       panelCount={3}
       onClear={clearPythonEditorAndConsoleLogs}
       interpretCommands={interpretPythonEditor}
+      onSolve={solution ? solvePythonEditor : undefined}
     />
   )
 }
@@ -231,12 +278,23 @@ const BlocklyAndPython: FC = () => {
     const interpret = blocklyWorkspaceContext?.ref.current?.interpret
     return await interpret?.("python")
   }, [blocklyWorkspaceContext])
+  const solution =
+    blocklyWorkspaceContext?.tilemapGroup !== undefined
+      ? getSolution(
+          blocklyWorkspaceContext.tilemapGroup,
+          blocklyWorkspaceContext.levelId,
+        )
+      : undefined
+  const solveBlocklyWorkspace = useCallback(() => {
+    if (solution) blocklyWorkspaceContext?.ref.current?.loadSolution(solution)
+  }, [blocklyWorkspaceContext, solution])
 
   return (
     <Base
       panelCount={3}
       onClear={clearBlocklyWorkspaceAndPythonEditor}
       interpretCommands={interpretBlocklyWorkspace}
+      onSolve={solution ? solveBlocklyWorkspace : undefined}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
     />
