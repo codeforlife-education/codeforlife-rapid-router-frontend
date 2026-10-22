@@ -28,7 +28,7 @@ import {
   LANGUAGES,
   LANGUAGE_NAMES,
   type Language,
-} from "../../blockly/messages/languages"
+} from "../../blockly/messages"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -111,23 +111,6 @@ const Base: FC<
               )
           }}
         />
-        {onLanguageChange && (
-          <miniDrawers.MenuItem
-            isDrawerOpen={isDrawerOpen}
-            icon={<LanguageIcon />}
-            text="Language"
-            menuItems={LANGUAGES.map(language => ({
-              value: language,
-              key: language,
-              title: LANGUAGE_NAMES[language],
-              onClick: () => {
-                dispatch(setLanguage(language))
-                onLanguageChange(language)
-              },
-            }))}
-            selectedValue={settings.language}
-          />
-        )}
         <miniDrawers.MenuItem
           isDrawerOpen={isDrawerOpen}
           icon={<SpeedIcon />}
@@ -189,6 +172,23 @@ const Base: FC<
               : settings.threePanelLayout
           }
         />
+        {onLanguageChange && (
+          <miniDrawers.MenuItem
+            isDrawerOpen={isDrawerOpen}
+            icon={<LanguageIcon />}
+            text="Language"
+            menuItems={LANGUAGES.map(language => ({
+              value: language,
+              key: language,
+              title: LANGUAGE_NAMES[language],
+              onClick: () => {
+                dispatch(setLanguage(language))
+                onLanguageChange(language)
+              },
+            }))}
+            selectedValue={settings.language}
+          />
+        )}
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Clear"

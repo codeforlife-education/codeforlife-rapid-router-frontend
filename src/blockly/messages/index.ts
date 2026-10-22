@@ -20,9 +20,21 @@ import * as pl_custom from "./pl"
 import * as ptBr_custom from "./pt-br"
 import * as ru_custom from "./ru"
 
-// Blockly ships built-in messages for many more languages than this, but we
-// only offer the ones the old site supports (see
-// https://www.codeforlife.education/rapidrouter/ - the language dropdown).
+export const LANGUAGES = [
+  "bg",
+  "ca",
+  "en",
+  "en-gb",
+  "es",
+  "fr",
+  "hi",
+  "pl",
+  "pt-br",
+  "ru",
+] as const
+
+export type Language = (typeof LANGUAGES)[number]
+
 export const LANGUAGE_NAMES = {
   bg: "български",
   ca: "Català",
@@ -34,15 +46,11 @@ export const LANGUAGE_NAMES = {
   pl: "Polski",
   "pt-br": "Português (Brasil)",
   ru: "русский",
-} as const
-
-export type Language = keyof typeof LANGUAGE_NAMES
-
-export const LANGUAGES = Object.keys(LANGUAGE_NAMES) as Language[]
+} as const satisfies Record<Language, string>
 
 export const DEFAULT_LANGUAGE: Language = "en"
 
-const DEFAULT_MESSAGES: Record<Language, object> = {
+const DEFAULT_MESSAGES = {
   bg,
   ca,
   en,
@@ -53,9 +61,9 @@ const DEFAULT_MESSAGES: Record<Language, object> = {
   pl,
   "pt-br": ptBr,
   ru,
-}
+} as const satisfies Record<Language, object>
 
-const CUSTOM_MESSAGES: Record<Language, object> = {
+const CUSTOM_MESSAGES = {
   bg: bg_custom,
   ca: ca_custom,
   en: en_custom,
@@ -66,12 +74,11 @@ const CUSTOM_MESSAGES: Record<Language, object> = {
   pl: pl_custom,
   "pt-br": ptBr_custom,
   ru: ru_custom,
-}
+} as const satisfies Record<Language, object>
 
 /** The full set of Blockly messages (built-in + our own) for a language. */
-export function getBlocklyMessages(language: Language) {
-  return {
+export const getBlocklyMessages = (language: Language = DEFAULT_LANGUAGE) =>
+  ({
     ...DEFAULT_MESSAGES[language],
     ...CUSTOM_MESSAGES[language],
-  }
-}
+  }) as unknown as { [key: string]: string }

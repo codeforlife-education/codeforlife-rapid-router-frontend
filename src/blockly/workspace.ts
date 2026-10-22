@@ -2,68 +2,15 @@ import * as Blockly from "blockly/core"
 import { debounce } from "@mui/material"
 
 import {
+  type BlockToolboxEntry,
+  type BlockType,
   CUSTOM_BLOCKS,
   START_BLOCK_TYPES,
   type StartBlockType,
   defaults,
 } from "./blocks"
-import {
-  DEFAULT_LANGUAGE,
-  type Language,
-  getBlocklyMessages,
-} from "./messages/languages"
-import { type BlockToolboxEntry } from "../blockly/blocks"
-import { type BlockType } from "./blocks"
+import { type Language, getBlocklyMessages } from "./messages"
 import { getSettingsCookie } from "../app/utils"
-
-export type BlockDefinition<T extends string> = {
-  type: T
-  tooltip?: string
-  colour?: number
-  /** A named block style (e.g. Blockly's built-in `"loop_blocks"`), as an
-   * alternative to a raw `colour`. */
-  style?: string
-  message0: string
-  args0: Array<
-    | {
-        type: "field_label"
-        text: string
-      }
-    | {
-        type: "field_image"
-        src: string
-        width: number
-        height: number
-        alt: string
-        flipRtl: "FALSE" | "TRUE"
-      }
-    | {
-        type: "input_dummy"
-        name: string
-      }
-    | {
-        type: "field_dropdown"
-        name: string
-        options: Array<[string, string]>
-      }
-    | {
-        type: "input_value"
-        name: string
-        check?: string
-      }
-  >
-  message1?: string
-  args1?: Array<{ type: "input_statement"; name: string }>
-  output?: string
-  previousStatement?: string | null
-  nextStatement?: string | null
-}
-
-export function defineBlock<T extends string>(
-  blockDefinition: BlockDefinition<T>,
-): BlockDefinition<T> {
-  return blockDefinition
-}
 
 function initializeStartBlock(
   workspace: Blockly.WorkspaceSvg,
@@ -348,9 +295,7 @@ let DEFINED_CUSTOM_BLOCKS = false
 function ensureBlocklyInitialized() {
   if (typeof window === "undefined") return
 
-  Blockly.setLocale(
-    getBlocklyMessages(getSettingsCookie()?.language ?? DEFAULT_LANGUAGE),
-  )
+  Blockly.setLocale(getBlocklyMessages(getSettingsCookie()?.language))
 
   // Define custom blocks.
   if (!DEFINED_CUSTOM_BLOCKS) {

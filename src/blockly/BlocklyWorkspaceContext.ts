@@ -12,9 +12,8 @@ import type {
   TilemapGroup,
 } from "../phaser/tilemaps"
 import type { GameCommand } from "../app/slices/game"
+import type { Language } from "./messages"
 import type { Level } from "../api/level"
-
-import { type Language } from "./messages/languages"
 
 export type BlocklyWorkspaceRef = {
   resize: () => void

@@ -1,10 +1,7 @@
 import type { PayloadAction } from "@reduxjs/toolkit"
 import { createSlice } from "codeforlife/slices"
 
-import {
-  DEFAULT_LANGUAGE,
-  type Language,
-} from "../../blockly/messages/languages"
+import { DEFAULT_LANGUAGE, type Language } from "../../blockly/messages"
 import { getSettingsCookie } from "../utils"
 
 // undefined represents the "auto" layout option.

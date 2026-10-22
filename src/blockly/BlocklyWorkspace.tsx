@@ -28,7 +28,7 @@ import {
   usePhaserGameContext,
 } from "../app/hooks"
 import type { GameCommand } from "../app/slices/game"
-import { type Language } from "./messages/languages"
+import { type Language } from "./messages"
 import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
 import { getTilemap } from "../phaser/tilemaps/load"
