@@ -14,6 +14,13 @@ export const TILE_HEIGHT = 64
 export const MAP_WIDTH = COLS * TILE_WIDTH
 export const MAP_HEIGHT = ROWS * TILE_HEIGHT
 
+/** The amount of fuel a character starts a level with, when the level
+ * doesn't specify its own `maxFuel`. */
+export const DEFAULT_MAX_FUEL = 50
+
+/** The size (in pixels) of the fuel gauge, used for both the dial and the pointer. */
+export const FUEL_GAUGE_SIZE = 130
+
 export const Events = createIdRegistry({
   "add-road": "ADD_ROAD",
   "delete-road": "DELETE_ROAD",
@@ -37,6 +44,8 @@ export const Variables = createIdRegistry({
   sceneryObjectCount: "SCENERY_OBJECT_COUNT",
   exportedLevel: "EXPORTED_LEVEL",
   tilemapGroup: "TILEMAP_GROUP",
+  fuel: "FUEL",
+  maxFuel: "MAX_FUEL",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
 
