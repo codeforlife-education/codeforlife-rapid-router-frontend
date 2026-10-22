@@ -1,8 +1,22 @@
 import Phaser from "phaser"
 
 import { Events } from "../../../globals"
-import { FUEL_COST } from "../../../../app/slices"
+import type { GameCommand } from "../../../../app/slices"
 import type Level from "."
+
+/** The amount of fuel each command costs to execute. `wait` never costs
+ * fuel, whether it's a real explicit wait block/call or one synthesised
+ * purely for editor highlighting (a loop/if header, variable assignment,
+ * sensing check, etc.) - only actual movement/action commands do. */
+export const FUEL_COST: Record<GameCommand, number> = {
+  move_forwards: 1,
+  turn_left: 1,
+  turn_right: 1,
+  turn_around: 1,
+  wait: 0,
+  deliver: 1,
+  sound_horn: 1,
+}
 
 /**
  * Tracks how much fuel remains as the player's commands are executed, and
@@ -40,16 +54,19 @@ export default class FuelManager {
       return
     }
 
-    const commands = this.level.commands.slice(0, index + 1)
-
     // The earliest command index at which cumulative cost reaches the
     // level's max fuel, i.e. where the game should stop for running out.
+    const commands = this.level.commands
     const maxFuel = this.level.maxFuel
     let emptyAtIndex = -1
     let cost = 0
-    for (let i = 0; i < commands.length; i++) {
+    for (let i = 0; i <= index; i++) {
       cost += FUEL_COST[commands[i]]
-      if (emptyAtIndex === -1 && cost >= maxFuel) emptyAtIndex = i
+      // Further commands only increase cost, which is already clamped below.
+      if (cost >= maxFuel) {
+        emptyAtIndex = i
+        break
+      }
     }
 
     this.level.setVariable("fuel", Math.max(0, maxFuel - cost))

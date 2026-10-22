@@ -12,20 +12,6 @@ export const GAME_COMMANDS = [
 ] as const
 export type GameCommand = (typeof GAME_COMMANDS)[number]
 
-/** The amount of fuel each command costs to execute. `wait` never costs
- * fuel, whether it's a real explicit wait block/call or one synthesised
- * purely for editor highlighting (a loop/if header, variable assignment,
- * sensing check, etc.) - only actual movement/action commands do. */
-export const FUEL_COST: Record<GameCommand, number> = {
-  move_forwards: 1,
-  turn_left: 1,
-  turn_right: 1,
-  turn_around: 1,
-  wait: 0,
-  deliver: 1,
-  sound_horn: 1,
-}
-
 export interface GameState {
   /** The interpreted command sequence. */
   gameCommands: GameCommand[]

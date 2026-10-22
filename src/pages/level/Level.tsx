@@ -42,9 +42,7 @@ type TilemapProps =
   | { tilemapGroup: TilemapGroup; tilemap: undefined }
   | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
 
-const Base: FC<
-  Pick<LevelModel, "id" | "mode"> & { maxFuel?: number } & TilemapProps
-> = level => (
+const Base: FC<Pick<LevelModel, "id" | "mode"> & TilemapProps> = level => (
   <Box sx={{ display: "flex" }}>
     <Controls level={level} />
     {/* TODO: fix style*/}
@@ -54,9 +52,8 @@ const Base: FC<
   </Box>
 )
 
-type BlocklyProps = Pick<LevelModel, "id" | "blockly_toolbox_block_types"> & {
-  maxFuel?: number
-} & TilemapProps
+type BlocklyProps = Pick<LevelModel, "id" | "blockly_toolbox_block_types"> &
+  TilemapProps
 
 const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
   id,
@@ -102,9 +99,8 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
 type BasePythonProps = Pick<LevelModel, "id">
 type ReadPythonProps = BasePythonProps & ReadOnlyPythonEditorProps
 type WritePythonProps = BasePythonProps &
-  Pick<WriteablePythonEditorProps, "commands"> & {
-    maxFuel?: number
-  } & TilemapProps
+  Pick<WriteablePythonEditorProps, "commands"> &
+  TilemapProps
 
 const PythonContext: FC<
   { children: ReactNode } & (
@@ -159,12 +155,13 @@ const Custom: FC<CustomProps> = () =>
     },
   })
 
-type ResolvedProps =
+type ResolvedProps = { maxFuel?: number } & (
   | (BlocklyProps & { mode: "blockly" })
   | (WritePythonProps & { mode: "python" })
   | (BlocklyProps & ReadPythonProps & { mode: "blocklyAndPython" })
+)
 
-const Resolved: FC<ResolvedProps> = level => {
+const Resolved: FC<ResolvedProps> = ({ maxFuel, ...level }) => {
   const phaserGameRef = useRef<PhaserGameRef>(null)
   const [activeSceneKeys, setActiveSceneKeys] = useState<SceneKey[]>([])
   const [phase, setPhase] = useState<GamePhase>("idle")
@@ -177,6 +174,7 @@ const Resolved: FC<ResolvedProps> = level => {
         setActiveSceneKeys,
         phase,
         setPhase,
+        maxFuel,
       }}
     >
       {level.mode === "blockly" ? (

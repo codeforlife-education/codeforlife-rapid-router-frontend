@@ -18,6 +18,9 @@ export const MAP_HEIGHT = ROWS * TILE_HEIGHT
  * doesn't specify its own `maxFuel`. */
 export const DEFAULT_MAX_FUEL = 50
 
+/** The size (in pixels) of the fuel gauge, used for both the dial and the pointer. */
+export const FUEL_GAUGE_SIZE = 130
+
 export const Events = createIdRegistry({
   "add-road": "ADD_ROAD",
   "delete-road": "DELETE_ROAD",

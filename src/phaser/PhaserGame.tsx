@@ -30,7 +30,7 @@ import type { PhaserGameRef } from "./PhaserGameContext"
 import { finishGameEarly } from "../app/slices"
 
 export type PhaserGameProps =
-  | ({ mode: "play"; levelId: Level["id"]; maxFuel?: number } & (
+  | ({ mode: "play"; levelId: Level["id"] } & (
       | { tilemapGroup: TilemapGroup; tilemap: undefined }
       | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
     ))
@@ -38,7 +38,6 @@ export type PhaserGameProps =
 
 const PhaserGame: FC<PhaserGameProps> = props => {
   const { mode, levelId } = props
-  const maxFuel = props.mode === "play" ? props.maxFuel : undefined
   const tilemapGroup = props.mode === "play" ? props.tilemapGroup : undefined
   const tilemap = props.mode === "play" ? props.tilemap : undefined
   const phaserGameContext = usePhaserGameContext()
@@ -52,7 +51,8 @@ const PhaserGame: FC<PhaserGameProps> = props => {
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
-  const { ref, setActiveSceneKeys, phase, setPhase } = phaserGameContext
+  const { ref, setActiveSceneKeys, phase, setPhase, maxFuel } =
+    phaserGameContext
 
   const getVariable = useCallback(
     (<T,>(
