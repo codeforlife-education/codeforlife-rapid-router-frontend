@@ -155,12 +155,13 @@ const Custom: FC<CustomProps> = () =>
     },
   })
 
-type ResolvedProps =
+type ResolvedProps = { maxFuel?: number } & (
   | (BlocklyProps & { mode: "blockly" })
   | (WritePythonProps & { mode: "python" })
   | (BlocklyProps & ReadPythonProps & { mode: "blocklyAndPython" })
+)
 
-const Resolved: FC<ResolvedProps> = level => {
+const Resolved: FC<ResolvedProps> = ({ maxFuel, ...level }) => {
   const phaserGameRef = useRef<PhaserGameRef>(null)
   const [activeSceneKeys, setActiveSceneKeys] = useState<SceneKey[]>([])
   const [phase, setPhase] = useState<GamePhase>("idle")
@@ -173,6 +174,7 @@ const Resolved: FC<ResolvedProps> = level => {
         setActiveSceneKeys,
         phase,
         setPhase,
+        maxFuel,
       }}
     >
       {level.mode === "blockly" ? (

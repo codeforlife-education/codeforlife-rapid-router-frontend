@@ -800,6 +800,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 68,
+    maxFuel: 9,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
@@ -813,6 +814,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 69,
+    maxFuel: 16,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
@@ -828,6 +830,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 70,
+    maxFuel: 14,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["turn_left", 1],
@@ -855,6 +858,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 72,
+    maxFuel: 14,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
@@ -945,6 +949,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 78,
+    maxFuel: 99,
     mode: "blockly",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],

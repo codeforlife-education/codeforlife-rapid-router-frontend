@@ -79,7 +79,7 @@ export default tilemaps.makeOrthogonal({
       },
       scenery: {
         objects: [
-          layers.objectGroup.objects.scenery.nature.pond({ x: 424, y: 326 }),
+          layers.objectGroup.objects.scenery.nature.pond({ x: 440, y: 326 }),
           layers.objectGroup.objects.scenery.nature.tree.oak({
             x: 233,
             y: 195,

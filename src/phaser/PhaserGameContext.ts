@@ -33,6 +33,7 @@ export type PhaserGameContextValue = {
   setActiveSceneKeys: Dispatch<SetStateAction<SceneKey[]>>
   phase: GamePhase
   setPhase: Dispatch<SetStateAction<GamePhase>>
+  maxFuel?: number
 }
 
 const PhaserGameContext = createContext<PhaserGameContextValue>({

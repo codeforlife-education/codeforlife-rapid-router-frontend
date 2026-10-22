@@ -1,9 +1,10 @@
 import Phaser from "phaser"
 
+import * as images from "../../images"
 import * as tilemaps from "../../tilemaps"
+import { FUEL_GAUGE_SIZE, SceneKeys } from "../../globals"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
-import { SceneKeys } from "../../globals"
 
 /**
  * The Preloader Scene is responsible for loading all the assets required for
@@ -13,6 +14,17 @@ import { SceneKeys } from "../../globals"
  */
 export default class extends BasePreloader {
   static readonly KEY = SceneKeys.Play.PRELOADER
+
+  preload() {
+    this.load.svg("gauge_dial", images.URLs.HUD.FuelGauge.FUEL_GAUGE, {
+      width: FUEL_GAUGE_SIZE,
+      height: FUEL_GAUGE_SIZE,
+    })
+    this.load.svg("gauge_pointer", images.URLs.HUD.FuelGauge.POINTER, {
+      width: FUEL_GAUGE_SIZE,
+      height: FUEL_GAUGE_SIZE,
+    })
+  }
 
   create() {
     // When all the assets have loaded, it's often worth creating global objects
