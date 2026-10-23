@@ -1,13 +1,15 @@
 import { Box, Button, Modal, Typography } from "@mui/material"
 import { type FC } from "react"
 
+import type { Level } from "../../api/level"
+
 export interface HintModalProps {
   open: boolean
   onClose: () => void
-  hint: string
+  level: Pick<Level, "hint">
 }
 
-const HintModal: FC<HintModalProps> = ({ open, onClose, hint }) => (
+const HintModal: FC<HintModalProps> = ({ open, onClose, level }) => (
   <Modal open={open} onClose={onClose}>
     <Box
       sx={{
@@ -24,7 +26,10 @@ const HintModal: FC<HintModalProps> = ({ open, onClose, hint }) => (
       }}
     >
       <Typography variant="h3">Hint</Typography>
-      <Typography sx={{ mt: 1 }}>{hint}</Typography>
+      <Typography sx={{ mt: 1 }}>
+        {level.hint ||
+          "This is a placeholder hint to help you if you get stuck."}
+      </Typography>
       <Button
         type="button"
         variant="contained"

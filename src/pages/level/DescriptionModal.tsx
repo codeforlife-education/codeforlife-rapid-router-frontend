@@ -1,13 +1,18 @@
-import { Box, Button, Modal, Typography } from "@mui/material"
-import { type FC, useState } from "react"
+import {
+  Box,
+  Button,
+  IconButton,
+  Modal,
+  Stack,
+  Typography,
+} from "@mui/material"
+import { type FC, useRef, useState } from "react"
 import { PlayCircle as PlayCircleIcon } from "@mui/icons-material"
 
+import type { Level } from "../../api/level"
+
 export interface DescriptionModalProps {
-  open: boolean
-  onClose: () => void
-  title: string
-  subtitle: string
-  description: string
+  level: Pick<Level, "id" | "name" | "description">
   // Direct URL to an mp4 video file.
   video?: string
 }
@@ -15,19 +20,26 @@ export interface DescriptionModalProps {
 // Renders a video that starts playing (with native controls) once clicked.
 const VideoEmbed: FC<{ src: string }> = ({ src }) => {
   const [playing, setPlaying] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  const play = () => {
+    setPlaying(true)
+    void videoRef.current?.play()
+  }
 
   return (
     <Box
       sx={{
         position: "relative",
-        width: "100%",
+        height: "100%",
         aspectRatio: "16 / 9",
         bgcolor: "common.black",
         cursor: playing ? "default" : "pointer",
       }}
-      onClick={() => setPlaying(true)}
+      onClick={play}
     >
       <Box
+        ref={videoRef}
         component="video"
         src={src}
         controls={playing}
@@ -36,75 +48,59 @@ const VideoEmbed: FC<{ src: string }> = ({ src }) => {
         sx={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
       {!playing && (
-        <PlayCircleIcon
+        <IconButton
           sx={{
             position: "absolute",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            fontSize: 64,
             color: "common.white",
-            pointerEvents: "none",
           }}
-        />
+          onClick={play}
+        >
+          <PlayCircleIcon sx={{ fontSize: 64 }} />
+        </IconButton>
       )}
     </Box>
   )
 }
 
-const DescriptionModal: FC<DescriptionModalProps> = ({
-  open,
-  onClose,
-  title,
-  subtitle,
-  description,
-  video,
-}) => (
-  <Modal open={open} onClose={onClose}>
-    <Box
-      sx={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: { xs: "90%", lg: 1400 },
-        maxHeight: "90%",
-        overflowY: "auto",
-        bgcolor: "background.paper",
-        boxShadow: 24,
-        p: 2,
-      }}
-    >
-      <Typography variant="h3">{title}</Typography>
-      <Typography variant="h6">{subtitle}</Typography>
+const DescriptionModal: FC<DescriptionModalProps> = ({ level, video }) => {
+  const [open, setOpen] = useState(true)
+
+  return (
+    <Modal open={open} onClose={() => setOpen(false)}>
       <Box
         sx={{
-          display: "flex",
-          flexDirection: { xs: "column", lg: "row" },
-          gap: 2,
-          mt: 1,
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "90%",
+          maxHeight: "90%",
+          overflowY: "auto",
+          bgcolor: "background.paper",
+          boxShadow: 24,
+          p: 2,
         }}
       >
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography>{description}</Typography>
-        </Box>
-        {video && (
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <VideoEmbed src={video} />
-          </Box>
-        )}
+        <Stack>
+          <Typography variant="h3">{`Level ${level.id}`}</Typography>
+          <Typography variant="h6">{level.name || "Level Subtitle"}</Typography>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+            <Typography>
+              {level.description ||
+                "This is a placeholder description explaining what to do in this level."}
+            </Typography>
+            {video && <VideoEmbed src={video} />}
+          </Stack>
+          <Button sx={{ ml: "auto", mt: 2 }} onClick={() => setOpen(false)}>
+            Play
+          </Button>
+        </Stack>
       </Box>
-      <Button
-        type="button"
-        variant="contained"
-        fullWidth
-        sx={{ mt: 2 }}
-        onClick={onClose}
-      >
-        Play
-      </Button>
-    </Box>
-  </Modal>
-)
+    </Modal>
+  )
+}
 
 export default DescriptionModal

@@ -45,19 +45,19 @@ import { type Level } from "../../api/level"
 import { ZoomControls } from "../../phaser"
 import { usePlayInterval } from "../../phaser/usePlayInterval"
 
-export type ControlsProps = { level: Pick<Level, "mode">; hint: string }
+type BaseControlsProps = { level: Pick<Level, "hint"> }
 
 const Base: FC<
-  Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
-    panelCount: number
-    hint: string
-    onClear: () => void
-    interpretCommands: () => Promise<GameCommand[] | undefined>
-    onLanguageChange?: (language: Language) => void
-  }
+  BaseControlsProps &
+    Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
+      panelCount: number
+      onClear: () => void
+      interpretCommands: () => Promise<GameCommand[] | undefined>
+      onLanguageChange?: (language: Language) => void
+    }
 > = ({
+  level,
   panelCount,
-  hint,
   onClear,
   interpretCommands,
   onOpened,
@@ -213,13 +213,13 @@ const Base: FC<
       <HintModal
         open={hintModalOpen}
         onClose={() => setHintModalOpen(false)}
-        hint={hint}
+        level={level}
       />
     </>
   )
 }
 
-const Blockly: FC<{ hint: string }> = ({ hint }) => {
+const Blockly: FC<BaseControlsProps> = props => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const clearBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
@@ -240,17 +240,17 @@ const Blockly: FC<{ hint: string }> = ({ hint }) => {
   return (
     <Base
       panelCount={2}
-      hint={hint}
       interpretCommands={interpretBlocklyWorkspace}
       onClear={clearBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
       onLanguageChange={changeBlocklyLanguage}
+      {...props}
     />
   )
 }
 
-const Python: FC<{ hint: string }> = ({ hint }) => {
+const Python: FC<BaseControlsProps> = props => {
   const pythonEditorContext = usePythonEditorContext()
   const consoleLogContext = useConsoleLogContext()
   const clearPythonEditorAndConsoleLogs = useCallback(() => {
@@ -266,14 +266,14 @@ const Python: FC<{ hint: string }> = ({ hint }) => {
   return (
     <Base
       panelCount={3}
-      hint={hint}
       onClear={clearPythonEditorAndConsoleLogs}
       interpretCommands={interpretPythonEditor}
+      {...props}
     />
   )
 }
 
-const BlocklyAndPython: FC<{ hint: string }> = ({ hint }) => {
+const BlocklyAndPython: FC<BaseControlsProps> = props => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const pythonEditorContext = usePythonEditorContext()
   const clearBlocklyWorkspaceAndPythonEditor = useCallback(() => {
@@ -298,21 +298,25 @@ const BlocklyAndPython: FC<{ hint: string }> = ({ hint }) => {
   return (
     <Base
       panelCount={3}
-      hint={hint}
       onClear={clearBlocklyWorkspaceAndPythonEditor}
       interpretCommands={interpretBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
       onLanguageChange={changeBlocklyLanguage}
+      {...props}
     />
   )
 }
 
-const Controls: FC<ControlsProps> = ({ level, hint }) =>
+export type ControlsProps = BaseControlsProps & {
+  level: Pick<Level, "mode">
+}
+
+const Controls: FC<ControlsProps> = props =>
   ({
-    blockly: <Blockly hint={hint} />,
-    python: <Python hint={hint} />,
-    blocklyAndPython: <BlocklyAndPython hint={hint} />,
-  })[level.mode]
+    blockly: <Blockly {...props} />,
+    python: <Python {...props} />,
+    blocklyAndPython: <BlocklyAndPython {...props} />,
+  })[props.level.mode]
 
 export default Controls

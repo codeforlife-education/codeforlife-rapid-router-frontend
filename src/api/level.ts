@@ -17,6 +17,8 @@ export type Level = Model<
   number,
   {
     name: string
+    description: string
+    hint: string
     mode: "blockly" | "blocklyAndPython" | "python"
     blockly_toolbox_block_types: BlockToolboxEntry[]
     tilemap: ExportedOrthogonalTilemap
@@ -27,7 +29,12 @@ const levelUrls = modelUrls("levels/", "levels/<id>/")
 
 export type RetrieveLevelResult = RetrieveResult<
   Level,
-  "name" | "mode" | "blockly_toolbox_block_types" | "tilemap"
+  | "name"
+  | "description"
+  | "hint"
+  | "mode"
+  | "blockly_toolbox_block_types"
+  | "tilemap"
 >
 export type RetrieveLevelArg = RetrieveArg<Level>
 
