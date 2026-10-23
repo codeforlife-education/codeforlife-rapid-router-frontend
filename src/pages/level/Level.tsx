@@ -10,6 +10,10 @@ import {
   type GeneratedCode,
 } from "../../blockly"
 import { ConsoleLogContext, type Log } from "../../codeMirror"
+import Controls, { type ControlsProps } from "./Controls"
+import DescriptionModal, {
+  type DescriptionModalProps,
+} from "./DescriptionModal"
 import type {
   ExportedOrthogonalTilemap,
   TilemapGroup,
@@ -24,6 +28,7 @@ import {
   type Level as LevelModel,
   useRetrieveLevelQuery,
 } from "../../api/level"
+import Panels, { type PanelsProps } from "./Panels"
 import {
   PythonEditorContext,
   type ReadOnlyPythonEditorProps,
@@ -31,8 +36,6 @@ import {
 } from "../../codeMirror/editors/python"
 import { getMaxInstances, getToolboxContents } from "../../blockly/workspace"
 import { CHARACTER_COMMANDS } from "../../app/character"
-import Controls from "./Controls"
-import Panels from "./Panels"
 import type { WriteableEditorRef } from "../../codeMirror/editors"
 import { paths } from "../../routes"
 
@@ -42,13 +45,20 @@ type TilemapProps =
   | { tilemapGroup: TilemapGroup; tilemap: undefined }
   | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
 
-const Base: FC<Pick<LevelModel, "id" | "mode"> & TilemapProps> = level => (
+const Base: FC<
+  ControlsProps["level"] &
+    PanelsProps["level"] &
+    DescriptionModalProps["level"] &
+    Pick<DescriptionModalProps, "video"> &
+    TilemapProps
+> = ({ video, ...level }) => (
   <Box sx={{ display: "flex" }}>
     <Controls level={level} />
     {/* TODO: fix style*/}
     <Box component="main" sx={{ flex: 1, minWidth: 0, height: "100vh" }}>
       <Panels level={level} />
     </Box>
+    <DescriptionModal level={level} video={video} />
   </Box>
 )
 
@@ -155,11 +165,14 @@ const Custom: FC<CustomProps> = () =>
     },
   })
 
-type ResolvedProps = { maxFuel?: number } & (
-  | (BlocklyProps & { mode: "blockly" })
-  | (WritePythonProps & { mode: "python" })
-  | (BlocklyProps & ReadPythonProps & { mode: "blocklyAndPython" })
-)
+type ResolvedProps = Pick<LevelModel, "name" | "description" | "hint"> & {
+  maxFuel?: number
+  video?: string
+} & (
+    | (BlocklyProps & { mode: "blockly" })
+    | (WritePythonProps & { mode: "python" })
+    | (BlocklyProps & ReadPythonProps & { mode: "blocklyAndPython" })
+  )
 
 const Resolved: FC<ResolvedProps> = ({ maxFuel, ...level }) => {
   const phaserGameRef = useRef<PhaserGameRef>(null)

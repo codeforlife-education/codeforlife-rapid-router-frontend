@@ -9,90 +9,150 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 1,
     mode: "blockly",
+    name: "Can you help the van get to the house?",
+    description:
+      "Choose the right blocks to tell the van where to go. Drag the blocks under the Start block to attach them. To remove a block, drag it into the bin in the bottom right of the screen. When you are happy with your sequence, press Play!",
+    hint: "Try dragging a move forwards block onto the Start block. Then click the Start block.",
     blockly_toolbox_block_types: ["move_forwards"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 2,
     mode: "blockly",
+    name: "This time the house is further away",
+    description:
+      "A block can be placed next to or under another, like a jigsaw. A second Move forwards block can be placed under the first Move forwards block. To remove a block, drag it back to the left of the screen or drop it in the bin. When you are happy with your sequence, press Play!",
+    hint: "Now there is further to go. How many times do you need to move forwards this time?",
     blockly_toolbox_block_types: ["move_forwards"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 3,
     mode: "blockly",
+    name: "Can you make the van turn right?",
+    description:
+      "This time, the van has to turn right to reach the house. Make sure you use the Turn right block in your sequence. Drag the blocks and attach them under the Start block like before. To remove a block, drag it back to the left of the screen or drop it in the bin. When you are happy with your sequence, press Play!",
+    hint: "Now you need to make a turn. Which way do you need to go?",
     blockly_toolbox_block_types: ["move_forwards", "turn_right"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 4,
     mode: "blockly",
+    name: "You are getting good at this! Let's try turning left",
+    description:
+      "This time the van has to go left. Make sure you use the Turn left block in your sequence. Drag and attach the blocks like before. When you are happy with your sequence, press Play!",
+    hint: "You’re doing really well! This time you need to go a bit further and turn the other way. Count the number of blocks you need to move.",
     blockly_toolbox_block_types: ["move_forwards", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 5,
     mode: "blockly",
+    name: "Good work! You are ready for something harder",
+    description:
+      "You already know how to make the van turn left or right. This time the van has to make lots of turns to reach the house. Drag and attach the blocks to make your sequence. When you are happy with your sequence, press Play!",
+    hint: "There are more turns to make this time. Try building your solution up block by block. Which way do you need to turn first?",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 6,
     mode: "blockly",
+    name: "Well done! Let's use all three blocks",
+    description:
+      "This time the van has to Move forwards, Turn left and Turn right. Drag and attach the blocks like before. When you are happy with your sequence, press Play!",
+    hint: "You’ve done really well to get this far! Now you need to travel further but include some turns. Check which direction you need to turn and count the number of blocks you need to travel.",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 7,
     mode: "blockly",
+    name: "This road is more complicated",
+    description:
+      "Practise your new skills on this road by helping the driver to arrive at the house. When you are happy with your sequence, press Play!",
+    hint: "This road is more complicated but you can do this! Start with just a few blocks and try that, then add more blocks and check it again.",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 8,
     mode: "blockly",
+    name: "The warehouse is not always in the same place",
+    description:
+      "This time the warehouse is somewhere else on the screen but you still need to use the Move forwards block. Can you use the Move forwards block correctly even when it looks like the van goes in a different direction? When you are happy with your sequence, press Play!",
+    hint: "The warehouse is in a different place now but don’t let that confuse you! Which way do you need to go first? Imagine you are driving the van.",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 9,
     mode: "blockly",
+    name: "Can you go from right to left?",
+    description:
+      "Practise your new skills on this road by helping the driver to arrive at the house. When you are happy with your sequence, press Play!",
+    hint: "Try counting the blocks before the turn. Which way do you need to go?",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 10,
     mode: "blockly",
+    name: "Well done! How about another go?",
+    description:
+      "You've done really well so far. Try to get the van to the house. When you are happy with your sequence, press Play!",
+    hint: "You need to make a turn as soon as you leave the warehouse. Which way do you need to go? If you get stuck, don’t forget to count the blocks and check which way you need to turn each time.",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 11,
     mode: "blockly",
+    name: "Snail maze!",
+    description:
+      "Uh oh, a tricky snail maze! Can you take the van through it? When you are happy with your sequence, press Play!",
+    hint: "The warehouse is in a different place again so check which way you need to go. If you get stuck, remember that you can just add a few blocks and run the program and then add a few more and try again.",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 12,
     mode: "blockly",
+    name: "This road is more complicated",
+    description:
+      "Good work, by now you are able to solve quite complicated levels. Prove your skills! When you are happy with your sequence, press Play!",
+    hint: "You have learned a lot in these levels. Here’s a route to really test your skills. Try counting the number of straight sections and then add the curves in slowly. You can run the program before it is complete and then add to it. That can be easier than adding lots of blocks at once. Good luck!",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 13,
     mode: "blockly",
+    name: "Multiple routes",
+    description:
+      "Often there is more than one way to get to the house. The route that needs the fewest directions is usually best. Help the van find the shortest route to the house. You can press the Play button to start the van.",
+    hint: "There are a few different ways of getting to the house in these levels. Can you find the shortest route? Try counting the blocks if you’re not sure. That’s the way to get the best score on these levels.",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 14,
     mode: "blockly",
+    name: "Can you spot the shortest route?",
+    description:
+      "So many options to choose from! Do you know which is the shortest route to get the van to house?",
+    hint: "This one is a bit trickier. There are lots of different ways you could go but there is no point wasting fuel! If you take one of the longer routes, you won’t get such a good algorithm score.",
     blockly_toolbox_block_types: ["move_forwards", "turn_right", "turn_left"],
   },
   {
     tilemapGroup: "rapidRouter",
     id: 15,
     mode: "blockly",
+    name: "What if there is more than one delivery?",
+    description:
+      "Our vans often need to go to more than one house. To make the van deliver to a house use the Deliver block. Make sure your sequence gets the van to travel the shortest route!",
+    hint: "On this level, there are two houses to deliver to. Which one are you going to go to first? Make sure you add a Deliver block for each house, you don’t want to forget anyone’s shopping!",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -104,6 +164,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 16,
     mode: "blockly",
+    name: "This time there are even more houses",
+    description:
+      "Well done! You have done really well to get so far - let's take it to the next level and add another house. Can you work out the shortest, most efficient route to each house?",
+    hint: "Now there is another house to deliver to! Make sure you take the shortest route and add a Deliver block for each house. You might find it easier to add a small amount of code at a time and test it. You can even use the Step button to try each block in your program.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -115,6 +179,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 17,
     mode: "blockly",
+    name: "House overload!",
+    description:
+      "Well done, you're getting a hang of it! Can you do the same for even more houses? Don't forget to use the Deliver block at each house.",
+    hint: "You have four houses to deliver to now. Have you noticed that the red box turns green when you have delivered the shopping? Your programs are starting to get quite long now. Add a few blocks and then test your code. It is easier to spot errors that way. Good luck!",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -126,6 +194,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 18,
     mode: "blockly",
+    name: "This one is quite a tangle",
+    description:
+      "Practise your new skills on this road by getting the van to Deliver to each of the houses.",
+    hint: "You have reached the last route in this section, and it is quite complicated! Check which direction you need to turn and build up your code slowly. Maybe try to get to one house at a time and then add more code for the next one. Don’t miss a house off!",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -137,17 +209,27 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 19,
     mode: "blockly",
+    name: "Repeating yourself is boring",
+    description:
+      "Attach a block inside the Repeat block to make the van repeat that instruction. This means you can use one block instead of lots of blocks to do the same thing over and over again. How many times do you want the instruction repeated? Type the number into the Repeat block. The repeated sets of blocks make a 'loop'. When you are ready, press Play!",
+    hint: "You have seen this route before! This time you are going to use a Repeat block so that you don’t need to have several Move forwards blocks. How many do you need?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
       "turn_left",
       "controls_repeat",
     ],
+    video:
+      "https://files.gitbook.com/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FdCZE3FuBgH5fHsGocKGv%2Fuploads%2FPucDWuRfzuTxeLI6IHRx%2FMahana%20explains%20repeat%20functions.mp4?alt=media&token=361c8495-dc7d-4e18-9a7f-4c07c3fd303d",
   },
   {
     tilemapGroup: "rapidRouter",
     id: 20,
     mode: "blockly",
+    name: "Use the repeat block to make your sequence shorter and simpler",
+    description:
+      "You drove the van down this road on Level 5. This time, use the Repeat block to get the van to the house. This will make your sequence shorter and simpler than last time.",
+    hint: "This is another route you have seen before. Instead of having lots of left and right blocks, can you find a pattern and put them inside a Repeat block? How many times do you need to repeat them?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -159,6 +241,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 21,
     mode: "blockly",
+    name: "Four leaf clover",
+    description:
+      "This path looks a bit like a four leaf clover. Can you take the driver through it?",
+    hint: "Here is a challenge for you! Can you find a pattern to put in the Repeat block? If you’re not sure, try doing your program without the repeat and then looking for the pattern. You could use a piece of paper to write the route down if that helps.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -170,6 +256,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 22,
     mode: "blockly",
+    name: "Now things are getting quite long and complicated",
+    description:
+      "An algorithm (a set of instructions in a particular order) to get the van to the house might not be very simple, but it can be made shorter by using the Repeat blocks. Are you up for this challenge?",
+    hint: "Instead of having lots of Move forwards blocks, try putting them in Repeat blocks when you can. This is quite a complicated route so try building up your solution slowly. If you get in a muddle, try starting again and just doing a bit of the route at a time.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -181,6 +271,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 23,
     mode: "blockly",
+    name: "Sssssssssnake!",
+    description:
+      "This road seems to be winding just like a snake! Can you find a nice and simple route to get the van to the house?",
+    hint: "Don’t rush into this one. Try counting the straights and using a Repeat block for those. Then make the turn and do the same. Run the code each time.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -192,6 +286,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 24,
     mode: "blockly",
+    name: "The road is very long and very bendy",
+    description:
+      "Wow! Look at that! It won't get more complicated than this, we promise.",
+    hint: "This is as complicated as they get so don’t worry! Try writing down the turns to get you up to the straight bit. Can you see a pattern?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -203,6 +301,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 25,
     mode: "blockly",
+    name: "Waterfall level",
+    description:
+      "Since you did so well with the repeat loops, have a go at this level.",
+    hint: "The solution to this route is quite short but you will need to find the pattern! Try solving it without loops or writing down the steps on paper. Then look for a pattern to repeat. You can do this!",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -214,6 +316,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 26,
     mode: "blockly",
+    name: "Winter wonderland!",
+    description:
+      "Notice the snow! You can create new levels with different 'themes' of backgrounds and decorations in the Level Editor. But first, try getting the van to the house!",
+    hint: "This route is much simpler, don’t let the snow distract you! How many straights are there before the turn? How many straights after the turn?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -225,6 +331,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 27,
     mode: "blockly",
+    name: "Farmyard",
+    description:
+      "What a muddy road! Can you help Dee find her way from the barn to the house?",
+    hint: "Here is another type of route. This time you have a muddy road and some farmland. The pattern is not that easy to find straightaway. Try writing out the instructions without the Repeat block and then try to find the best pattern you can.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -236,6 +346,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 28,
     mode: "blockly",
+    name: "The big city",
+    description:
+      "Can you get the van from the warehouse to the house? Don't stop at any shops on the way!",
+    hint: "This time you’re in a town and you need to deliver to the blue house at the end of the route. Don’t get distracted along the way. To get the best route, you need to put a Repeat block inside another Repeat block. These levels are not so simple so write down the route and then look for patterns.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -247,6 +361,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 29,
     mode: "blockly",
+    name: "No need for numbers",
+    description:
+      "Drag a block inside a Repeat until block to make the van repeat an instruction. Attach a 'condition' so the van knows when to stop repeating the instruction. Here, you want the van to repeat your instruction until it is at the destination. Doing this means you don't have to work out how many times the van should repeat your instruction.",
+    hint: "You’ve seen this route before! This time you are not counting repetitions, your loop is going to repeat the Move forwards block until you reach your destination.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -254,11 +372,17 @@ const levels = [
       "at_destination",
       "repeat_until",
     ],
+    video:
+      "https://files.gitbook.com/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FdCZE3FuBgH5fHsGocKGv%2Fuploads%2FmUm2VB4N62Opk2CezOFR%2FAna%20discusses%20repeat%20until%20and%20repeat%20while%20functions.mp4?alt=media&token=1add73b1-9e21-4cdb-876d-31495012bb50",
   },
   {
     tilemapGroup: "rapidRouter",
     id: 30,
     mode: "blockly",
+    name: "Can you do that again?",
+    description:
+      "Well done, you did it! Now have a go at using the Repeat until block on a road with lots of turns.",
+    hint: "This is another route you have seen before. Last time you counted how many times your instructions were repeated. This time, your program is going to repeat your commands until you reach the destination. What do you need to repeat?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -271,6 +395,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 31,
     mode: "blockly",
+    name: "Practice makes perfect",
+    description: "Have another go to make sure you have got the hang of it.",
+    hint: "If you look at this route, do you notice that the shape of the road repeats? Can you put the instructions in a loop?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -283,6 +410,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 32,
     mode: "blockly",
+    name: "Uh oh, it's until fever!",
+    description:
+      "Good job! Can you help the driver reach the destination again?",
+    hint: "What about this road, can you see a repeating pattern? Maybe write down the instructions without a loop to solve this route and then look for the pattern.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -295,6 +426,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 33,
     mode: "blockly",
+    name: "Now it's time to try the if block",
+    description:
+      "Another way of telling the van what to do is to use the If block. For example, If the road exists forwards do Move forwards. This is called an 'if statement'. Try using the If block and the Repeat block together. The Repeat block will stretch if you attach the If block inside it.",
+    hint: "You could solve this with the same code you used on level 29 but the instructions for this level introduced the If block. To get full marks on this level, you will need to use an If block.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -304,11 +439,17 @@ const levels = [
       "road_exists",
       "repeat_until",
     ],
+    video:
+      "https://files.gitbook.com/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FdCZE3FuBgH5fHsGocKGv%2Fuploads%2F8A63G0OQlNdxMpvLuK9j%2FChris%20and%20Matt%20introduce%20if%20statements.mp4?alt=media&token=6fc94e71-a8b1-43a4-aadd-63fcf3b5788c",
   },
   {
     tilemapGroup: "rapidRouter",
     id: 34,
     mode: "blockly",
+    name: "If and bends",
+    description:
+      "It can be handy to use If to give your van choices, so you don't have to give the van new instructions at every step. For example: Tell the van If the road exists forwards do Move forwards, Else do Turn left. The van will choose correctly from the Move forwards and Turn left instructions depending on the road. Use an 'if statement' in a 'loop' to drive the van down this bendy road.",
+    hint: "This route looks complicated, but you can solve it without counting blocks. You are going to use a Repeat until block again and an If block to help the driver check the road ahead so they can decide which way to go. What are the possible directions on this route?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -323,6 +464,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 35,
     mode: "blockly",
+    name: "Let's put it all together!",
+    description:
+      "You have discovered the magic of 'if statements'. Can you make a program that uses Move forwards, Turn left and Turn right to get the van to the house.",
+    hint: "For this route you need to go straight, turn left and turn right so you will need to make your if statement more complex. To make your code as fast as possible, think about which you need to do most. It is less efficient to ask if you need to turn left first if most of the time you want to go straight, for example.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -337,6 +482,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 36,
     mode: "blockly",
+    name: "What else? If-else, that's what!",
+    description:
+      "You can change the if block to make more choices. Click on the if/else icon to add else if. This will tell the van what to do if the first if direction can't be done. You can also add an else block to tell the van what to do if none of the conditions match. This is a general algorithm, it can be used for lots of different routes!",
+    hint: "This route is quite different from the last one but is the solution very similar?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -351,6 +500,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 37,
     mode: "blockly",
+    name: "A bit longer",
+    description:
+      "Let's see if we can go further - this road is longer. Notice that the length of the road does not change the length of your program!",
+    hint: "This route is longer and a different shape again but does your last solution help? Are you noticing a pattern here?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -365,6 +518,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 38,
     mode: "blockly",
+    name: "Where did the cows come from?",
+    description:
+      "Well done! You've got so far. Can you apply the knowledge you gained going through this part of the game to this level? This time there are some hidden cows that you need to get out of the road! Can you work out what to do? Hint: Cows don't like noise",
+    hint: "This is a really long route. With a counted loop, your program would be quite long but is this program going to be any longer than your solution to the last level? Hint: Cows don't like noise",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -381,6 +538,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 39,
     mode: "blockly",
+    name: "Dead ends!",
+    description:
+      "It looks like the cows have escaped when you get to the side roads, so be careful not to hit them! Hint: Cows don't like noise",
+    hint: "You'll need to modify your general algorithm here so you can get back on track if you hit a dead end. Hint: Cows don't like noise",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -400,6 +561,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 40,
     mode: "blockly",
+    name: "Adjust your previous solution",
+    description:
+      "Can you think of a way you could change the 'general algorithm' you have implemented earlier to make sure the van driver reaches the house having travelled the shortest route?",
+    hint: "With this route, only ask questions about the directions you actually need to go.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -417,6 +582,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 41,
     mode: "blockly",
+    name: "Decision time",
+    description:
+      "Do you think changes to the 'general algorithm' will help the van find the shortest route? Or do you have to come up with a different solution? Time to make a decision...",
+    hint: "This is a short route and you can choose either route. Can you use an algorithm you have used before?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -434,6 +603,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 42,
     mode: "blockly",
+    name: "What do you think this time?",
+    description:
+      "Can you use the 'general algorithm' here? Can it be changed so that it finds a shorter route, or will you need a new solution?",
+    hint: "You have been using a similar solution to lots of levels in this section, but does that help you now? Can you use a general set of instructions or do you need to write a specific solution for this one?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -451,6 +624,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 43,
     mode: "blockly",
+    name: "Good work! What else can you do?",
+    description:
+      "You should be really good at this by now. Can you manage this complicated road?",
+    hint: "Your general solution might not help you here. See if you need to use some counted loops for this one.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -468,6 +645,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 44,
     mode: "blockly",
+    name: "Oh no! Traffic lights!",
+    description:
+      "The light varies from red to green. The van must check which colour the traffic light is when it reaches them - if it goes past a red light it will break the Highway Code. Here, you want the van to repeat the wait instruction while the traffic light is red. Drag a block inside a Repeat while block to make the van repeat an instruction. Attach a 'condition' so the van knows when to repeat the instruction.",
+    hint: "This route is very similar to one you’ve seen before but do you notice the traffic light? If the traffic light is red, you will need to wait.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "wait",
@@ -478,11 +659,17 @@ const levels = [
       "controls_repeat",
       "controls_whileUntil",
     ],
+    video:
+      "https://files.gitbook.com/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FdCZE3FuBgH5fHsGocKGv%2Fuploads%2FVDmgFe1LBpTpWI2b9EVN%2FWill%20discusses%20variables.mp4?alt=media&token=3fb3c5ca-f0d7-4f98-9274-5c4db8f64eac",
   },
   {
     tilemapGroup: "rapidRouter",
     id: 45,
     mode: "blockly",
+    name: "Green for go, red for wait",
+    description:
+      "Can you write a program so the van moves forwards on a green light but waits at a red light?",
+    hint: "This route is longer and there are two sets of traffic lights. Does it make any difference to your solution?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "wait",
@@ -498,6 +685,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 46,
     mode: "blockly",
+    name: "Well done - you've made it really far!",
+    description:
+      "Let's practise what you've learnt so far. Don't forget to add a turn and to make the van wait at a traffic light.",
+    hint: "In this level there is a left turn as well. Can you extend your solution to the last level to allow for that?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -514,6 +705,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 47,
     mode: "blockly",
+    name: "What a mess! But can you spot a route?",
+    description:
+      "Put your knowledge to test. Create an algorithm to lead the van to the house. Don't forget to add a turn block and this time, you need to avoid cows instead of waiting at traffic lights.",
+    hint: "This route is similar to the last one but the turn is in a different direction, and there are now cows instead of traffic lights!! Do you remember what to do?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -531,6 +726,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 48,
     mode: "blockly",
+    name: "Put all that hard work to the test",
+    description:
+      "Congratulations - you've made it really far! Can you create a solution that will deliver to all of the houses in the most efficient way?",
+    hint: "You need to check: if the lights are red; if the road exists left; if the road exists forward; if the road exists right; if it is a dead end. Make sure you put the checks in the right order. You will need to repeat this for every house and deliver.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -551,6 +750,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 49,
     mode: "blockly",
+    name: "Amazing! Have another go!",
+    description:
+      "Can you change the 'general algorithm' you created before to make the van take the shortest route to the destination?",
+    hint: "Can you use your general algorithm to get to the house? What if you think about the order of the instructions? Of course you must obey the traffic lights but if you come to a junction, do you want to prioritise turning left, right or going straight?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -570,6 +773,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 50,
     mode: "blockly",
+    name: "Light maze",
+    description:
+      "Well this is tricky. Look at all those lights! Can you find the shortest route to the destination? It would be good if the van doesn't have to wait at too many lights.",
+    hint: "Don't worry about the algorithm you've already come up with. Take the first turn left which has fewer traffic lights. Once your van is right under the traffic lights, make sure it waits for a green light.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -589,6 +796,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 51,
     mode: "blockly",
+    name: "Back to basics with a twist",
+    description:
+      "Can you come up with a solution to this level using the limited number of blocks we provide at the start?",
+    hint: "In these levels, the blocks you can use are limited. Can you use the provided blocks to get to the house? If you run out blocks, check that you are taking the shortest route.",
     blockly_toolbox_block_types: [
       "move_forwards",
       ["turn_left", 2],
@@ -599,6 +810,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 52,
     mode: "blockly",
+    name: "A bit more tricky",
+    description:
+      "Well done so far! Can you find a solution to this road? You have to move forward, but you have no forward block to use. Do you know how to help the van get to the destination?",
+    hint: "You can’t use the shortest route here because you don’t have a Move forwards block. What can you do instead?",
     blockly_toolbox_block_types: [
       ["turn_left", 2],
       ["turn_right", 2],
@@ -609,6 +824,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 53,
     mode: "blockly",
+    name: "Choose your blocks wisely",
+    description:
+      "Can you find the shortest route? Use your blocks carefully and don't forget the repeat loop.",
+    hint: "You must take the shortest route here otherwise you will run out of blocks. You must also use the loops to help you.",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
       ["turn_left", 3],
@@ -620,6 +839,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 54,
     mode: "blockly",
+    name: "Round and round",
+    description:
+      "Can you find the shortest route? Use your blocks carefully and don't forget the repeat loop.",
+    hint: "You don’t have a Move forwards block. Can you use the loops to get to the house? You might need to put one loop inside another loop...",
     blockly_toolbox_block_types: [
       ["turn_left", 2],
       ["turn_right", 1],
@@ -630,6 +853,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 55,
     mode: "blockly",
+    name: "Wonky fish!",
+    description:
+      "Use repeat until and the if statement to find your way around the Wonky Fish.",
+    hint: "In this level, you need to combine a Repeat block with an If block. Can you find the pattern that will get you to the house?",
     blockly_toolbox_block_types: [
       ["turn_left", 1],
       ["turn_right", 1],
@@ -643,6 +870,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 56,
     mode: "blockly",
+    name: "Concrete wasteland",
+    description:
+      "Use repeat until and the if statement to find your way around the Concrete Wasteland",
+    hint: "Think about which turns you need to make to get to the destination. Which way do you go most often?",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_left", 1],
@@ -657,6 +888,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 57,
     mode: "blockly",
+    name: "This is not... the same",
+    description:
+      "Like repeat until, repeat while is the opposite. Here, you want the van to repeat your instructions while it is not at the destination. Doing this means you don't have to work out how many times the van should repeat your instructions.",
+    hint: "This time you have a Repeat while block. This is different from the Repeat until you have used before. What needs to change in your code?",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_left", 1],
@@ -672,6 +907,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 58,
     mode: "blockly",
+    name: "Snow snake",
+    description:
+      "Combining what you have just learnt using repeat while with the repeat loop, can you find your way around the snow snake?",
+    hint: "In this example, you only have four counted loop blocks. How can you use them to get to the destination?",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
       ["turn_left", 1],
@@ -686,6 +925,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 59,
     mode: "blockly",
+    name: "Tricky turnaround",
+    description: "Use your blocks carefully not forgetting the turnaround.",
+    hint: "In this level, there is no Move forwards block. How can you use the loop, Turn left and Turn around blocks to get to the house? Try using the blocks without the loop and see where that takes you. Would repeating that help?",
     blockly_toolbox_block_types: [
       ["turn_left", 2],
       ["turn_around", 1],
@@ -697,6 +939,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 60,
     mode: "blockly",
+    name: "Right around the block",
+    description: "Can you find your way around this puzzle?",
+    hint: "Can you see a pattern in this route? Use that to create a loop. When you have done that, what is left to do?",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_right", 1],
@@ -708,6 +953,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 61,
     mode: "blockly",
+    name: "Can you create the 'Wiggle' procedure?",
+    description:
+      "Procedures are groups of instructions that can be executed multiple times without being rewritten. For example, if you want to instruct the van to follow a repeated pattern in the road, you can create a specific procedure. To create a procedure, simply choose the correct blocks and put them in the right order inside the Define do block. Once you have done that, give it a name eg wiggle. Now you're ready! Attach the Call block where you want your 'wiggle' procedure to be executed. Don't forget to put the name in it!",
+    hint: "The instructions asked you to create a procedure called ‘wiggle’. This procedure should make the moves to manage the bends in the road. You will need to call this procedure from the main program.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -721,6 +970,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 62,
     mode: "blockly",
+    name: "Lots of traffic lights!",
+    description:
+      "Create a procedure which tells the van to wait until the traffic lights are green.",
+    hint: "Can you create a procedure that just deals with traffic lights? Call it ‘lights’ and call it from the main program whenever you need it. Don’t worry if you don’t use the Repeat block in the program.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -737,6 +990,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 63,
     mode: "blockly",
+    name: "Wiggle wiggle",
+    description:
+      "Can you find the repeating pattern here and create a new 'wiggle' procedure? And do the Wiggle Wiggle!",
+    hint: "In this level, you should notice a repeated turn in the road. Can you create a ‘wiggle’ procedure and call it whenever you need it from the main program? If you can’t find the repeated pattern, try writing the route out in full and looking at your instructions.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -749,6 +1006,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 64,
     mode: "blockly",
+    name: "Muddy patterns with Phil",
+    description:
+      "Can you spot a pattern here? Create several procedures, it can save time when writing a program. Don't forget to clearly name your procedures and then call them.",
+    hint: "Try to create two procedures to help you here. Then call them as you need them from the main procedure. You could use one procedure to deal with each of the turn patterns in the route.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -762,6 +1023,10 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 65,
     mode: "blockly",
+    name: "Complicated roads",
+    description:
+      "This road might be a bit more complicated, but the procedures you could come up with are quite simple. Have a go and find out yourself!",
+    hint: "This route involves using the main program to deal with the main route and using procedures to deal with the turns in the road. You could try creating the route without procedures and then looking for a pattern to move into a procedure.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -775,6 +1040,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 66,
     mode: "blockly",
+    name: "Dee's snowy walk",
+    description: "Did you know procedures can call other procedures?",
+    hint: "In this example, you can write a procedure that calls another procedure. Look for certain actions that are repeated and try to put them in procedures.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -788,6 +1056,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 67,
     mode: "blockly",
+    name: "Crazy farm",
+    description: "This one will really test what you have learnt.",
+    hint: "In this level, try to find several patterns and put them in procedures. How about starting with a wiggle?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -802,6 +1073,9 @@ const levels = [
     id: 68,
     maxFuel: 9,
     mode: "blockly",
+    name: "T - time",
+    description: "Can you find the shortest route?",
+    hint: "You have limited blocks again here. How can you get to the house without a counted loop?",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
       ["turn_left", 1],
@@ -816,6 +1090,9 @@ const levels = [
     id: 69,
     maxFuel: 16,
     mode: "blockly",
+    name: "Duck pond dodge",
+    description: "Can you find the shortest route?",
+    hint: "In this level, you need a loop inside another loop. When you are able to go forwards, you should keep going. When you can no longer go forwards, you need to turn and then try to go forwards again. Hint: The traffic lights are a bit of a distraction and you don’t need to worry about them!",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
       ["turn_left", 1],
@@ -832,6 +1109,9 @@ const levels = [
     id: 70,
     maxFuel: 14,
     mode: "blockly",
+    name: "Winter wonderland",
+    description: "Can you find the shortest route?",
+    hint: "You don’t have any Move forwards blocks here. How can you use a loop and the turn blocks to get to the house?",
     blockly_toolbox_block_types: [
       ["turn_left", 1],
       ["turn_right", 2],
@@ -845,6 +1125,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 71,
     mode: "blockly",
+    name: "Frozen challenge",
+    description: "Can you find the shortest route?",
+    hint: "In this level, most of the time you want to Move forwards and then turn right. However, there is an occasion when you don’t want to do that.",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_left", 1],
@@ -860,6 +1143,9 @@ const levels = [
     id: 72,
     maxFuel: 14,
     mode: "blockly",
+    name: "Can Wes find his lunch?",
+    description: "Can you find the shortest route?",
+    hint: "In this level, you want to Move forwards most of the time. When do you need to turn?",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_left", 1],
@@ -874,6 +1160,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 73,
     mode: "blockly",
+    name: "Traffic light freeze up!",
+    description: "Can you find the shortest algorithm?",
+    hint: "You don’t have the blocks to check if you are at the destination. What can you use instead? Don’t forget to deal with the traffic lights!",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_left", 1],
@@ -892,6 +1181,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 74,
     mode: "blockly",
+    name: "Pandemonium",
+    description: "Can you find the shortest route?",
+    hint: "You only have one Repeat block here so make the most of it! You can use procedures to repeat code by just calling the procedure again.",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_left", 2],
@@ -906,6 +1198,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 75,
     mode: "blockly",
+    name: "Kirsty's maze time",
+    description: "Can you find the shortest route?",
+    hint: "You need to look for the shortest route here and then use loops inside loops to get you there. Good luck!",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_left", 1],
@@ -921,6 +1216,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 76,
     mode: "blockly",
+    name: "Cannot turn left!",
+    description: "Can you find the shortest route?",
+    hint: "This van driver is going to have to take quite a circuitous route to make their delivery. You don’t have any left turns!",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_right", 3],
@@ -936,6 +1234,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 77,
     mode: "blockly",
+    name: "G force",
+    description: "Can you get the van to the house?",
+    hint: "You don’t have any loops here but you can make a subroutine. You know that a subroutine can call another subroutine but did you know that a subroutine can call itself?",
     blockly_toolbox_block_types: [
       ["move_forwards", 1],
       ["turn_left", 1],
@@ -951,6 +1252,9 @@ const levels = [
     id: 78,
     maxFuel: 99,
     mode: "blockly",
+    name: "Wandering Phil",
+    description: "Can you get Phil to the house?",
+    hint: "You really need to put together everything you have learned for this tricky level. You need to combine checking for being at the destination with checking for a dead end and which roads are available. Good luck!",
     blockly_toolbox_block_types: [
       ["move_forwards", 2],
       "turn_left",
@@ -968,6 +1272,9 @@ const levels = [
     tilemapGroup: "rapidRouter",
     id: 79,
     mode: "blockly",
+    name: "Muddy mayhem",
+    description: "Can you find the shortest route?",
+    hint: "This is the last of the levels in this section and you will have to put together everything you have learned! You don’t have any Repeat blocks so you need to use a procedure that calls itself and also checks which roads are available.",
     blockly_toolbox_block_types: [
       ["move_forwards", 7],
       ["turn_left", 4],

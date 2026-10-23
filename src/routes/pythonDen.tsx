@@ -8,42 +8,70 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 1,
     mode: "blocklyAndPython",
+    name: "Here's Python",
+    description:
+      "As you create your program using Blockly, see what it looks like in the Python programming language. Can you tell which Python statement matches which block?",
+    hint: "This is a deliberately simple level. What you need to focus on is the Python code that is being generated for the blocks you join.",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 2,
     mode: "blocklyAndPython",
+    name: "Matching Blockly",
+    description:
+      "As you create your program using Blockly, see what it looks like in the Python programming language. Can you tell which Python statement matches which block?",
+    hint: "This is a deliberately simple level. What you need to focus on is the Python code that is being generated for the blocks you join.",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 3,
     mode: "blocklyAndPython",
+    name: "Don't forget to find the shortest route",
+    description:
+      "As you create your program using Blockly, see what it looks like in the Python programming language. Can you tell which Python statement matches which block? Don't forget to find the shortest route!",
+    hint: "Pay close attention to the spelling of the Python commands, the use of the dot and the round brackets.",
     blockly_toolbox_block_types: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 4,
     mode: "python",
+    name: "Where did the blocks go?",
+    description:
+      "Can you remember how the Python was formed under the blocks in the previous levels? Take a look in the Py Commands for a quick reminder.",
+    hint: "Now it is your turn, you can click on the Py commands button for a reminder of the Python commands that you can use.",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 5,
     mode: "python",
+    name: "Tree snake",
+    description:
+      "This route is just a bit longer. Make sure you type the Python code accurately!",
+    hint: "The most common errors here are missing the round brackets at the end of the commands or mistyping the commands, e.g. use my_van.move_fowards() and not my_van.move_foward()",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 6,
     mode: "python",
+    name: "Which way to turn? This way or that way?",
+    description:
+      "Try to find the shortest route using Python code only. You are getting really good at this!",
+    hint: "If you are stuck on this one, check that you are using the Python commands accurately. Click the Py Commands button to help you.",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 7,
     mode: "blockly",
+    name: "In a while, crocodile!",
+    description:
+      "Try to build up the blocks using a while loop to solve this one. Make sure that you count carefully. Watch this video for more details:",
+    hint: "Make sure that you are using the right blocks here. You must use the pink block for variables and the dark blue number block for values. Watch the video here if you are unsure.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "controls_whileUntil",
@@ -58,6 +86,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 8,
     mode: "blocklyAndPython",
+    name: "Wiggle while you work",
+    description:
+      "Now look at the Python code for that while loop you created. Can you match the blocks to the Python? What do you notice about the Python code?",
+    hint: "If you cannot solve this one, try creating a solution without a while loop and then looking for what is repeated...",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_right",
@@ -73,6 +105,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 9,
     mode: "blocklyAndPython",
+    name: "This way, that way, forwards...",
+    description:
+      "Think carefully about this one. It might be that some code is inside a loop and some code is not…",
+    hint: "You can solve this in stages. Try moving to the start of the repeated section, then adding the loop and then finishing it off.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -89,30 +125,49 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 10,
     mode: "python",
+    name: "Four leaf clover",
+    description:
+      "Look for a pattern and then count how many times it repeats. Good luck!",
+    hint: "If you cannot solve this one, try creating a solution without a while loop and then looking for what is repeated...",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 11,
     mode: "python",
+    name: "Pond life",
+    description:
+      "There is a pattern of moves in this one too. Can you spot it?",
+    hint: "What if you go down the middle section?",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 12,
     mode: "python",
+    name: "Farmyard overdrive",
+    description:
+      "Look for a pattern before you type any code. You can solve this one with a counted loop…",
+    hint: "Try that middle route...",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 13,
     mode: "python",
+    name: "Snnnaaaake reflection",
+    description:
+      "The solution to this one is just a bit longer. Build it up slowly. Good luck!",
+    hint: "Don't try to solve this in one go. Work out the pattern for the top route and check that works. Then move on to the next part...",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 14,
     mode: "blocklyAndPython",
+    name: "Too many cows",
+    description: "This is a nice long straight road, but there are cows about!",
+    hint: "Make sure you sound the horn to get the cows off the road.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "sound_horn",
@@ -130,6 +185,9 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 15,
     mode: "blocklyAndPython",
+    name: "Stepping it up",
+    description: "There are some bends in this road. Be careful!",
+    hint: "What do you need to count, how many times you move or how many times you move forwards?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -148,24 +206,38 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 16,
     mode: "python",
+    name: "Cows on the stairs",
+    description:
+      "Oh no! The farmer seems to have let their cows out again. Be careful.",
+    hint: "Look for a pattern here...",
     commands: ["turn_left", "turn_right", "is_animal_crossing", "sound_horn"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 17,
     mode: "python",
+    name: "Try stepping in Python!",
+    description: "Keep going, you're getting the hang of the Python code.",
+    hint: "So you are going forward unless...?",
     commands: ["move_forwards", "turn_left", "turn_right", "is_road_left"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 18,
     mode: "python",
+    name: "A long and winding road",
+    description: "Oh dear, you might get a bit dizzy!",
+    hint: "What are you counting here, straight roads or bends?",
     commands: ["move_forwards", "turn_left", "is_road_left"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 19,
     mode: "blocklyAndPython",
+    name: "Try this level... or else!",
+    description:
+      "Have you noticed that there are more roads ahead than turns? Try checking if there is a road ahead and then otherwise making the turns you need...",
+    hint: "Remember to use if..else",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -184,12 +256,19 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 20,
     mode: "python",
+    name: "Now try one in Python!",
+    description: "Use if..else in Python for this level",
+    hint: "Don't get distracted by the other roads. Look for a pattern you can repeat.",
     commands: ["turn_left", "turn_right", "is_road_left"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 21,
     mode: "python",
+    name: "What if there are multiple houses?",
+    description:
+      "This is a really busy road. Make sure that you don't miss any of the houses.",
+    hint: "Did you get the last house? Think about what value the loop counter will have at that point in your code...",
     commands: [
       "move_forwards",
       "turn_left",
@@ -202,6 +281,9 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 22,
     mode: "blocklyAndPython",
+    name: "Count and check",
+    description: "There are lots of turns here, don't get distracted.",
+    hint: "Think about the order of the questions you ask using your if and elif statements.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -220,6 +302,9 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 23,
     mode: "blocklyAndPython",
+    name: "Another twisty trip",
+    description: "Don't go the long way around!",
+    hint: "Think carefully about the order in which you ask questions in your if..else if block",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -238,6 +323,9 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 24,
     mode: "python",
+    name: "Give Python a go!",
+    description: "Look carefully for the shortest route.",
+    hint: "Think carefully about the order in which you ask questions in your if..elif statements.",
     commands: [
       "move_forwards",
       "turn_left",
@@ -250,6 +338,9 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 25,
     mode: "python",
+    name: "Now we've added a traffic light",
+    description: "Look carefully for the shortest route.",
+    hint: "Think carefully about the order in which you ask questions in your if..elif statements. Don't forget the traffic lights.",
     commands: [
       "move_forwards",
       "turn_left",
@@ -264,6 +355,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 26,
     mode: "blocklyAndPython",
+    name: "Looks easy but use repeat until and see what happens?",
+    description:
+      "As you create your program using Blockly, see what it looks like in the Python programming language. Try adding a repeat until block and watch what happens in Python.",
+    hint: "If you're stuck, you can learn more about the use of Blockly and Python on our documentation site. To learn more about Python in general, check this Beginner's Guide to Python.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -277,6 +372,9 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 27,
     mode: "blocklyAndPython",
+    name: "Full steam ahead",
+    description: "Just keep going until you get there...",
+    hint: "You might find that the solution to this level is quite familiar...",
     blockly_toolbox_block_types: [
       "move_forwards",
       "logic_negate",
@@ -288,6 +386,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 28,
     mode: "blocklyAndPython",
+    name: "Another staircase...",
+    description:
+      "Well done, you did it! Now have a go at using the Repeat while block on a road with lots of turns.",
+    hint: "This is another route you have seen before. Last time you counted how many times your instructions were repeated. This time, your program is going to repeat your commands until you reach the destination. What do you need to repeat?",
     blockly_toolbox_block_types: [
       "turn_left",
       "turn_right",
@@ -300,6 +402,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 29,
     mode: "blocklyAndPython",
+    name: "Four leaf clover",
+    description:
+      "Look for a pattern and then count how many times it repeats. Good luck!",
+    hint: "If you cannot solve this one, try creating a solution without a while loop and then looking for what is repeated...",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -313,12 +419,20 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 30,
     mode: "python",
+    name: "Repeat and watch",
+    description:
+      "Well done, you did it! Now have a go at coding with Repeats in Python only.",
+    hint: "If you're stuck, you can learn more about the use of Blockly and Python on our documentation site. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: ["turn_left", "turn_right", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 31,
     mode: "blocklyAndPython",
+    name: "If and bends",
+    description:
+      "It can be handy to use If to give your van choices, so you don't have to give the van new instructions at every step. For example: Tell the van If the road exists forwards do Move forwards, Else do Turn left. The van will choose correctly from the Move forwards and Turn left instructions depending on the road. Use an 'if statement' in a 'loop' to drive the van down this bendy road.",
+    hint: "This route looks complicated, but you can solve it without counting blocks. You are going to use a Repeat until block again and an If block to help the driver check the road ahead so they can decide which way to go. What are the possible directions on this route?",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -333,6 +447,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 32,
     mode: "blocklyAndPython",
+    name: "Something isn't right",
+    description:
+      "You don't have a right turn block here, so plan your route carefully.",
+    hint: "Think carefully about the order in which you ask questions in your if-statement here...",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -347,12 +465,19 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 33,
     mode: "python",
+    name: "Looking both ways",
+    description: "Can you find the shortest route?",
+    hint: "In this level, you want to check for a left turn first. If there is no left turn, turn right. Keep in mind what that looks like in Python.",
     commands: ["turn_left", "turn_right", "is_road_left", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 34,
     mode: "python",
+    name: "The pond is nice but out of the way",
+    description:
+      "Can you find the shortest route? Don't take the scenic route.",
+    hint: "Just look for the simplest route to the house.",
     commands: [
       "move_forwards",
       "turn_right",
@@ -364,6 +489,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 35,
     mode: "blocklyAndPython",
+    name: "Find a general solution",
+    description:
+      "Now try using what you have just learnt to solve this level. You could also try using the if, elif and else statements.",
+    hint: "To repeat while a condition is met you can use something like the following: while not my_van.at_destination(): my_van.move_forwards() To check whether a condition is met you can use something like the following: if my_van.is_road_forward(): my_van.move_forwards() You may also need to use the elif and else statements. Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -379,6 +508,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 36,
     mode: "blocklyAndPython",
+    name: "Where did the cows come from?",
+    description:
+      "Well done! You've got so far. Can you apply the knowledge you gained going through this part of the game to this level? This time there are some hidden cows that you need to get out of the road! Can you work out what to do? Hint: Cows don't like noise",
+    hint: "This is a really long route. With a counted loop, your program would be quite long but is this program going to be any longer than your solution to the last level? Hint: Cows don't like noise",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -396,6 +529,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 37,
     mode: "python",
+    name: "Watch out for the dead end!",
+    description:
+      "Practice your new Python skills on this road to get the van to the destination.",
+    hint: "Try using if my_van.at_dead_end(): to check if the van is at a dead end. Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: [
       "move_forwards",
       "turn_left",
@@ -410,6 +547,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 38,
     mode: "python",
+    name: "Dead ends!",
+    description:
+      "It looks like the cows have escaped when you get to the side roads, so be careful not to hit them! Hint: Cows don't like noise",
+    hint: "You'll need to modify your general algorithm here so you can get back on track if you hit a dead end. Hint: Cows don't like noise",
     commands: [
       "move_forwards",
       "turn_around",
@@ -425,6 +566,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 39,
     mode: "python",
+    name: "What a mess! But can you spot a route?",
+    description:
+      "Put your knowledge to test. Create an algorithm to lead the van to the house. Don't forget to turn and avoid the cows.",
+    hint: "This route is similar to the last one but the turn is in a different direction, and there are now cows instead of traffic lights!! Do you remember what to do?",
     commands: [
       "move_forwards",
       "turn_left",
@@ -438,6 +583,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 40,
     mode: "python",
+    name: "Put all that hard work to the test",
+    description:
+      "Congratulations - you've made it really far! Can you create a solution that will deliver to all of the houses in the most efficient way?",
+    hint: "You need to check: if the lights are red; if the road exists left; if the road exists forward; if the road exists right; if it is a dead end. Make sure you put the checks in the right order. You will need to repeat this for every house and deliver.",
     commands: [
       "move_forwards",
       "turn_around",
@@ -457,6 +606,10 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 41,
     mode: "blocklyAndPython",
+    name: "Repeating yourself in Python looks different",
+    description:
+      "As you create your program using Blockly, see what it looks like in the Python programming language. Try adding a repeat block and watch what happens in Python.",
+    hint: "If you're stuck, you can learn more about the use of Blockly and Python on our documentation site. To learn more about Python in general, check this Beginner's Guide to Python.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -468,18 +621,30 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 42,
     mode: "python",
+    name: "Count and repeat",
+    description:
+      "Now try to use a repeat loop to solve this level. Look back at level 41 to see what this could look like in Python.",
+    hint: "To repeat some statements a set number of times you can use something like the following: for count in range(3): my_van.turn left print count The print statement will output the value of count to the console. Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 43,
     mode: "python",
+    name: "Count and repeat is easy",
+    description:
+      "Now try to use a repeat loop to solve this level. Look back at level 41 to see what this could look like in Python. This time you could use 2 loops, 1 for each straight piece of road.",
+    hint: "To repeat some statements a set number of times you can use something like the following: for count in range(3): my_van.turn left print count The print statement will output the value of count to the console. Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: ["move_forwards", "turn_left"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 44,
     mode: "blocklyAndPython",
+    name: "Repeat and watch",
+    description:
+      "As you create your program using Blockly, see what it looks like in the Python programming language. Try adding a repeat block and watch what happens in Python.",
+    hint: "If you're stuck, you can learn more about the use of Blockly and Python on our documentation site. To learn more about Python in general, check this Beginner's Guide to Python.",
     blockly_toolbox_block_types: [
       "move_forwards",
       "turn_left",
@@ -491,30 +656,50 @@ const levels = [
     tilemapGroup: "pythonDen",
     id: 45,
     mode: "python",
+    name: "Loop the loop",
+    description:
+      "Now try to use a loop within a loop, known as a 'nested loop'. Look back at level 44 to see what this could look like in Python.",
+    hint: "To repeat within a repeats a set number of times you can use something like the following: for i in range(3): for j in range(5): my_van.turn left print count The print statement will output the value of count to the console. Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: ["move_forwards", "turn_left", "turn_right"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 46,
     mode: "python",
+    name: "Spiral and add",
+    description:
+      "For this level the van needs to travel in a spiral. The number of grid squares the van has to move keeps increasing by 1 on each turn. To do this you can have a loop that makes use of a variable to track the length of the road you need to travel after each turn.",
+    hint: "To use a variable to store the number of grid squares the van has to move you can do something like the following: count = 1 while not my_van.at_destination(): # Do something print(count) count = count + 1 Variables can be used in place of fixed values when calling functions. For example to repeat something number times you can do something like the following: for count in range(number): Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: ["move_forwards", "turn_right", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 47,
     mode: "python",
+    name: "Spiral and double",
+    description:
+      "For this level try something similar to what you have just learnt. This time the straight sections of road are doubling in length after each turn.",
+    hint: "To double the value of a variable you can do something like the following: number *= 2 Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 48,
     mode: "python",
+    name: "Think less",
+    description:
+      "This time the straight sections of road decrease in length by 2 after each turn.",
+    hint: "To decrease the value of a variable by an amount you can do something like the following: count = count - 5 Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: ["move_forwards", "turn_left", "at_destination"],
   },
   {
     tilemapGroup: "pythonDen",
     id: 49,
     mode: "python",
+    name: "Spiral challenge!",
+    description:
+      "For this challenge, the straight line sections of road start off increasing by 1 after each turn and then switch to dividing by 2 with a twist!",
+    hint: "To halve the value of a variable you can do something like the following: number /= 2 Check our documentation site, to see the full list of commands. To learn more about Python in general, check this Beginner's Guide to Python.",
     commands: ["move_forwards", "turn_right", "turn_left", "at_destination"],
   },
 ] as const satisfies LevelProps[]

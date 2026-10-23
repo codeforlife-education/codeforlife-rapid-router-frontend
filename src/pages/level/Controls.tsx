@@ -1,6 +1,7 @@
 import {
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
   Delete as DeleteIcon,
+  Help as HelpIcon,
   Language as LanguageIcon,
   Pause as PauseIcon,
   PlayArrow as PlayArrowIcon,
@@ -39,20 +40,23 @@ import {
   usePythonEditorContext,
   useSettings,
 } from "../../app/hooks"
+import HintModal from "./HintModal"
 import { type Level } from "../../api/level"
 import { ZoomControls } from "../../phaser"
 import { usePlayInterval } from "../../phaser/usePlayInterval"
 
-export type ControlsProps = { level: Pick<Level, "mode"> }
+type BaseControlsProps = { level: Pick<Level, "hint"> }
 
 const Base: FC<
-  Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
-    panelCount: number
-    onClear: () => void
-    interpretCommands: () => Promise<GameCommand[] | undefined>
-    onLanguageChange?: (language: Language) => void
-  }
+  BaseControlsProps &
+    Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
+      panelCount: number
+      onClear: () => void
+      interpretCommands: () => Promise<GameCommand[] | undefined>
+      onLanguageChange?: (language: Language) => void
+    }
 > = ({
+  level,
   panelCount,
   onClear,
   interpretCommands,
@@ -61,6 +65,7 @@ const Base: FC<
   onLanguageChange,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [hintModalOpen, setHintModalOpen] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
@@ -198,12 +203,23 @@ const Base: FC<
             onClear()
           }}
         />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Hint"
+          icon={<HelpIcon />}
+          onClick={() => setHintModalOpen(true)}
+        />
       </miniDrawers.MiniDrawer>
+      <HintModal
+        open={hintModalOpen}
+        onClose={() => setHintModalOpen(false)}
+        level={level}
+      />
     </>
   )
 }
 
-const Blockly: FC = () => {
+const Blockly: FC<BaseControlsProps> = props => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const clearBlocklyWorkspace = useCallback(() => {
     blocklyWorkspaceContext?.ref.current?.clear()
@@ -229,11 +245,12 @@ const Blockly: FC = () => {
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
       onLanguageChange={changeBlocklyLanguage}
+      {...props}
     />
   )
 }
 
-const Python: FC = () => {
+const Python: FC<BaseControlsProps> = props => {
   const pythonEditorContext = usePythonEditorContext()
   const consoleLogContext = useConsoleLogContext()
   const clearPythonEditorAndConsoleLogs = useCallback(() => {
@@ -251,11 +268,12 @@ const Python: FC = () => {
       panelCount={3}
       onClear={clearPythonEditorAndConsoleLogs}
       interpretCommands={interpretPythonEditor}
+      {...props}
     />
   )
 }
 
-const BlocklyAndPython: FC = () => {
+const BlocklyAndPython: FC<BaseControlsProps> = props => {
   const blocklyWorkspaceContext = useBlocklyWorkspaceContext()
   const pythonEditorContext = usePythonEditorContext()
   const clearBlocklyWorkspaceAndPythonEditor = useCallback(() => {
@@ -285,15 +303,20 @@ const BlocklyAndPython: FC = () => {
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
       onLanguageChange={changeBlocklyLanguage}
+      {...props}
     />
   )
 }
 
-const Controls: FC<ControlsProps> = ({ level }) =>
+export type ControlsProps = BaseControlsProps & {
+  level: Pick<Level, "mode">
+}
+
+const Controls: FC<ControlsProps> = props =>
   ({
-    blockly: <Blockly />,
-    python: <Python />,
-    blocklyAndPython: <BlocklyAndPython />,
-  })[level.mode]
+    blockly: <Blockly {...props} />,
+    python: <Python {...props} />,
+    blocklyAndPython: <BlocklyAndPython {...props} />,
+  })[props.level.mode]
 
 export default Controls
