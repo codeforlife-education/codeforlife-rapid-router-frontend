@@ -18,9 +18,7 @@ import type { Level } from "../api/level"
 export type BlocklyWorkspaceRef = {
   resize: () => void
   clear: () => void
-  /** Replaces the current program with one parsed from a Blockly XML
-   * solution string (see `pages/level/solutions`). */
-  loadSolution: (xml: string) => void
+  loadWorkspace: () => Promise<void>
   setLanguage: (language: Language) => void
   interpret: (
     generator?: keyof typeof generators,

@@ -44,7 +44,6 @@ import {
 import HintModal from "./HintModal"
 import { type Level } from "../../api/level"
 import { ZoomControls } from "../../phaser"
-import { getSolution } from "./solutions"
 import { usePlayInterval } from "../../phaser/usePlayInterval"
 
 type BaseControlsProps = { level: Pick<Level, "hint"> }
@@ -54,9 +53,7 @@ const Base: FC<
     Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
       panelCount: number
       onClear: () => void
-      /** Loads the level's model solution, if one exists - the Solve button
-       * is hidden entirely when this is omitted (e.g. Custom levels). */
-      onSolve?: () => void
+      onLoadSolution: () => Promise<void>
       interpretCommands: () => Promise<GameCommand[] | undefined>
       onLanguageChange?: (language: Language) => void
     }
@@ -64,7 +61,7 @@ const Base: FC<
   level,
   panelCount,
   onClear,
-  onSolve,
+  onLoadSolution,
   interpretCommands,
   onOpened,
   onClosed,
@@ -72,6 +69,7 @@ const Base: FC<
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [hintModalOpen, setHintModalOpen] = useState(false)
+  const [solving, setSolving] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
@@ -183,17 +181,17 @@ const Base: FC<
               : settings.threePanelLayout
           }
         />
-        {onSolve && (
-          <miniDrawers.ButtonItem
-            isDrawerOpen={isDrawerOpen}
-            text="Solve"
-            icon={<CheckIcon />}
-            onClick={() => {
-              clearPlayInterval()
-              onSolve()
-            }}
-          />
-        )}
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Solve"
+          icon={<CheckIcon />}
+          disabled={solving}
+          onClick={() => {
+            clearPlayInterval()
+            setSolving(true)
+            void onLoadSolution().finally(() => setSolving(false))
+          }}
+        />
         {onLanguageChange && (
           <miniDrawers.MenuItem
             isDrawerOpen={isDrawerOpen}
@@ -247,16 +245,9 @@ const Blockly: FC<BaseControlsProps> = props => {
   const interpretBlocklyWorkspace = useCallback(async () => {
     return await blocklyWorkspaceContext?.ref.current?.interpret()
   }, [blocklyWorkspaceContext])
-  const solution =
-    blocklyWorkspaceContext?.tilemapGroup !== undefined
-      ? getSolution(
-          blocklyWorkspaceContext.tilemapGroup,
-          blocklyWorkspaceContext.levelId,
-        )
-      : undefined
-  const solveBlocklyWorkspace = useCallback(() => {
-    if (solution) blocklyWorkspaceContext?.ref.current?.loadSolution(solution)
-  }, [blocklyWorkspaceContext, solution])
+  const loadBlocklyWorkspace = useCallback(async () => {
+    await blocklyWorkspaceContext?.ref.current?.loadWorkspace()
+  }, [blocklyWorkspaceContext])
   const changeBlocklyLanguage = useCallback(
     (language: Language) => {
       blocklyWorkspaceContext?.ref.current?.setLanguage(language)
@@ -269,7 +260,7 @@ const Blockly: FC<BaseControlsProps> = props => {
       panelCount={2}
       interpretCommands={interpretBlocklyWorkspace}
       onClear={clearBlocklyWorkspace}
-      onSolve={solution ? solveBlocklyWorkspace : undefined}
+      onLoadSolution={loadBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
       onLanguageChange={changeBlocklyLanguage}
@@ -290,25 +281,17 @@ const Python: FC<BaseControlsProps> = props => {
     if (pythonEditorContext?.mode !== "write") return undefined
     return await pythonEditorContext.ref.current?.interpret()
   }, [pythonEditorContext])
-  const solution =
-    pythonEditorContext?.mode === "write" &&
-    pythonEditorContext.tilemapGroup !== undefined
-      ? getSolution(
-          pythonEditorContext.tilemapGroup,
-          pythonEditorContext.levelId,
-        )
-      : undefined
-  const solvePythonEditor = useCallback(() => {
-    if (pythonEditorContext?.mode === "write" && solution)
-      pythonEditorContext.ref.current?.load(solution)
-  }, [pythonEditorContext, solution])
+  const loadPythonScript = useCallback(async () => {
+    if (pythonEditorContext?.mode === "write")
+      await pythonEditorContext.ref.current?.loadScript()
+  }, [pythonEditorContext])
 
   return (
     <Base
       panelCount={3}
       onClear={clearPythonEditorAndConsoleLogs}
       interpretCommands={interpretPythonEditor}
-      onSolve={solution ? solvePythonEditor : undefined}
+      onLoadSolution={loadPythonScript}
       {...props}
     />
   )
@@ -329,16 +312,9 @@ const BlocklyAndPython: FC<BaseControlsProps> = props => {
     const interpret = blocklyWorkspaceContext?.ref.current?.interpret
     return await interpret?.("python")
   }, [blocklyWorkspaceContext])
-  const solution =
-    blocklyWorkspaceContext?.tilemapGroup !== undefined
-      ? getSolution(
-          blocklyWorkspaceContext.tilemapGroup,
-          blocklyWorkspaceContext.levelId,
-        )
-      : undefined
-  const solveBlocklyWorkspace = useCallback(() => {
-    if (solution) blocklyWorkspaceContext?.ref.current?.loadSolution(solution)
-  }, [blocklyWorkspaceContext, solution])
+  const loadBlocklyWorkspace = useCallback(async () => {
+    await blocklyWorkspaceContext?.ref.current?.loadWorkspace()
+  }, [blocklyWorkspaceContext])
   const changeBlocklyLanguage = useCallback(
     (language: Language) => {
       blocklyWorkspaceContext?.ref.current?.setLanguage(language)
@@ -351,7 +327,7 @@ const BlocklyAndPython: FC<BaseControlsProps> = props => {
       panelCount={3}
       onClear={clearBlocklyWorkspaceAndPythonEditor}
       interpretCommands={interpretBlocklyWorkspace}
-      onSolve={solution ? solveBlocklyWorkspace : undefined}
+      onLoadSolution={loadBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
       onLanguageChange={changeBlocklyLanguage}
