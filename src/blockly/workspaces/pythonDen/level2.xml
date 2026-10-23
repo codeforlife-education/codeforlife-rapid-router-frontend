@@ -1,0 +1,43 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="start" deletable="false" x="100" y="100">
+    <next>
+      <block type="move_forwards">
+        <next>
+          <block type="move_forwards">
+            <next>
+              <block type="turn_left">
+                <next>
+                  <block type="turn_right">
+                    <next>
+                      <block type="move_forwards">
+                        <next>
+                          <block type="turn_right">
+                            <next>
+                              <block type="move_forwards">
+                                <next>
+                                  <block type="move_forwards">
+                                    <next>
+                                      <block type="move_forwards">
+                                        <next>
+                                          <block type="turn_left"></block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>
