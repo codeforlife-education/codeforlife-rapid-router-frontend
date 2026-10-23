@@ -1,0 +1,40 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="start" deletable="false" x="100" y="100">
+    <next>
+      <block type="procedures_callnoreturn">
+        <mutation name="wiggle"></mutation>
+        <next>
+          <block type="move_forwards">
+            <next>
+              <block type="procedures_callnoreturn">
+                <mutation name="wiggle"></mutation>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+  <block type="procedures_defnoreturn" x="193" y="620">
+    <field name="NAME">wiggle</field>
+    <statement name="STACK">
+      <block type="move_forwards">
+        <next>
+          <block type="turn_left">
+            <next>
+              <block type="controls_repeat">
+                <field name="TIMES">2</field>
+                <statement name="DO">
+                  <block type="turn_right"></block>
+                </statement>
+                <next>
+                  <block type="turn_left"></block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

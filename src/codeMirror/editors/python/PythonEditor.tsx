@@ -85,6 +85,7 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
       mode="write"
       ref={ref}
       starterCode={PYTHON_STARTER_CODE}
+      levelId={levelId}
       ready={ready}
       lineNo={errorLineNo ?? lineNos[gameCommandIndex]}
       onEdit={() => {

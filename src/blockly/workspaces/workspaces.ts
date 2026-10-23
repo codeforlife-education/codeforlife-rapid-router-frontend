@@ -8,9 +8,11 @@ import {
   START_BLOCK_TYPES,
   type StartBlockType,
   defaults,
-} from "./blocks"
-import { type Language, getBlocklyMessages } from "./messages"
-import { getSettingsCookie } from "../app/utils"
+} from "../blocks"
+import { type Language, getBlocklyMessages } from "../messages"
+import type { Level } from "../../api/level"
+import type { TilemapGroup } from "../../phaser/tilemaps"
+import { getSettingsCookie } from "../../app/utils"
 
 function initializeStartBlock(
   workspace: Blockly.WorkspaceSvg,
@@ -518,4 +520,90 @@ export function getProgramSnapshot(
       Blockly.serialization.blocks.save(block, { addCoordinates: false }),
     ),
   )
+}
+
+const SOLUTION_XML_CACHE = new Map<string, Promise<string>>()
+
+/** Lazily loads (and caches) a level's model solution, stored as Blockly XML
+ * next to this module (see `blockly/workspaces/<group>`). */
+function getSolutionXml(tilemapGroup: TilemapGroup, levelId: Level["id"]) {
+  const key = `${tilemapGroup}:${levelId}`
+  let xml = SOLUTION_XML_CACHE.get(key)
+  if (!xml) {
+    xml = import(
+      /* @vite-ignore */
+      `./${tilemapGroup}/level${levelId}.xml?raw`
+    ).then(module => (module as { default: string }).default)
+    SOLUTION_XML_CACHE.set(key, xml)
+  }
+  return xml
+}
+
+/**
+ * Replace the current program with the level's model solution (the legacy
+ * game's export format, stored as Blockly XML - see `blockly/workspaces`).
+ * Only the chain connected to the XML's own "start" block is reattached
+ * beneath this workspace's persistent start block; any other top-level
+ * block (e.g. a legacy procedure definition) is loaded as-is, best effort,
+ * since the solution may use block types this workspace doesn't define.
+ */
+export async function loadWorkspace(
+  workspace: Blockly.WorkspaceSvg,
+  startBlock: Blockly.BlockSvg,
+  levelId: Level["id"],
+  tilemapGroup: TilemapGroup,
+) {
+  let xml: string
+  try {
+    xml = await getSolutionXml(tilemapGroup, levelId)
+  } catch (error) {
+    console.error("Failed to load solution XML.", error)
+    return
+  }
+
+  clearWorkspace(workspace, startBlock)
+
+  let dom: Element
+  try {
+    dom = Blockly.utils.xml.textToDom(xml)
+  } catch (error) {
+    console.error("Failed to parse solution XML.", error)
+    return
+  }
+
+  for (const node of Array.from(dom.children)) {
+    if (node.tagName.toLowerCase() !== "block") continue
+
+    // The legacy "start" wrapper isn't a block type this workspace defines -
+    // reattach its own chain beneath the persistent start block instead.
+    if (node.getAttribute("type") === "start") {
+      const nextEl = Array.from(node.children).find(
+        child => child.tagName.toLowerCase() === "next",
+      )
+      const firstBlockEl = nextEl
+        ? Array.from(nextEl.children).find(
+            child => child.tagName.toLowerCase() === "block",
+          )
+        : undefined
+      if (!firstBlockEl) continue
+
+      try {
+        const block = Blockly.Xml.domToBlock(firstBlockEl, workspace)
+        if (startBlock.nextConnection && block.previousConnection)
+          startBlock.nextConnection.connect(block.previousConnection)
+      } catch (error) {
+        console.error("Failed to load solution's block chain.", error)
+      }
+      continue
+    }
+
+    // Any other top-level block (e.g. a legacy procedure definition).
+    try {
+      Blockly.Xml.domToBlock(node, workspace)
+    } catch (error) {
+      console.error("Failed to load solution block.", error)
+    }
+  }
+
+  workspace.cleanUp()
 }

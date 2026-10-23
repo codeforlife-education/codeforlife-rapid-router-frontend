@@ -1,0 +1,41 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="start" deletable="false" x="100" y="100">
+    <next>
+      <block type="controls_whileUntil">
+        <field name="MODE">UNTIL</field>
+        <value name="BOOL">
+          <block type="dead_end"></block>
+        </value>
+        <statement name="DO">
+          <block type="controls_whileUntil">
+            <field name="MODE">UNTIL</field>
+            <value name="BOOL">
+              <block type="road_exists">
+                <field name="CHOICE">LEFT</field>
+              </block>
+            </value>
+            <statement name="DO">
+              <block type="controls_whileUntil">
+                <field name="MODE">UNTIL</field>
+                <value name="BOOL">
+                  <block type="road_exists">
+                    <field name="CHOICE">RIGHT</field>
+                  </block>
+                </value>
+                <statement name="DO">
+                  <block type="move_forwards"></block>
+                </statement>
+                <next>
+                  <block type="turn_right"></block>
+                </next>
+              </block>
+            </statement>
+            <next>
+              <block type="turn_left"></block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </next>
+  </block>
+</xml>

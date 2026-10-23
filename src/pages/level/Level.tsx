@@ -34,7 +34,7 @@ import {
   type ReadOnlyPythonEditorProps,
   type WriteablePythonEditorProps,
 } from "../../codeMirror/editors/python"
-import { getMaxInstances, getToolboxContents } from "../../blockly/workspace"
+import { getMaxInstances, getToolboxContents } from "../../blockly/workspaces"
 import { CHARACTER_COMMANDS } from "../../app/character"
 import type { WriteableEditorRef } from "../../codeMirror/editors"
 import { paths } from "../../routes"

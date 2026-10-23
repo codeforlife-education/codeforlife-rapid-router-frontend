@@ -18,9 +18,10 @@ import {
   clearWorkspace,
   getProgramSnapshot,
   initializeBlockly,
+  loadWorkspace,
   resizeWorkspace,
   setBlocklyLanguage,
-} from "./workspace"
+} from "./workspaces"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -171,6 +172,15 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
         ? {
             resize: resizeWorkspace(blockly.workspace),
             clear: () => clearWorkspace(blockly.workspace, blockly.startBlock),
+            loadWorkspace: () =>
+              tilemapGroup === undefined
+                ? Promise.resolve()
+                : loadWorkspace(
+                    blockly.workspace,
+                    blockly.startBlock,
+                    levelId,
+                    tilemapGroup,
+                  ),
             interpret: generator => interpretRef.current(blockly, generator),
             setLanguage: (language: Language) => {
               const startBlock = setBlocklyLanguage(
@@ -185,10 +195,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
         : {
             resize: () => {},
             clear: () => {},
+            loadWorkspace: () => Promise.resolve(),
             setLanguage: () => {},
             interpret: () => new Promise(resolve => resolve(undefined)),
           },
-    [blockly, startBlockType, toolboxContents],
+    [blockly, startBlockType, toolboxContents, levelId, tilemapGroup],
   )
 
   // Workspace initialization and disposal.

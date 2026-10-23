@@ -18,6 +18,7 @@ import type { Level } from "../api/level"
 export type BlocklyWorkspaceRef = {
   resize: () => void
   clear: () => void
+  loadWorkspace: () => Promise<void>
   setLanguage: (language: Language) => void
   interpret: (
     generator?: keyof typeof generators,
