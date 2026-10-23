@@ -20,6 +20,7 @@ import {
   initializeBlockly,
   loadSolutionXml,
   resizeWorkspace,
+  setBlocklyLanguage,
 } from "./workspace"
 import {
   useAppDispatch,
@@ -28,6 +29,7 @@ import {
   usePhaserGameContext,
 } from "../app/hooks"
 import type { GameCommand } from "../app/slices/game"
+import { type Language } from "./messages"
 import { LevelSimulator } from "../phaser"
 import { type StartBlockType } from "./blocks"
 import { getTilemap } from "../phaser/tilemaps/load"
@@ -173,14 +175,24 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
             loadSolution: xml =>
               loadSolutionXml(blockly.workspace, blockly.startBlock, xml),
             interpret: generator => interpretRef.current(blockly, generator),
+            setLanguage: (language: Language) => {
+              const startBlock = setBlocklyLanguage(
+                language,
+                blockly.workspace,
+                startBlockType,
+                toolboxContents,
+              )
+              setBlockly({ workspace: blockly.workspace, startBlock })
+            },
           }
         : {
             resize: () => {},
             clear: () => {},
             loadSolution: () => {},
+            setLanguage: () => {},
             interpret: () => new Promise(resolve => resolve(undefined)),
           },
-    [blockly],
+    [blockly, startBlockType, toolboxContents],
   )
 
   // Workspace initialization and disposal.

@@ -12,6 +12,7 @@ import type {
   TilemapGroup,
 } from "../phaser/tilemaps"
 import type { GameCommand } from "../app/slices/game"
+import type { Language } from "./messages"
 import type { Level } from "../api/level"
 
 export type BlocklyWorkspaceRef = {
@@ -20,6 +21,7 @@ export type BlocklyWorkspaceRef = {
   /** Replaces the current program with one parsed from a Blockly XML
    * solution string (see `pages/level/solutions`). */
   loadSolution: (xml: string) => void
+  setLanguage: (language: Language) => void
   interpret: (
     generator?: keyof typeof generators,
   ) => Promise<GameCommand[] | undefined>
