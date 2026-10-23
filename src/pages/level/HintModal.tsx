@@ -1,4 +1,4 @@
-import { Box, Button, Modal, Typography } from "@mui/material"
+import { Box, Button, Modal, Stack, Typography } from "@mui/material"
 import { type FC } from "react"
 
 import type { Level } from "../../api/level"
@@ -17,7 +17,7 @@ const HintModal: FC<HintModalProps> = ({ open, onClose, level }) => (
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        width: { xs: "90%", sm: 700 },
+        width: "90%",
         maxHeight: "90%",
         overflowY: "auto",
         bgcolor: "background.paper",
@@ -25,20 +25,16 @@ const HintModal: FC<HintModalProps> = ({ open, onClose, level }) => (
         p: 2,
       }}
     >
-      <Typography variant="h3">Hint</Typography>
-      <Typography sx={{ mt: 1 }}>
-        {level.hint ||
-          "This is a placeholder hint to help you if you get stuck."}
-      </Typography>
-      <Button
-        type="button"
-        variant="contained"
-        fullWidth
-        sx={{ mt: 2 }}
-        onClick={onClose}
-      >
-        Close
-      </Button>
+      <Stack>
+        <Typography variant="h3">Hint</Typography>
+        <Typography>
+          {level.hint ||
+            "This is a placeholder hint to help you if you get stuck."}
+        </Typography>
+        <Button sx={{ ml: "auto" }} onClick={onClose}>
+          Close
+        </Button>
+      </Stack>
     </Box>
   </Modal>
 )
