@@ -1,10 +1,11 @@
 import type Phaser from "phaser"
 
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
+import { DEFAULT_MAX_FUEL, SceneKeys } from "../../../globals"
 import CharacterManager from "./CharacterManager"
+import FuelManager from "./FuelManager"
 import type { GameCommand } from "../../../../app/slices"
 import HUD from "../HUD"
-import { SceneKeys } from "../../../globals"
 
 export interface LevelData extends BaseLevelData {}
 
@@ -22,9 +23,17 @@ export default class extends BaseLevel<LevelData> {
   /** Character manager responsible for handling character objects. */
   character!: CharacterManager
 
+  /** Fuel manager responsible for tracking and depleting fuel. */
+  fuel!: FuelManager
+
   /** The commands compiled from the player's program. */
   get commands() {
     return this.getVariable<GameCommand[]>("commands", [])
+  }
+
+  /** The current level's max fuel, or the default if it didn't specify one. */
+  get maxFuel() {
+    return this.getVariable<number>("maxFuel", DEFAULT_MAX_FUEL)
   }
 
   /** The index of the command currently being executed, alongside the id of
@@ -44,6 +53,7 @@ export default class extends BaseLevel<LevelData> {
 
     // Initialize the managers.
     this.character = new CharacterManager(this)
+    this.fuel = new FuelManager(this)
   }
 
   // @ts-expect-error will be used in the future

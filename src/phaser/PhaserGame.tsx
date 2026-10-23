@@ -51,7 +51,8 @@ const PhaserGame: FC<PhaserGameProps> = props => {
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
-  const { ref, setActiveSceneKeys, phase, setPhase } = phaserGameContext
+  const { ref, setActiveSceneKeys, phase, setPhase, maxFuel } =
+    phaserGameContext
 
   const getVariable = useCallback(
     (<T,>(
@@ -188,6 +189,12 @@ const PhaserGame: FC<PhaserGameProps> = props => {
   useEffect(() => {
     if (mode === "play") setVariable("levelId", levelId)
   }, [mode, levelId, setVariable])
+
+  // Pass the level's max fuel to Phaser when in play mode, if it specifies
+  // one - otherwise Phaser falls back to its own default.
+  useEffect(() => {
+    if (mode === "play") setVariable("maxFuel", maxFuel)
+  }, [mode, maxFuel, setVariable])
 
   // Pass which tilemap to load to Phaser when in play mode - a predefined
   // group (dynamically imported) or an already-fetched custom level's

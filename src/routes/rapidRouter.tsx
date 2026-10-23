@@ -1071,6 +1071,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 68,
+    maxFuel: 9,
     mode: "blockly",
     name: "T - time",
     description: "Can you find the shortest route?",
@@ -1087,6 +1088,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 69,
+    maxFuel: 16,
     mode: "blockly",
     name: "Duck pond dodge",
     description: "Can you find the shortest route?",
@@ -1105,6 +1107,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 70,
+    maxFuel: 14,
     mode: "blockly",
     name: "Winter wonderland",
     description: "Can you find the shortest route?",
@@ -1138,6 +1141,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 72,
+    maxFuel: 14,
     mode: "blockly",
     name: "Can Wes find his lunch?",
     description: "Can you find the shortest route?",
@@ -1246,6 +1250,7 @@ const levels = [
   {
     tilemapGroup: "rapidRouter",
     id: 78,
+    maxFuel: 99,
     mode: "blockly",
     name: "Wandering Phil",
     description: "Can you get Phil to the house?",

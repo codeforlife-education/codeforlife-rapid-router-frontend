@@ -1,5 +1,21 @@
+import Phaser from "phaser"
+
+import {
+  DEFAULT_MAX_FUEL,
+  Events,
+  FUEL_GAUGE_SIZE,
+  SceneKeys,
+} from "../../globals"
 import BaseScene from "../BaseScene"
-import { SceneKeys } from "../../globals"
+
+const MARGIN_X = 20
+const MARGIN_Y = 20
+/** The needle's angle (degrees) at empty/full - tuned visually against the
+ * dial artwork: 0 is straight up (the needle's drawn orientation), positive
+ * is clockwise. Full sits at the right-hand end of the dial, empty at the
+ * bottom of the red section on the left. */
+const EMPTY_ANGLE = -120
+const FULL_ANGLE = 120
 
 /**
  * The HUD (Heads-Up Display) Scene is responsible for displaying game
@@ -11,15 +27,36 @@ import { SceneKeys } from "../../globals"
 export default class extends BaseScene {
   static readonly KEY = SceneKeys.Play.HUD
 
+  private pointer!: Phaser.GameObjects.Image
+
   create() {
-    // This text will stay glued to the bottom-right of the screen.
-    this.add
-      .text(
-        this.cameras.main.width - 20,
-        this.cameras.main.height - 20,
-        "Remaining Fuel: 100",
-        { font: "24px Arial", color: "#ffffff" },
-      )
-      .setOrigin(1, 1)
+    const x = this.cameras.main.width - MARGIN_X - FUEL_GAUGE_SIZE / 2
+    const y = this.cameras.main.height - MARGIN_Y - FUEL_GAUGE_SIZE / 2
+    this.add.image(x, y, "gauge_dial")
+    this.pointer = this.add.image(x, y, "gauge_pointer")
+    this.updateGauge()
+
+    const onPhaserSetVariable: Phaser.Events.PhaserSetVariable = key => {
+      if (key === "fuel") this.updateGauge()
+    }
+    this.game.events.on(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
+    this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off(Events.PHASER_SET_VARIABLE, onPhaserSetVariable)
+    })
+  }
+
+  /** The current level's max fuel, or the default if it didn't specify one. */
+  private get maxFuel() {
+    return this.getVariable<number>("maxFuel", DEFAULT_MAX_FUEL)
+  }
+
+  /** The current level's current fuel, or the max fuel if it wasn't set. */
+  private get fuel() {
+    return this.getVariable<number>("fuel", this.maxFuel)
+  }
+
+  private updateGauge() {
+    const t = Phaser.Math.Clamp(this.fuel / this.maxFuel, 0, 1)
+    this.pointer.setAngle(Phaser.Math.Linear(EMPTY_ANGLE, FULL_ANGLE, t))
   }
 }

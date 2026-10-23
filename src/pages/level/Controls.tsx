@@ -2,6 +2,7 @@ import {
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
   Delete as DeleteIcon,
   Help as HelpIcon,
+  Language as LanguageIcon,
   Pause as PauseIcon,
   PlayArrow as PlayArrowIcon,
   Redo as RedoIcon,
@@ -19,10 +20,16 @@ import {
   TWO_PANEL_LAYOUTS,
   nextGameCommand,
   restartGame,
+  setLanguage,
   setPlaySpeed,
   setThreePanelLayout,
   setTwoPanelLayout,
 } from "../../app/slices"
+import {
+  LANGUAGES,
+  LANGUAGE_NAMES,
+  type Language,
+} from "../../blockly/messages"
 import {
   useAppDispatch,
   useBlocklyWorkspaceContext,
@@ -46,8 +53,17 @@ const Base: FC<
     hint: string
     onClear: () => void
     interpretCommands: () => Promise<GameCommand[] | undefined>
+    onLanguageChange?: (language: Language) => void
   }
-> = ({ panelCount, hint, onClear, interpretCommands, onOpened, onClosed }) => {
+> = ({
+  panelCount,
+  hint,
+  onClear,
+  interpretCommands,
+  onOpened,
+  onClosed,
+  onLanguageChange,
+}) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [hintModalOpen, setHintModalOpen] = useState(false)
   const dispatch = useAppDispatch()
@@ -161,6 +177,23 @@ const Base: FC<
               : settings.threePanelLayout
           }
         />
+        {onLanguageChange && (
+          <miniDrawers.MenuItem
+            isDrawerOpen={isDrawerOpen}
+            icon={<LanguageIcon />}
+            text="Language"
+            menuItems={LANGUAGES.map(language => ({
+              value: language,
+              key: language,
+              title: LANGUAGE_NAMES[language],
+              onClick: () => {
+                dispatch(setLanguage(language))
+                onLanguageChange(language)
+              },
+            }))}
+            selectedValue={settings.language}
+          />
+        )}
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Clear"
@@ -197,6 +230,12 @@ const Blockly: FC<{ hint: string }> = ({ hint }) => {
   const interpretBlocklyWorkspace = useCallback(async () => {
     return await blocklyWorkspaceContext?.ref.current?.interpret()
   }, [blocklyWorkspaceContext])
+  const changeBlocklyLanguage = useCallback(
+    (language: Language) => {
+      blocklyWorkspaceContext?.ref.current?.setLanguage(language)
+    },
+    [blocklyWorkspaceContext],
+  )
 
   return (
     <Base
@@ -206,6 +245,7 @@ const Blockly: FC<{ hint: string }> = ({ hint }) => {
       onClear={clearBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
+      onLanguageChange={changeBlocklyLanguage}
     />
   )
 }
@@ -248,6 +288,12 @@ const BlocklyAndPython: FC<{ hint: string }> = ({ hint }) => {
     const interpret = blocklyWorkspaceContext?.ref.current?.interpret
     return await interpret?.("python")
   }, [blocklyWorkspaceContext])
+  const changeBlocklyLanguage = useCallback(
+    (language: Language) => {
+      blocklyWorkspaceContext?.ref.current?.setLanguage(language)
+    },
+    [blocklyWorkspaceContext],
+  )
 
   return (
     <Base
@@ -257,6 +303,7 @@ const BlocklyAndPython: FC<{ hint: string }> = ({ hint }) => {
       interpretCommands={interpretBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
+      onLanguageChange={changeBlocklyLanguage}
     />
   )
 }

@@ -12,11 +12,13 @@ import type {
   TilemapGroup,
 } from "../phaser/tilemaps"
 import type { GameCommand } from "../app/slices/game"
+import type { Language } from "./messages"
 import type { Level } from "../api/level"
 
 export type BlocklyWorkspaceRef = {
   resize: () => void
   clear: () => void
+  setLanguage: (language: Language) => void
   interpret: (
     generator?: keyof typeof generators,
   ) => Promise<GameCommand[] | undefined>
