@@ -1,0 +1,45 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="start" deletable="false" x="100" y="100">
+    <next>
+      <block type="procedures_callnoreturn">
+        <mutation name="go"></mutation>
+      </block>
+    </next>
+  </block>
+  <block type="procedures_defnoreturn" x="702" y="482">
+    <field name="NAME">go</field>
+    <statement name="STACK">
+      <block type="controls_if">
+        <mutation elseif="1"></mutation>
+        <value name="IF0">
+          <block type="road_exists">
+            <field name="CHOICE">FORWARD</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="move_forwards">
+            <next>
+              <block type="procedures_callnoreturn">
+                <mutation name="go"></mutation>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <value name="IF1">
+          <block type="road_exists">
+            <field name="CHOICE">LEFT</field>
+          </block>
+        </value>
+        <statement name="DO1">
+          <block type="turn_left">
+            <next>
+              <block type="procedures_callnoreturn">
+                <mutation name="go"></mutation>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

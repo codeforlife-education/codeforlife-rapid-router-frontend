@@ -1,0 +1,24 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="start" deletable="false" x="100" y="100">
+    <next>
+      <block type="controls_whileUntil">
+        <field name="MODE">UNTIL</field>
+        <value name="BOOL">
+          <block type="at_destination"></block>
+        </value>
+        <statement name="DO">
+          <block type="controls_if">
+            <value name="IF0">
+              <block type="road_exists">
+                <field name="CHOICE">FORWARD</field>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="move_forwards"></block>
+            </statement>
+          </block>
+        </statement>
+      </block>
+    </next>
+  </block>
+</xml>

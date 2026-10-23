@@ -1,0 +1,84 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="start" deletable="false" x="100" y="100">
+    <next>
+      <block type="procedures_callnoreturn">
+        <mutation name="double_left_right"></mutation>
+        <next>
+          <block type="procedures_callnoreturn">
+            <mutation name="left_forward"></mutation>
+            <next>
+              <block type="procedures_callnoreturn">
+                <mutation name="double_left_right"></mutation>
+                <next>
+                  <block type="turn_left">
+                    <next>
+                      <block type="procedures_callnoreturn">
+                        <mutation name="left_forward"></mutation>
+                        <next>
+                          <block type="controls_repeat">
+                            <field name="TIMES">2</field>
+                            <statement name="DO">
+                              <block type="procedures_callnoreturn">
+                                <mutation name="left_right"></mutation>
+                                <next>
+                                  <block type="turn_right"></block>
+                                </next>
+                              </block>
+                            </statement>
+                            <next>
+                              <block type="procedures_callnoreturn">
+                                <mutation name="double_left_right"></mutation>
+                                <next>
+                                  <block type="procedures_callnoreturn">
+                                    <mutation name="double_left_right"></mutation>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+  <block type="procedures_defnoreturn" x="609" y="498">
+    <field name="NAME">double_left_right</field>
+    <statement name="STACK">
+      <block type="controls_repeat">
+        <field name="TIMES">2</field>
+        <statement name="DO">
+          <block type="procedures_callnoreturn">
+            <mutation name="left_right"></mutation>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="procedures_defnoreturn" x="633" y="633">
+    <field name="NAME">left_forward</field>
+    <statement name="STACK">
+      <block type="turn_left">
+        <next>
+          <block type="move_forwards"></block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="procedures_defnoreturn" x="607" y="761">
+    <field name="NAME">left_right</field>
+    <statement name="STACK">
+      <block type="turn_left">
+        <next>
+          <block type="turn_right"></block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>
