@@ -11,6 +11,7 @@ import {
   Stop as StopIcon,
 } from "@mui/icons-material"
 import { type FC, useCallback, useState } from "react"
+import { Divider } from "@mui/material"
 import type { PayloadAction } from "@reduxjs/toolkit"
 
 import * as miniDrawers from "../../components/miniDrawers"
@@ -120,28 +121,6 @@ const Base: FC<
               )
           }}
         />
-        <miniDrawers.MenuItem
-          isDrawerOpen={isDrawerOpen}
-          icon={<SpeedIcon />}
-          text="Speed"
-          menuItems={PLAY_SPEEDS.map(playSpeed => ({
-            value: playSpeed,
-            key: playSpeed,
-            onClick: () => dispatch(setPlaySpeed(playSpeed)),
-          }))}
-          selectedValue={settings.playSpeed}
-        />
-        <miniDrawers.ButtonItem
-          isDrawerOpen={isDrawerOpen}
-          text="Stop"
-          icon={<StopIcon />}
-          disabled={phase === "idle" || !gameIsDefined}
-          onClick={() => {
-            clearPlayInterval()
-            dispatch(restartGame())
-            setPhase("idle")
-          }}
-        />
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Step"
@@ -163,24 +142,27 @@ const Base: FC<
             setPhase("paused")
           }}
         />
-        <miniDrawers.MenuItem
+        <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
-          text="Layout"
-          icon={<AutoAwesomeMosaicIcon />}
-          menuItems={
-            panelCount === 2
-              ? mapPanelLayoutsToMenuItems(TWO_PANEL_LAYOUTS, setTwoPanelLayout)
-              : mapPanelLayoutsToMenuItems(
-                  THREE_PANEL_LAYOUTS,
-                  setThreePanelLayout,
-                )
-          }
-          selectedValue={
-            panelCount === 2
-              ? settings.twoPanelLayout
-              : settings.threePanelLayout
-          }
+          text="Stop"
+          icon={<StopIcon />}
+          disabled={phase === "idle" || !gameIsDefined}
+          onClick={() => {
+            clearPlayInterval()
+            dispatch(restartGame())
+            setPhase("idle")
+          }}
         />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Clear"
+          icon={<DeleteIcon />}
+          onClick={() => {
+            clearPlayInterval()
+            onClear()
+          }}
+        />
+        <Divider />
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Solve"
@@ -211,18 +193,39 @@ const Base: FC<
         )}
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
-          text="Clear"
-          icon={<DeleteIcon />}
-          onClick={() => {
-            clearPlayInterval()
-            onClear()
-          }}
-        />
-        <miniDrawers.ButtonItem
-          isDrawerOpen={isDrawerOpen}
           text="Hint"
           icon={<HelpIcon />}
           onClick={() => setHintModalOpen(true)}
+        />
+        <Divider />
+        <miniDrawers.MenuItem
+          isDrawerOpen={isDrawerOpen}
+          text="Layout"
+          icon={<AutoAwesomeMosaicIcon />}
+          menuItems={
+            panelCount === 2
+              ? mapPanelLayoutsToMenuItems(TWO_PANEL_LAYOUTS, setTwoPanelLayout)
+              : mapPanelLayoutsToMenuItems(
+                  THREE_PANEL_LAYOUTS,
+                  setThreePanelLayout,
+                )
+          }
+          selectedValue={
+            panelCount === 2
+              ? settings.twoPanelLayout
+              : settings.threePanelLayout
+          }
+        />
+        <miniDrawers.MenuItem
+          isDrawerOpen={isDrawerOpen}
+          icon={<SpeedIcon />}
+          text="Speed"
+          menuItems={PLAY_SPEEDS.map(playSpeed => ({
+            value: playSpeed,
+            key: playSpeed,
+            onClick: () => dispatch(setPlaySpeed(playSpeed)),
+          }))}
+          selectedValue={settings.playSpeed}
         />
       </miniDrawers.MiniDrawer>
       <HintModal
