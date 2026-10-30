@@ -1,0 +1,24 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="start" deletable="false" x="100" y="100">
+    <next>
+      <block type="controls_repeat">
+        <field name="TIMES">2</field>
+        <statement name="DO">
+          <block type="move_forwards"></block>
+        </statement>
+        <next>
+          <block type="turn_left">
+            <next>
+              <block type="controls_repeat">
+                <field name="TIMES">3</field>
+                <statement name="DO">
+                  <block type="move_forwards"></block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>

@@ -20,6 +20,7 @@ import { InfoOutline as InfoOutlineIcon } from "@mui/icons-material"
 import { type GameCommand, setGameCommands } from "../../app/slices"
 import { dispatchHighlightedLine, highlightLine } from "../extensions"
 import { useAppDispatch, usePhaserGameContext } from "../../app/hooks"
+import { loadScript } from "../scripts"
 
 type EditorProps = {
   value: string
@@ -111,6 +112,10 @@ const ReadOnlyEditor: FC<ReadOnlyEditorProps> = props => (
 export type WriteableEditorRef = {
   /** Resets the editor back to its starter code. */
   clear: () => void
+  /** Replaces the editor's current code (e.g. with a level's solution). */
+  load: (code: string) => void
+  /** Loads the editor with a predetermined script (the level's solution). */
+  loadScript: () => Promise<void>
   /** Interprets the editor's current code and returns a promise that
    * resolves to the interpreted commands, or `undefined` on failure.
    */
@@ -123,6 +128,8 @@ export type WriteableEditorProps = Pick<
 > & {
   ref: RefObject<WriteableEditorRef | null>
   starterCode: string
+  /** Needed to look up this level's solution script for `loadScript`. */
+  levelId: number
   interpret: (code: string) => Promise<GameCommand[] | undefined>
   /** Called whenever the code is edited, in addition to the generic game-
    * command reset below - for mode-specific state (e.g. line highlights)
@@ -133,6 +140,7 @@ export type WriteableEditorProps = Pick<
 const WriteableEditor: FC<WriteableEditorProps> = ({
   ref,
   starterCode,
+  levelId,
   interpret,
   onEdit,
   ...props
@@ -149,6 +157,15 @@ const WriteableEditor: FC<WriteableEditorProps> = ({
     ref,
     () => ({
       clear: () => setCode(starterCode),
+      load: (code: string) => setCode(code),
+      loadScript: async () => {
+        try {
+          // TODO: Handle loading scripts of other languages besides Python.
+          setCode(await loadScript("python", levelId))
+        } catch (error) {
+          console.error("Failed to load solution script.", error)
+        }
+      },
       interpret: () =>
         interpret(codeRef.current).then(commands => {
           if (commands === undefined) setPhase("crashed")
@@ -156,7 +173,7 @@ const WriteableEditor: FC<WriteableEditorProps> = ({
           return commands
         }),
     }),
-    [starterCode, interpret, setPhase, dispatch],
+    [starterCode, levelId, interpret, setPhase, dispatch],
   )
 
   // Any edit invalidates the last interpretation, same as a Blockly edit.

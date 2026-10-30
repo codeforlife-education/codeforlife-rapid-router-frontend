@@ -1,0 +1,63 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="start" deletable="false" x="100" y="100">
+    <next>
+      <block type="procedures_callnoreturn">
+        <mutation name="double_straight_right"></mutation>
+        <next>
+          <block type="turn_left">
+            <next>
+              <block type="procedures_callnoreturn">
+                <mutation name="triple_straight_right"></mutation>
+                <next>
+                  <block type="procedures_callnoreturn">
+                    <mutation name="double_straight_right"></mutation>
+                    <next>
+                      <block type="procedures_callnoreturn">
+                        <mutation name="triple_straight_right"></mutation>
+                        <next>
+                          <block type="turn_left">
+                            <next>
+                              <block type="procedures_callnoreturn">
+                                <mutation name="double_straight_right"></mutation>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+  <block type="procedures_defnoreturn" x="400" y="-383">
+    <field name="NAME">double_straight_right</field>
+    <statement name="STACK">
+      <block type="move_forwards">
+        <next>
+          <block type="move_forwards">
+            <next>
+              <block type="turn_right"></block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="procedures_defnoreturn" x="400" y="-196">
+    <field name="NAME">triple_straight_right</field>
+    <statement name="STACK">
+      <block type="move_forwards">
+        <next>
+          <block type="procedures_callnoreturn">
+            <mutation name="double_straight_right"></mutation>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

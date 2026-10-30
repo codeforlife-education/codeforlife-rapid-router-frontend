@@ -1,5 +1,6 @@
 import {
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
+  Check as CheckIcon,
   Delete as DeleteIcon,
   Help as HelpIcon,
   Language as LanguageIcon,
@@ -10,6 +11,7 @@ import {
   Stop as StopIcon,
 } from "@mui/icons-material"
 import { type FC, useCallback, useState } from "react"
+import { Divider } from "@mui/material"
 import type { PayloadAction } from "@reduxjs/toolkit"
 
 import * as miniDrawers from "../../components/miniDrawers"
@@ -52,6 +54,7 @@ const Base: FC<
     Pick<miniDrawers.MiniDrawerProps, "onOpened" | "onClosed"> & {
       panelCount: number
       onClear: () => void
+      onLoadSolution: () => Promise<void>
       interpretCommands: () => Promise<GameCommand[] | undefined>
       onLanguageChange?: (language: Language) => void
     }
@@ -59,6 +62,7 @@ const Base: FC<
   level,
   panelCount,
   onClear,
+  onLoadSolution,
   interpretCommands,
   onOpened,
   onClosed,
@@ -66,6 +70,7 @@ const Base: FC<
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [hintModalOpen, setHintModalOpen] = useState(false)
+  const [solving, setSolving] = useState(false)
   const dispatch = useAppDispatch()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
@@ -116,28 +121,6 @@ const Base: FC<
               )
           }}
         />
-        <miniDrawers.MenuItem
-          isDrawerOpen={isDrawerOpen}
-          icon={<SpeedIcon />}
-          text="Speed"
-          menuItems={PLAY_SPEEDS.map(playSpeed => ({
-            value: playSpeed,
-            key: playSpeed,
-            onClick: () => dispatch(setPlaySpeed(playSpeed)),
-          }))}
-          selectedValue={settings.playSpeed}
-        />
-        <miniDrawers.ButtonItem
-          isDrawerOpen={isDrawerOpen}
-          text="Stop"
-          icon={<StopIcon />}
-          disabled={phase === "idle" || !gameIsDefined}
-          onClick={() => {
-            clearPlayInterval()
-            dispatch(restartGame())
-            setPhase("idle")
-          }}
-        />
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text="Step"
@@ -159,23 +142,37 @@ const Base: FC<
             setPhase("paused")
           }}
         />
-        <miniDrawers.MenuItem
+        <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
-          text="Layout"
-          icon={<AutoAwesomeMosaicIcon />}
-          menuItems={
-            panelCount === 2
-              ? mapPanelLayoutsToMenuItems(TWO_PANEL_LAYOUTS, setTwoPanelLayout)
-              : mapPanelLayoutsToMenuItems(
-                  THREE_PANEL_LAYOUTS,
-                  setThreePanelLayout,
-                )
-          }
-          selectedValue={
-            panelCount === 2
-              ? settings.twoPanelLayout
-              : settings.threePanelLayout
-          }
+          text="Stop"
+          icon={<StopIcon />}
+          disabled={phase === "idle" || !gameIsDefined}
+          onClick={() => {
+            clearPlayInterval()
+            dispatch(restartGame())
+            setPhase("idle")
+          }}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Clear"
+          icon={<DeleteIcon />}
+          onClick={() => {
+            clearPlayInterval()
+            onClear()
+          }}
+        />
+        <Divider />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Solve"
+          icon={<CheckIcon />}
+          disabled={solving}
+          onClick={() => {
+            clearPlayInterval()
+            setSolving(true)
+            void onLoadSolution().finally(() => setSolving(false))
+          }}
         />
         {onLanguageChange && (
           <miniDrawers.MenuItem
@@ -196,18 +193,39 @@ const Base: FC<
         )}
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
-          text="Clear"
-          icon={<DeleteIcon />}
-          onClick={() => {
-            clearPlayInterval()
-            onClear()
-          }}
-        />
-        <miniDrawers.ButtonItem
-          isDrawerOpen={isDrawerOpen}
           text="Hint"
           icon={<HelpIcon />}
           onClick={() => setHintModalOpen(true)}
+        />
+        <Divider />
+        <miniDrawers.MenuItem
+          isDrawerOpen={isDrawerOpen}
+          text="Layout"
+          icon={<AutoAwesomeMosaicIcon />}
+          menuItems={
+            panelCount === 2
+              ? mapPanelLayoutsToMenuItems(TWO_PANEL_LAYOUTS, setTwoPanelLayout)
+              : mapPanelLayoutsToMenuItems(
+                  THREE_PANEL_LAYOUTS,
+                  setThreePanelLayout,
+                )
+          }
+          selectedValue={
+            panelCount === 2
+              ? settings.twoPanelLayout
+              : settings.threePanelLayout
+          }
+        />
+        <miniDrawers.MenuItem
+          isDrawerOpen={isDrawerOpen}
+          icon={<SpeedIcon />}
+          text="Speed"
+          menuItems={PLAY_SPEEDS.map(playSpeed => ({
+            value: playSpeed,
+            key: playSpeed,
+            onClick: () => dispatch(setPlaySpeed(playSpeed)),
+          }))}
+          selectedValue={settings.playSpeed}
         />
       </miniDrawers.MiniDrawer>
       <HintModal
@@ -230,6 +248,9 @@ const Blockly: FC<BaseControlsProps> = props => {
   const interpretBlocklyWorkspace = useCallback(async () => {
     return await blocklyWorkspaceContext?.ref.current?.interpret()
   }, [blocklyWorkspaceContext])
+  const loadBlocklyWorkspace = useCallback(async () => {
+    await blocklyWorkspaceContext?.ref.current?.loadWorkspace()
+  }, [blocklyWorkspaceContext])
   const changeBlocklyLanguage = useCallback(
     (language: Language) => {
       blocklyWorkspaceContext?.ref.current?.setLanguage(language)
@@ -242,6 +263,7 @@ const Blockly: FC<BaseControlsProps> = props => {
       panelCount={2}
       interpretCommands={interpretBlocklyWorkspace}
       onClear={clearBlocklyWorkspace}
+      onLoadSolution={loadBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
       onLanguageChange={changeBlocklyLanguage}
@@ -262,12 +284,17 @@ const Python: FC<BaseControlsProps> = props => {
     if (pythonEditorContext?.mode !== "write") return undefined
     return await pythonEditorContext.ref.current?.interpret()
   }, [pythonEditorContext])
+  const loadPythonScript = useCallback(async () => {
+    if (pythonEditorContext?.mode === "write")
+      await pythonEditorContext.ref.current?.loadScript()
+  }, [pythonEditorContext])
 
   return (
     <Base
       panelCount={3}
       onClear={clearPythonEditorAndConsoleLogs}
       interpretCommands={interpretPythonEditor}
+      onLoadSolution={loadPythonScript}
       {...props}
     />
   )
@@ -288,6 +315,9 @@ const BlocklyAndPython: FC<BaseControlsProps> = props => {
     const interpret = blocklyWorkspaceContext?.ref.current?.interpret
     return await interpret?.("python")
   }, [blocklyWorkspaceContext])
+  const loadBlocklyWorkspace = useCallback(async () => {
+    await blocklyWorkspaceContext?.ref.current?.loadWorkspace()
+  }, [blocklyWorkspaceContext])
   const changeBlocklyLanguage = useCallback(
     (language: Language) => {
       blocklyWorkspaceContext?.ref.current?.setLanguage(language)
@@ -300,6 +330,7 @@ const BlocklyAndPython: FC<BaseControlsProps> = props => {
       panelCount={3}
       onClear={clearBlocklyWorkspaceAndPythonEditor}
       interpretCommands={interpretBlocklyWorkspace}
+      onLoadSolution={loadBlocklyWorkspace}
       onOpened={resizeBlocklyWorkspace}
       onClosed={resizeBlocklyWorkspace}
       onLanguageChange={changeBlocklyLanguage}
