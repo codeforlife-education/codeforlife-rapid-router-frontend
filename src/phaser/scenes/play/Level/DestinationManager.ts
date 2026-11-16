@@ -10,7 +10,7 @@ type Tile = Phaser.Types.Tilemaps.Tile
  * the legacy game's `DESTINATION_NOT_VISITED_COLOUR`/`_VISITED_COLOUR`. */
 const NOT_DELIVERED_COLOUR = 0xff0000
 const DELIVERED_COLOUR = 0x008000
-const BORDER_WIDTH = 2
+const BORDER_WIDTH = 1
 
 const tileKey = ({ row, col }: Tile) => `${row},${col}`
 
