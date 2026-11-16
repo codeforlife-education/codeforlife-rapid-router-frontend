@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/compare/v1.7.0...v1.8.0) (2026-11-16)
+
+
+### Features
+
+* Destination detection ([#114](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/issues/114)) ([d21cd19](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/commit/d21cd19b2c81ddf62088c3a6cffca3cabcd40e84))
+
 # [1.7.0](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/compare/v1.6.0...v1.7.0) (2026-11-16)
 
 
