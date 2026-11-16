@@ -10,7 +10,15 @@ export const GAME_COMMANDS = [
   "deliver",
   "sound_horn",
 ] as const
-export type GameCommand = (typeof GAME_COMMANDS)[number]
+/**
+ * A step in the game that isn't one of the character's own actions - e.g. a
+ * loop/if header or a sensing check - recorded so playback pauses on (and
+ * highlights) it. Unlike `wait`, it doesn't advance traffic lights or cost
+ * fuel. Deliberately kept out of `GAME_COMMANDS`, as it's never something a
+ * player can command directly.
+ */
+export type ObserveCommand = "observe"
+export type GameCommand = (typeof GAME_COMMANDS)[number] | ObserveCommand
 
 export interface GameState {
   /** The interpreted command sequence. */

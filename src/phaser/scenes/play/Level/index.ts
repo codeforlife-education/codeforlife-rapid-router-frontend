@@ -6,6 +6,7 @@ import CharacterManager from "./CharacterManager"
 import FuelManager from "./FuelManager"
 import type { GameCommand } from "../../../../app/slices"
 import HUD from "../HUD"
+import ObstacleManager from "./ObstacleManager"
 
 export interface LevelData extends BaseLevelData {}
 
@@ -25,6 +26,9 @@ export default class extends BaseLevel<LevelData> {
 
   /** Fuel manager responsible for tracking and depleting fuel. */
   fuel!: FuelManager
+
+  /** Obstacle manager responsible for showing traffic lights and animals. */
+  obstacles!: ObstacleManager
 
   /** The commands compiled from the player's program. */
   get commands() {
@@ -51,7 +55,9 @@ export default class extends BaseLevel<LevelData> {
 
     super.create()
 
-    // Initialize the managers.
+    // Initialize the managers. The obstacles must exist before the character,
+    // which resets them whenever it (re)spawns.
+    this.obstacles = new ObstacleManager(this)
     this.character = new CharacterManager(this)
     this.fuel = new FuelManager(this)
   }

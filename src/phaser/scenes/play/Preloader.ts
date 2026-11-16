@@ -2,7 +2,7 @@ import Phaser from "phaser"
 
 import * as images from "../../images"
 import * as tilemaps from "../../tilemaps"
-import { FUEL_GAUGE_SIZE, SceneKeys } from "../../globals"
+import { CRASH_PARTICLE_SIZE, FUEL_GAUGE_SIZE, SceneKeys } from "../../globals"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
 
@@ -23,6 +23,15 @@ export default class extends BasePreloader {
     this.load.svg("gauge_pointer", images.URLs.HUD.FuelGauge.POINTER, {
       width: FUEL_GAUGE_SIZE,
       height: FUEL_GAUGE_SIZE,
+    })
+    // The fire and smoke a character bursts into when it crashes.
+    this.load.svg("particle_fire", images.URLs.Particles.FIRE, {
+      width: CRASH_PARTICLE_SIZE,
+      height: CRASH_PARTICLE_SIZE,
+    })
+    this.load.svg("particle_smoke", images.URLs.Particles.SMOKE, {
+      width: CRASH_PARTICLE_SIZE,
+      height: CRASH_PARTICLE_SIZE,
     })
   }
 

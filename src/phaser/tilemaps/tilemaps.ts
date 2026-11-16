@@ -149,7 +149,17 @@ export const makeOrthogonal = <
         _layers.objectGroup.endpoints,
         _layers.objectGroup.obstacles,
         _layers.objectGroup.scenery,
-      ].flatMap(group => group?.objects.map(obj => obj.gid) ?? []),
+      ]
+        .flatMap(group => group?.objects.map(obj => obj.gid) ?? [])
+        // Traffic lights switch between red and green during play, so both
+        // colours' tilesets (and so textures) are needed if either is used.
+        .flatMap(gid =>
+          tilesets.obstacles.trafficLight.IDs.includes(
+            gid as tilesets.obstacles.trafficLight.ID,
+          )
+            ? tilesets.obstacles.trafficLight.IDs
+            : [gid],
+        ),
     ]),
   )
     .map(tilesets.getTileset)
