@@ -52,6 +52,12 @@ declare module "phaser" {
       /** Immediately finishes the current animation, if any. */
       finishAnimation(): void
 
+      /** Wrecks the character in a burst of fire and smoke, if it can be wrecked. */
+      wreck(): void
+
+      /** Undoes `wreck()`, e.g. when the character respawns. */
+      repair(): this
+
       /** Animates the character moving from one point to another. */
       move(
         from: Phaser.Types.Math.Vector2Like,

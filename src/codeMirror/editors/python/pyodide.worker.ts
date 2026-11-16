@@ -23,8 +23,8 @@ import { getTilemap } from "../../../phaser/tilemaps/load"
 // student code can do `from van import Van; my_van = Van()`. A `sys.settrace`
 // tracer (`_LineTracer`) watches the student's own top-level frame: whenever
 // a source line finishes without a command being issued (e.g. a loop/`if`
-// header, or a plain sensing check), it synthesises a "wait" for that line,
-// so the editor's highlight visits every executed line, not just the ones
+// header, or a plain sensing check), it synthesises an "observe" for that
+// line, so the editor's highlight visits every executed line, not just the ones
 // that call a Van method. Each Van command method still passes the CALLER's
 // line number (`f_back.f_lineno`) through, so its own JS call is tagged with
 // the exact line that issued it.
@@ -67,6 +67,8 @@ void getPyodide().then(() => {
 self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
   const { id, code, levelId, tilemapGroup, tilemap } = data
   let errorLine: number | undefined
+  // Kept outside the `try` so a collision can still be reported from `catch`.
+  let runSimulator: LevelSimulator | undefined
   try {
     const [pyodide, resolvedTilemap] = await Promise.all([
       getPyodide(),
@@ -77,6 +79,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
         : getTilemap(levelId, tilemapGroup),
     ])
     const simulator = new LevelSimulator(resolvedTilemap)
+    runSimulator = simulator
 
     // A fresh globals dict per run - keeps runs isolated from each other.
     // `LevelSimulator`'s command methods take an options object; Python
@@ -94,6 +97,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       _wait: (lineNo?: number) => simulator.wait({ lineNo }),
       _deliver: (lineNo?: number) => simulator.deliver({ lineNo }),
       _sound_horn: (lineNo?: number) => simulator.soundHorn({ lineNo }),
+      _observe: (lineNo?: number) => simulator.observe({ lineNo }),
       _is_road: simulator.isRoad,
       _is_road_forward: simulator.isRoadForward,
       _is_road_left: simulator.isRoadLeft,
@@ -118,6 +122,19 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     }
     self.postMessage(response)
   } catch (error) {
+    // The character collided with something, which stops the student's
+    // program (the simulator throws to end it) - but the program itself ran
+    // fine, and the colliding command is the last one recorded, so playback
+    // shows the collision.
+    if (runSimulator?.crash) {
+      const response: WorkerResponse = {
+        type: "result",
+        id,
+        commands: runSimulator.commands,
+      }
+      self.postMessage(response)
+      return
+    }
     const message = error instanceof Error ? error.message : String(error)
     const response: WorkerResponse = {
       type: "error",

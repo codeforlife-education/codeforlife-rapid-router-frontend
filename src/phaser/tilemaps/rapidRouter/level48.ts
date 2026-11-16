@@ -129,18 +129,38 @@ export default tilemaps.makeOrthogonal({
           layers.objectGroup.objects.obstacles.trafficLight.red.left({
             col: 4,
             row: 2,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 4,
+                greenDuration: 2,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.right({
             col: 4,
             row: 2,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 4,
+                greenDuration: 2,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.green.top({
             col: 4,
             row: 2,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 2,
+                greenDuration: 4,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.green.bottom({
             col: 4,
             row: 2,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 2,
+                greenDuration: 4,
+              }),
           }),
         ],
       },

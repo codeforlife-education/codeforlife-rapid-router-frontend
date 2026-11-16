@@ -148,42 +148,92 @@ export default tilemaps.makeOrthogonal({
           layers.objectGroup.objects.obstacles.trafficLight.red.left({
             col: 3,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.green.right({
             col: 3,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.green.top({
             col: 1,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.bottom({
             col: 3,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.top({
             col: 3,
             row: 6,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.green.top({
             col: 6,
             row: 6,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.left({
             col: 5,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.bottom({
             col: 6,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.left({
             col: 8,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.bottom({
             col: 8,
             row: 2,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
         ],
       },

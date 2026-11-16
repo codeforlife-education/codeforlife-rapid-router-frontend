@@ -20,6 +20,8 @@ export default class extends Phaser.GameObjects.Sprite {
   readonly defaultTurnDurationMs: number
   /** The function to call to finish the current animation, if any. */
   private _finishAnimation?: () => void
+  /** The fire/smoke emitters of a crash still in progress, if any. */
+  private crashEmitters: Phaser.GameObjects.Particles.ParticleEmitter[] = []
 
   constructor(
     scene: Phaser.Scene,
@@ -96,6 +98,46 @@ export default class extends Phaser.GameObjects.Sprite {
 
   /** Immediately finishes the current animation, if any. */
   finishAnimation = () => this._finishAnimation?.()
+
+  /**
+   * Wrecks the character in a burst of fire and smoke (like the legacy
+   * game's `_animateCollision`) - only if it has a wreckage texture, as only
+   * vans can be wrecked; other characters are left as they are.
+   */
+  wreck() {
+    if (!this.wreckageTexture) return
+
+    this.setTexture("wreckage")
+    this.crashEmitters = (["particle_fire", "particle_smoke"] as const).map(
+      key => {
+        const emitter = this.scene.add.particles(this.x, this.y, key, {
+          // Scatter the particles around the character's centre...
+          x: { min: -10, max: 10 },
+          y: { min: -10, max: 10 },
+          // ...growing and fading as they burn out...
+          scale: { start: 0.5, end: 1.5 },
+          alpha: { start: 1, end: 0 },
+          lifespan: 800,
+          // ...staggered over a short burst.
+          frequency: 40,
+          stopAfter: 10,
+        })
+        emitter.setDepth(this.depth + 1)
+        emitter.once(Phaser.GameObjects.Particles.Events.COMPLETE, () => {
+          this.crashEmitters = this.crashEmitters.filter(e => e !== emitter)
+          emitter.destroy()
+        })
+        return emitter
+      },
+    )
+  }
+
+  /** Undoes `wreck()`, e.g. when the character respawns. */
+  repair() {
+    for (const emitter of this.crashEmitters) emitter.destroy()
+    this.crashEmitters = []
+    return this.setTexture("normal")
+  }
 
   /** Animates the character moving from one point to another linearly. */
   move(

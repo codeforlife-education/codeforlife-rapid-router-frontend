@@ -4,10 +4,10 @@ import { Events } from "../../../globals"
 import type { GameCommand } from "../../../../app/slices"
 import type Level from "."
 
-/** The amount of fuel each command costs to execute. `wait` never costs
- * fuel, whether it's a real explicit wait block/call or one synthesised
- * purely for editor highlighting (a loop/if header, variable assignment,
- * sensing check, etc.) - only actual movement/action commands do. */
+/** The amount of fuel each command costs to execute. Neither `wait` nor
+ * `observe` (a step synthesised purely for editor highlighting, e.g. a
+ * loop/if header or sensing check) cost fuel - only actual movement/action
+ * commands do. */
 export const FUEL_COST: Record<GameCommand, number> = {
   move_forwards: 1,
   turn_left: 1,
@@ -16,6 +16,7 @@ export const FUEL_COST: Record<GameCommand, number> = {
   wait: 0,
   deliver: 1,
   sound_horn: 1,
+  observe: 0,
 }
 
 /**

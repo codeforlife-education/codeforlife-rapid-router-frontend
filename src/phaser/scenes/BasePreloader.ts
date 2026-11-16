@@ -94,11 +94,23 @@ export default class BasePreloader<
     this.load.svg(normalSvgKey, characterUrl, { scale })
     this.levelData.character.normalKey = normalKey
 
-    let wreckageKey: keyof typeof images.URLs.Character.Wreckage | undefined
-    if (normalKey === "VAN") wreckageKey = "VAN"
+    // Only vans are wrecked when they crash - other characters keep their
+    // normal texture. There's no electric van wreckage art (in this or the
+    // legacy game), so it reuses the van's.
+    const wreckageKey = (
+      {
+        VAN: "VAN",
+        ELECTRIC_VAN: "VAN",
+      } as Partial<
+        Record<
+          keyof typeof images.URLs.Character.Normal,
+          keyof typeof images.URLs.Character.Wreckage
+        >
+      >
+    )[normalKey]
+    this.levelData.character.wreckageKey = wreckageKey
     if (!wreckageKey) return
 
-    // TODO: create wreckage SVG for all characters.
     scale = (
       {
         SLEIGH: 1, // TODO: Adjust scale if necessary.
@@ -109,7 +121,6 @@ export default class BasePreloader<
     const wreckageUrl = images.URLs.Character.Wreckage[wreckageKey]
     const wreckageSvgKey = `character_wreckage_${wreckageKey}`
     this.load.svg(wreckageSvgKey, wreckageUrl, { scale })
-    this.levelData.character.wreckageKey = wreckageKey
   }
 
   /**

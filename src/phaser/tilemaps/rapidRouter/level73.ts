@@ -103,22 +103,47 @@ export default tilemaps.makeOrthogonal({
           layers.objectGroup.objects.obstacles.trafficLight.red.top({
             col: 5,
             row: 2,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.top({
             col: 3,
             row: 2,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.red.bottom({
             col: 4,
             row: 1,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.green.top({
             col: 5,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
           layers.objectGroup.objects.obstacles.trafficLight.green.top({
             col: 3,
             row: 3,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 3,
+                greenDuration: 3,
+              }),
           }),
         ],
       },

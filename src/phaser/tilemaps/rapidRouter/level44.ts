@@ -46,6 +46,11 @@ export default tilemaps.makeOrthogonal({
           layers.objectGroup.objects.obstacles.trafficLight.red.left({
             col: 4,
             row: 4,
+            properties:
+              layers.objectGroup.objects.obstacles.trafficLight.timing({
+                redDuration: 4,
+                greenDuration: 2,
+              }),
           }),
         ],
       },

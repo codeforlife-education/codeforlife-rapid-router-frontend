@@ -1,7 +1,7 @@
 import * as Blockly from "blockly/core"
 
+import { LevelCrash, type LevelSimulator } from "../phaser"
 import type { BlockType } from "./blocks"
-import type { LevelSimulator } from "../phaser"
 import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
 
 /**
@@ -157,9 +157,9 @@ function runLoop(
     tick(ctx)
     const continues =
       evalBoolean(block.getInputTargetBlock("BOOL"), ctx) !== invert
-    // The condition check itself is never a van instruction - record a
-    // "wait" for every pass, including the final one that breaks the loop.
-    ctx.simulator.wait(describeBlock(ctx, block))
+    // The condition check itself is never a van instruction - record an
+    // "observe" for every pass, including the final one that breaks the loop.
+    ctx.simulator.observe(describeBlock(ctx, block))
     if (!continues) return
     runStatements(block.getInputTargetBlock("DO"), ctx)
   }
@@ -188,12 +188,12 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         let branch: Blockly.Block | null = null
         for (let i = 0; block.getInput(`IF${i}`); i++) {
           const conditionBlock = block.getInputTargetBlock(`IF${i}`)
-          // Each branch's condition check is its own wait, highlighting the
+          // Each branch's condition check is its own observe, highlighting the
           // if-block together with that condition's whole connected value-block
           // tree, and mapped to that branch's own generated code line - there's
-          // no wait for falling through to `else`, since nothing is evaluated
-          // there.
-          simulator.wait({
+          // no observe for falling through to `else`, since nothing is
+          // evaluated there.
+          simulator.observe({
             blockIds: [block.id, ...collectConnectedBlockIds(conditionBlock)],
             lineNo: ctx.lineByBlockId?.get(`${block.id}:${i}`),
           })
@@ -211,7 +211,7 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         const times = Number(block.getFieldValue("TIMES"))
         for (let i = 0; i < times; i++) {
           tick(ctx)
-          simulator.wait(describeBlock(ctx, block))
+          simulator.observe(describeBlock(ctx, block))
           runStatements(block.getInputTargetBlock("DO"), ctx)
         }
         return
@@ -224,6 +224,8 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
       case "repeat_until":
         return runLoop(block, true, ctx)
 
+      // Setting/changing a variable is a real `wait` (advancing the traffic
+      // lights), matching the legacy game.
       case "variables_set": {
         const value = evalValue(block.getInputTargetBlock("VALUE"), ctx)
         ctx.vars.set(block.getFieldValue("VAR") as string, value as number)
@@ -246,7 +248,7 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         // The game doesn't support procedure parameters, so there's no
         // argument binding/call-stack here - just a shared global scope.
         tick(ctx)
-        simulator.wait(describeBlock(ctx, block))
+        simulator.observe(describeBlock(ctx, block))
         return runStatements(ctx.procedures.get(name) ?? null, ctx)
       }
       // Definitions are registered upfront (see `runBlockly`) and never
@@ -258,6 +260,8 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         throw new Error(`Unsupported block: ${block.type}`)
     }
   } catch (error) {
+    // A collision isn't an error in the program - let it stop the run as is.
+    if (error instanceof LevelCrash) throw error
     if (error instanceof InterpreterError) {
       if (error.blockIds.length === 0)
         error.blockIds = collectConnectedBlockIds(block)
@@ -314,6 +318,10 @@ export function runBlockly(
     runStatements(startBlock.getNextBlock(), ctx)
     return { ok: true }
   } catch (error) {
+    // The character collided with something, which ends the run early - the
+    // program itself ran fine, and the colliding command is the last one the
+    // simulator recorded, so playback shows the collision.
+    if (error instanceof LevelCrash) return { ok: true }
     if (error instanceof InterpreterError)
       return { ok: false, message: error.message, blockIds: error.blockIds }
     return {

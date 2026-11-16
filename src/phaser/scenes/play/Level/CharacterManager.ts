@@ -1,17 +1,17 @@
 import Phaser from "phaser"
 
-import * as tilesets from "../../../tilesets"
 import {
   type Direction,
   STEP_BY_DIRECTION,
-  turnAround,
   turnLeft,
-  turnRight,
 } from "../../../tilegrid/navigation"
 import { Events, TILE_WIDTH } from "../../../globals"
-import type { GameCommand } from "../../../../app/slices"
+import LevelSimulator, {
+  type CharacterState,
+  type SimulatorStep,
+} from "../../../LevelSimulator"
 import type Level from "."
-import { createRoadNavigator } from "../../../tilegrid/road"
+import type { OrthogonalTilemap } from "../../../tilemaps"
 
 type Point = Phaser.Types.Math.Vector2Like
 type Tile = Phaser.Types.Tilemaps.Tile
@@ -26,35 +26,43 @@ const ROTATION_BY_DIRECTION: Record<Direction, number> = {
 /** How far off the tile-boundary center the van sits, so it drives on the left. */
 const LANE_OFFSET = 0.125 * TILE_WIDTH
 
+/** How far (as a fraction of a tile, and of a full move's duration) the van
+ * lurches forward when it drives into an animal. */
+const ANIMAL_BUMP_RATIO = 0.25
+
 /**
  * Drives the van around the play-mode tilemap. The van always straddles the
- * boundary between two adjacent road tiles - `tile` (its back half) and
- * `moveFromTile(tile, heading)` (its front half, always derived, never
- * stored) - offset laterally so it drives on the left side of the road.
- * A move/turn is never blocked up front: it always plays out, and only once
- * the van has arrived does it check whether it's still on the road - so an
- * invalid command visibly drives the van off the road before it crashes.
+ * boundary between two adjacent road tiles - `tile` (its back half) and the
+ * tile ahead of it in its `heading` (its front half) - offset laterally so it
+ * drives on the left side of the road.
+ *
+ * Every command is replayed through a `LevelSimulator` - the same model that
+ * ran the player's program upfront - so where the van goes, and whether it
+ * collides with something, always matches it exactly. A colliding move/turn
+ * still plays out so the collision is visible:
+ * - Off road: the van drives off the road, then is wrecked.
+ * - Into an animal: the van lurches forward into it, then is wrecked.
+ * - Through a red light: the van drives through it (but isn't wrecked).
  */
 export default class CharacterManager {
   private readonly level: Level
-  private readonly navigator: ReturnType<typeof createRoadNavigator<Tile>>
-  private tile!: Tile
-  private heading!: Direction
-  private crashed = false
-  /** The command index the van is currently acting on, for reporting a crash. */
-  private currentCommandIndex = -1
+  /** The level's Tiled data, used to (re)create the simulator on respawn. */
+  private readonly tilemapData: OrthogonalTilemap
+  /** Replays this run's commands. */
+  private simulator!: LevelSimulator
   /** The last command index actually applied, to detect/catch up on any skipped in between. */
   private lastCommandIndex = -1
   /** The last run id seen, to detect a restart regardless of where the new index lands. */
   private lastRunId = 0
+  /** Bumped on every respawn, so a previous run's animation can't finish
+   * into (and so affect) the current run. */
+  private spawnCount = 0
 
   constructor(level: Level) {
     this.level = level
-    this.navigator = createRoadNavigator<Tile>(
-      tile =>
-        this.level.tilemap.getTileAt(tile.col, tile.row, false, "Tile.ROAD") ??
-        undefined,
-    )
+    this.tilemapData = (
+      level.cache.tilemap.get("level") as { data: OrthogonalTilemap }
+    ).data
     this.spawn()
     this.lastRunId = level.commandIndex.runId
 
@@ -67,49 +75,23 @@ export default class CharacterManager {
     })
   }
 
-  /** Finds the level's single CFC (start) endpoint and its tile/facing. */
-  private findStart(): { tile: Tile; heading: Direction } {
-    const cfcIds = tilesets.endpoints.cfc.IDs as readonly number[]
-    const obj = this.level.tilemap
-      .getObjectLayer("ObjectGroup.ENDPOINTS")
-      ?.objects.find(({ gid }) => gid !== undefined && cfcIds.includes(gid))
-    if (!obj) throw new Error("Level has no CFC start endpoint")
-
-    const properties = obj.properties as { name: string; value: unknown }[]
-    const property = (name: string) =>
-      properties.find(p => p.name === name)?.value
-
-    return {
-      tile: {
-        row: property("tileRow") as number,
-        col: property("tileCol") as number,
-      },
-      heading: property("variant") as Direction,
-    }
+  private get sprite() {
+    return this.level.characterSprite
   }
 
-  /** (Re)spawns the van at the start endpoint's tile boundary. */
+  /** (Re)spawns the van at the start endpoint's tile boundary, and resets
+   * every obstacle to its starting state. */
   private spawn() {
-    const { tile, heading } = this.findStart()
-    this.tile = tile
-    this.heading = heading
-    this.crashed = false
+    this.spawnCount++
+    // Skip any still-running animation (now stale) straight to its end.
+    this.sprite.finishAnimation()
+
+    this.simulator = new LevelSimulator(this.tilemapData)
     this.lastCommandIndex = -1
 
-    const { x, y } = this.boundaryPoint(tile, heading)
-    this.level.characterSprite
-      .setVisible(true)
-      .setTexture("normal")
-      .setPosition(x, y)
-      .setAngle(ROTATION_BY_DIRECTION[heading])
-  }
-
-  private crash() {
-    this.crashed = true
-    this.level.characterSprite.setTexture("wreckage")
-    // Report the invalid command back to React as an event arg, not via the
-    // registry, so a React write racing shortly after can't clobber it.
-    this.level.game.events.emit(Events.FINISH_EARLY, this.currentCommandIndex)
+    this.sprite.repair().setVisible(true)
+    this.placeAt(this.simulator.state)
+    this.level.obstacles.sync(this.simulator, { animate: false })
   }
 
   private onGameCommandIndexChanged() {
@@ -118,15 +100,16 @@ export default class CharacterManager {
     if (runId !== this.lastRunId) {
       this.lastRunId = runId
       this.spawn()
-    } else if (index === this.lastCommandIndex) {
+    } else if (index <= this.lastCommandIndex) {
       // A phase change alone (e.g. reaching the last step, or pausing)
-      // re-broadcasts the same index without it actually advancing - ignore,
-      // or it'd replay the current command a second time.
+      // re-broadcasts the same index without it actually advancing, and the
+      // run ending early (e.g. running out of fuel) can move it backwards -
+      // ignore both, or it'd replay commands a second time.
       return
     }
 
     // Skip any still-running animation straight to its end state first.
-    this.level.characterSprite.finishAnimation()
+    this.sprite.finishAnimation()
 
     if (index === -1) return // Not playing yet this run.
 
@@ -134,104 +117,114 @@ export default class CharacterManager {
     // Phaser (e.g. clicking Step twice quickly), skipping past intermediate
     // indices entirely - apply any skipped commands' effects instantly (no
     // animation, there's no time left to show them) so the van's position
-    // and crash detection stay correct, then animate only the latest.
-    for (let i = this.lastCommandIndex + 1; i < index && !this.crashed; i++) {
-      this.currentCommandIndex = i
-      const skipped = this.level.commands[i]
-      if (skipped) this.runCommand(skipped, true)
-    }
+    // and collisions stay correct, then animate only the latest.
+    for (let i = this.lastCommandIndex + 1; i < index; i++) this.play(i, true)
+    this.play(index, false)
     this.lastCommandIndex = index
-    if (this.crashed) return
+  }
 
-    this.currentCommandIndex = index
+  /** Replays the command at `index`, either animated or instantly. */
+  private play(index: number, instant: boolean) {
+    // Nothing more happens once the van has collided with something.
+    if (this.simulator.crash) return
     const command = this.level.commands[index]
-    if (command) this.runCommand(command)
-  }
+    if (!command) return
 
-  private runCommand(command: GameCommand, instant = false) {
-    switch (command) {
-      case "move_forwards":
-        return this.moveForwards(instant)
-      case "turn_left":
-        return this.turn(-90, instant)
-      case "turn_right":
-        return this.turn(90, instant)
-      case "turn_around":
-        return this.turn(180, instant)
-      case "wait":
-      case "deliver":
-      case "sound_horn":
-        // No movement for these yet - future sound/animation hooks.
-        return
-    }
-  }
-
-  private moveForwards(instant: boolean) {
-    const newTile = this.navigator.moveFromTile(this.tile, this.heading)
-
+    const step = this.simulator.perform(command)
     if (instant) {
-      this.tile = newTile
-      this.checkForCrash()
+      this.placeAt(step.to)
+      this.onStepFinished(step, index, false)
       return
     }
 
-    const from = this.boundaryPoint(this.tile, this.heading)
-    const to = this.boundaryPoint(newTile, this.heading)
-
-    this.level.characterSprite.move(from, to, () => {
-      this.tile = newTile
-      this.checkForCrash()
+    const spawnCount = this.spawnCount
+    this.animate(step, () => {
+      if (spawnCount === this.spawnCount) this.onStepFinished(step, index, true)
     })
   }
 
-  private turn(deltaDeg: -90 | 90 | 180, instant: boolean) {
-    const newHeading = {
-      [-90]: turnLeft(this.heading),
-      90: turnRight(this.heading),
-      180: turnAround(this.heading),
-    }[deltaDeg]
-    const newTile = this.navigator.moveFromTile(this.tile, this.heading)
+  /** Shows the outcome of a step once the van has finished acting it out. */
+  private onStepFinished(step: SimulatorStep, index: number, animate: boolean) {
+    this.level.obstacles.sync(this.simulator, { animate })
+    if (!step.collision) return
 
-    if (instant) {
-      this.tile = newTile
-      this.heading = newHeading
-      this.checkForCrash()
+    // Running a red light isn't a crash - the van's still in one piece.
+    if (step.collision !== "red_light") this.sprite.wreck()
+    // Report the collision back to React as an event arg, not via the
+    // registry, so a React write racing shortly after can't clobber it.
+    this.level.game.events.emit(Events.FINISH_EARLY, index)
+  }
+
+  /** Animates the van acting out a step, then calls `onComplete`. */
+  private animate(
+    { command, from, to, collision }: SimulatorStep,
+    onComplete: () => void,
+  ) {
+    // The van never actually moves into an animal - it lurches forward into
+    // it and stops dead.
+    if (collision === "animal") {
+      const start = this.boundaryPoint(from)
+      const step = STEP_BY_DIRECTION[from.heading]
+      this.sprite.move(
+        start,
+        {
+          x:
+            start.x +
+            step.col * this.level.tilemap.tileWidth * ANIMAL_BUMP_RATIO,
+          y:
+            start.y +
+            step.row * this.level.tilemap.tileHeight * ANIMAL_BUMP_RATIO,
+        },
+        onComplete,
+        this.sprite.defaultMoveDurationMs * ANIMAL_BUMP_RATIO,
+      )
       return
     }
 
-    const pivot =
-      deltaDeg === 180
-        ? // Sweeps a tight 180-degree hairpin pivoting at the (un-offset)
-          // center of the boundary it's already on, ending on the opposite
-          // lateral side.
-          this.boundaryCenter(this.tile, this.heading)
-        : // The van advances one tile forward while pivoting 90 degrees around
-          // the inside/outside corner shared by its old and new heading.
-          this.turnPivot(this.tile, this.heading, newHeading)
-    const from = this.boundaryPoint(this.tile, this.heading)
-
-    this.level.characterSprite.turn(
-      pivot,
-      from,
-      ROTATION_BY_DIRECTION[this.heading],
-      deltaDeg,
-      () => {
-        this.tile = newTile
-        this.heading = newHeading
-        this.checkForCrash()
-      },
-    )
+    switch (command) {
+      case "move_forwards":
+        this.sprite.move(
+          this.boundaryPoint(from),
+          this.boundaryPoint(to),
+          onComplete,
+        )
+        return
+      case "turn_left":
+      case "turn_right":
+      case "turn_around": {
+        const deltaDeg = (
+          { turn_left: -90, turn_right: 90, turn_around: 180 } as const
+        )[command]
+        const pivot =
+          deltaDeg === 180
+            ? // Sweeps a tight 180-degree hairpin pivoting at the (un-offset)
+              // center of the boundary it's already on, ending on the
+              // opposite lateral side.
+              this.boundaryCenter(from)
+            : // The van advances one tile forward while pivoting 90 degrees
+              // around the inside/outside corner shared by its old and new
+              // heading.
+              this.turnPivot(from.tile, from.heading, to.heading)
+        this.sprite.turn(
+          pivot,
+          this.boundaryPoint(from),
+          ROTATION_BY_DIRECTION[from.heading],
+          deltaDeg,
+          onComplete,
+        )
+        return
+      }
+      default:
+        // No movement for the rest (wait, deliver, sound_horn, observe) yet -
+        // future sound/animation hooks.
+        onComplete()
+    }
   }
 
-  /** The van is on the road only while both tiles it straddles are road AND
-   * actually connected to each other in its current heading. */
-  private isValidState(tile: Tile, heading: Direction): boolean {
-    return this.navigator.roadConnects(tile, heading)
-  }
-
-  /** Crashes if the van's current position has driven off the road. */
-  private checkForCrash() {
-    if (!this.isValidState(this.tile, this.heading)) this.crash()
+  /** Instantly places the van at the given position. */
+  private placeAt(state: CharacterState) {
+    const { x, y } = this.boundaryPoint(state)
+    this.sprite.setPosition(x, y).setAngle(ROTATION_BY_DIRECTION[state.heading])
   }
 
   private tileCenterWorld(tile: Tile): Point {
@@ -243,7 +236,7 @@ export default class CharacterManager {
   }
 
   /** The un-offset midpoint of the shared edge between `tile` and its `heading` neighbour. */
-  private boundaryCenter(tile: Tile, heading: Direction): Point {
+  private boundaryCenter({ tile, heading }: CharacterState): Point {
     const center = this.tileCenterWorld(tile)
     const step = STEP_BY_DIRECTION[heading]
     return {
@@ -253,9 +246,9 @@ export default class CharacterManager {
   }
 
   /** `boundaryCenter`, offset laterally so the van drives on the left. */
-  private boundaryPoint(tile: Tile, heading: Direction): Point {
-    const center = this.boundaryCenter(tile, heading)
-    const lane = STEP_BY_DIRECTION[turnLeft(heading)]
+  private boundaryPoint(state: CharacterState): Point {
+    const center = this.boundaryCenter(state)
+    const lane = STEP_BY_DIRECTION[turnLeft(state.heading)]
     return {
       x: center.x + lane.col * LANE_OFFSET,
       y: center.y + lane.row * LANE_OFFSET,
