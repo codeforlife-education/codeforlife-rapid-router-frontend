@@ -3,6 +3,7 @@ import type Phaser from "phaser"
 import BaseLevel, { type BaseLevelData } from "../../BaseLevel"
 import { DEFAULT_MAX_FUEL, SceneKeys } from "../../../globals"
 import CharacterManager from "./CharacterManager"
+import DestinationManager from "./DestinationManager"
 import FuelManager from "./FuelManager"
 import type { GameCommand } from "../../../../app/slices"
 import HUD from "../HUD"
@@ -30,6 +31,9 @@ export default class extends BaseLevel<LevelData> {
   /** Obstacle manager responsible for showing traffic lights and animals. */
   obstacles!: ObstacleManager
 
+  /** Destination manager responsible for showing each destination's border. */
+  destinations!: DestinationManager
+
   /** The commands compiled from the player's program. */
   get commands() {
     return this.getVariable<GameCommand[]>("commands", [])
@@ -55,9 +59,10 @@ export default class extends BaseLevel<LevelData> {
 
     super.create()
 
-    // Initialize the managers. The obstacles must exist before the character,
-    // which resets them whenever it (re)spawns.
+    // Initialize the managers. The obstacles and destinations must exist
+    // before the character, which resets them whenever it (re)spawns.
     this.obstacles = new ObstacleManager(this)
+    this.destinations = new DestinationManager(this)
     this.character = new CharacterManager(this)
     this.fuel = new FuelManager(this)
   }
