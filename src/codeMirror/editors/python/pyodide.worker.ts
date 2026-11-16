@@ -67,7 +67,7 @@ void getPyodide().then(() => {
 self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
   const { id, code, levelId, tilemapGroup, tilemap } = data
   let errorLine: number | undefined
-  // Kept outside the `try` so a collision can still be reported from `catch`.
+  // Kept outside the `try` so an early stop can still be reported from `catch`.
   let runSimulator: LevelSimulator | undefined
   try {
     const [pyodide, resolvedTilemap] = await Promise.all([
@@ -122,11 +122,11 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
     }
     self.postMessage(response)
   } catch (error) {
-    // The character collided with something, which stops the student's
+    // The run ended early (e.g. a collision), which stops the student's
     // program (the simulator throws to end it) - but the program itself ran
-    // fine, and the colliding command is the last one recorded, so playback
-    // shows the collision.
-    if (runSimulator?.crash) {
+    // fine, and the command that ended it is the last one recorded, so
+    // playback shows it.
+    if (runSimulator?.stop) {
       const response: WorkerResponse = {
         type: "result",
         id,

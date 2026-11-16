@@ -18,7 +18,12 @@ export { default as PhaserGame, type PhaserGameProps } from "./PhaserGame"
 export { default as ZoomControls, type ZoomControlsProps } from "./ZoomControls"
 export {
   default as LevelSimulator,
-  LevelCrash,
+  LevelStop,
   type Collision,
+  type Destination,
+  type FailureReason,
+  type LevelOutcome,
+  type Mistake,
+  type StopReason,
   type SimulatorCommand,
 } from "./LevelSimulator"

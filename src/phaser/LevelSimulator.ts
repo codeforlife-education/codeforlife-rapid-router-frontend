@@ -19,7 +19,7 @@ import { createRoadNavigator } from "./tilegrid/road"
 export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"
 
-/** Why the character's run ended early. */
+/** A physical collision that ended the character's run early. */
 export type Collision =
   /** The character drove off the road. */
   | "off_road"
@@ -27,6 +27,31 @@ export type Collision =
   | "animal"
   /** The character drove through a red traffic light. */
   | "red_light"
+
+/** A rule broken by the student's program that ended the run early, without
+ * the character colliding with anything. */
+export type Mistake =
+  /** The character delivered somewhere that isn't an undelivered destination
+   * (an empty road, or a destination it has already delivered to). */
+  "invalid_delivery"
+
+/** Why the character's run ended early. */
+export type StopReason = Collision | Mistake
+
+/** Why a level wasn't completed once the student's program ended. */
+export type FailureReason =
+  | StopReason
+  /** The program ended before the character reached the (only) destination. */
+  | "out_of_instructions"
+  /** The character drove through the (only) destination, but didn't stop there. */
+  | "visited_but_did_not_stop"
+  /** The program ended before the character delivered to every destination. */
+  | "undelivered_destinations"
+
+/** Whether the level was completed once the student's program ended. */
+export type LevelOutcome =
+  | { success: true }
+  | { success: false; reason: FailureReason }
 
 /** A single interpreted command, alongside the presentation metadata needed
  * to highlight whatever produced it (Blockly blocks and/or a source line) -
@@ -58,6 +83,13 @@ export type TrafficLight = {
   time: number
 }
 
+export type Destination = {
+  /** The (road) tile the destination's house sits beside. */
+  tile: Tile
+  /** True once the character has delivered to this destination. */
+  delivered: boolean
+}
+
 export type Animal = {
   tile: Tile
   /** False once the animal has been scared off the road by the horn. */
@@ -72,23 +104,25 @@ export type SimulatorStep = {
   /** Where the character ended up (or, if it crashed, where it was heading). */
   to: CharacterState
   /** Set if this command ended the run early. */
-  collision?: Collision
+  stopReason?: StopReason
   /** The animal scared off the road by this command (a horn), if any. */
   scaredAnimal?: Animal
+  /** The destination delivered to by this command (a deliver), if any. */
+  delivered?: Destination
 }
 
 /**
  * Thrown by the program-facing command methods (`moveForwards`, `wait`, etc.)
- * once the character collides with something, to stop running the student's
- * program - matching the legacy game, which ends the run at the first
- * collision. The colliding command is always the last one recorded.
+ * once the run ends early (a collision or an invalid delivery), to stop
+ * running the student's program - matching the legacy game, which ends the
+ * run there. The command that ended it is always the last one recorded.
  */
-export class LevelCrash extends Error {
-  readonly collision: Collision
+export class LevelStop extends Error {
+  readonly reason: StopReason
 
-  constructor(collision: Collision) {
-    super(`The character crashed (${collision}).`)
-    this.collision = collision
+  constructor(reason: StopReason) {
+    super(`The run stopped early (${reason}).`)
+    this.reason = reason
   }
 }
 
@@ -166,14 +200,17 @@ export default class LevelSimulator {
   private readonly roadWidth: number
   private readonly roadHeight: number
   private readonly navigator: ReturnType<typeof createRoadNavigator<Tile>>
-  private readonly destinationTiles: Tile[]
   private tile: Tile
   private heading: Direction
+  /** Every tile the character's front half has been on - the legacy game's
+   * `visitedNodes`. */
+  private readonly visitedTiles: Tile[]
+  readonly destinations: Destination[]
   readonly trafficLights: TrafficLight[]
   readonly animals: Animal[]
   readonly commands: SimulatorCommand[] = []
-  /** Set once the character has collided with something. */
-  crash?: { collision: Collision; commandIndex: number }
+  /** Set once the run has ended early. */
+  stop?: { reason: StopReason; commandIndex: number }
 
   constructor(tilemap: OrthogonalTilemap) {
     const roadLayer = tilemap.layers[0]
@@ -201,9 +238,14 @@ export default class LevelSimulator {
     this.tile = tile
     this.heading = variant
 
-    this.destinationTiles = endpoints
+    this.visitedTiles = [this.aheadTile()]
+
+    this.destinations = endpoints
       .filter(o => o.gid !== undefined && HOUSE_IDS.includes(o.gid))
-      .map(o => readObjectTile(o.properties).tile)
+      .map(o => ({
+        tile: readObjectTile(o.properties).tile,
+        delivered: false,
+      }))
 
     const obstacles = tilemap.layers[1].objects
     this.trafficLights = obstacles
@@ -248,6 +290,15 @@ export default class LevelSimulator {
     )
   }
 
+  /** The destination on the given tile not yet delivered to, if any - the
+   * legacy game's `getDestinationForNode`, which ignores delivered ones. */
+  private destinationAt(tile: Tile) {
+    return this.destinations.find(
+      destination =>
+        !destination.delivered && this.tileEquals(destination.tile, tile),
+    )
+  }
+
   /** Where the given command would take the character. */
   private nextState(command: GameCommand): CharacterState {
     const { tile, heading } = this
@@ -289,14 +340,15 @@ export default class LevelSimulator {
    * 2. Driving off the road is a collision.
    * 3. Leaving a red traffic light's tile (by moving or turning in any
    *    direction - only waiting/the horn are allowed) is a collision.
+   * 4. Delivering anywhere but an undelivered destination is a mistake.
    * Every action except `observe` then advances the traffic lights by one.
    *
-   * Never throws - once the character has crashed, further commands are
-   * ignored (see `act` for the program-facing variant that does throw).
+   * Never throws - once the run has stopped, further commands are ignored
+   * (see `act` for the program-facing variant that does throw).
    */
   perform(command: GameCommand, options: CommandOptions = {}): SimulatorStep {
     const from = this.state
-    if (this.crash) return { command, from, to: from }
+    if (this.stop) return { command, from, to: from }
 
     this.commands.push({ command, ...options })
     if (command === "observe") return { command, from, to: from }
@@ -308,40 +360,83 @@ export default class LevelSimulator {
       if (scaredAnimal) scaredAnimal.active = false
     }
 
+    // Delivering marks the undelivered destination ahead as delivered.
+    let delivered: Destination | undefined
+    if (command === "deliver") {
+      delivered = this.destinationAt(this.aheadTile())
+      if (delivered) delivered.delivered = true
+    }
+
     const moving = MOVING_COMMANDS.includes(command)
-    let collision: Collision | undefined
+    let stopReason: StopReason | undefined
     let to = from
 
     // NOTE: The legacy game checks the tile behind for `wait` - but that's
     // only reachable by having already crashed into that animal, so waiting
     // can never collide with an animal here.
-    if (moving && this.animalAt(this.aheadTile())) collision = "animal"
+    if (moving && this.animalAt(this.aheadTile())) stopReason = "animal"
+    else if (command === "deliver" && !delivered)
+      stopReason = "invalid_delivery"
     else {
       to = this.nextState(command)
       if (moving && !this.navigator.roadConnects(to.tile, to.heading))
-        collision = "off_road"
+        stopReason = "off_road"
       else if (moving && this.trafficLightAt(from)?.colour === "RED")
-        collision = "red_light"
+        stopReason = "red_light"
     }
 
     this.tile = to.tile
     this.heading = to.heading
+    if (moving) this.visitedTiles.push(this.aheadTile())
 
-    if (collision) {
-      this.crash = { collision, commandIndex: this.commands.length - 1 }
-      return { command, from, to, collision, scaredAnimal }
+    if (stopReason) {
+      this.stop = { reason: stopReason, commandIndex: this.commands.length - 1 }
+      return { command, from, to, stopReason, scaredAnimal }
     }
 
     this.tickTrafficLights()
-    return { command, from, to, scaredAnimal }
+    return { command, from, to, scaredAnimal, delivered }
   }
 
   /** Performs a command on behalf of the student's program, throwing
-   * `LevelCrash` to stop the program once the character collides. */
+   * `LevelStop` to stop the program once the run ends early. */
   private act(command: GameCommand, options?: CommandOptions) {
-    if (this.crash) throw new LevelCrash(this.crash.collision)
-    const { collision } = this.perform(command, options)
-    if (collision) throw new LevelCrash(collision)
+    if (this.stop) throw new LevelStop(this.stop.reason)
+    const { stopReason } = this.perform(command, options)
+    if (stopReason) throw new LevelStop(stopReason)
+  }
+
+  /**
+   * Whether the level was completed, once the student's program has ended -
+   * the legacy game's `programExecutionEnded`:
+   * - With a single destination, the character just has to stop on it (no
+   *   delivery needed) - which then counts as delivering to it.
+   * - With several, every destination must have been delivered to, wherever
+   *   the character ends up.
+   */
+  evaluate(): LevelOutcome {
+    if (this.stop) return { success: false, reason: this.stop.reason }
+
+    if (this.destinations.length === 1) {
+      const [destination] = this.destinations
+      const aheadTile = this.aheadTile()
+      if (this.tileEquals(destination.tile, aheadTile)) {
+        destination.delivered = true
+        return { success: true }
+      }
+      return {
+        success: false,
+        reason: this.visitedTiles.some(t =>
+          this.tileEquals(t, destination.tile),
+        )
+          ? "visited_but_did_not_stop"
+          : "out_of_instructions",
+      }
+    }
+
+    return this.destinations.every(d => d.delivered)
+      ? { success: true }
+      : { success: false, reason: "undelivered_destinations" }
   }
 
   moveForwards = (options?: CommandOptions) =>
@@ -386,11 +481,10 @@ export default class LevelSimulator {
     (["forward", "left", "right"] as const).every(d => !this.roadExists(d))
 
   // The van "arrives" once its front half reaches the destination tile,
-  // matching the real van sprite's position (see `CharacterManager`).
-  atDestination = (): boolean => {
-    const aheadTile = this.aheadTile()
-    return this.destinationTiles.some(t => this.tileEquals(t, aheadTile))
-  }
+  // matching the real van sprite's position (see `CharacterManager`). Like
+  // the legacy game, destinations already delivered to no longer count.
+  atDestination = (): boolean =>
+    this.destinationAt(this.aheadTile()) !== undefined
   // The van is at a traffic light once its front half reaches the light's
   // tile, travelling in the direction the light controls.
   atTrafficLight = (colour: TrafficLightColour): boolean =>

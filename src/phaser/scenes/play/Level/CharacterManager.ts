@@ -43,6 +43,9 @@ const ANIMAL_BUMP_RATIO = 0.25
  * - Off road: the van drives off the road, then is wrecked.
  * - Into an animal: the van lurches forward into it, then is wrecked.
  * - Through a red light: the van drives through it (but isn't wrecked).
+ * An invalid delivery also ends the run early, without wrecking the van.
+ *
+ * Once the last command finishes, the level's outcome is evaluated.
  */
 export default class CharacterManager {
   private readonly level: Level
@@ -92,6 +95,7 @@ export default class CharacterManager {
     this.sprite.repair().setVisible(true)
     this.placeAt(this.simulator.state)
     this.level.obstacles.sync(this.simulator, { animate: false })
+    this.level.destinations.sync(this.simulator)
   }
 
   private onGameCommandIndexChanged() {
@@ -125,8 +129,8 @@ export default class CharacterManager {
 
   /** Replays the command at `index`, either animated or instantly. */
   private play(index: number, instant: boolean) {
-    // Nothing more happens once the van has collided with something.
-    if (this.simulator.crash) return
+    // Nothing more happens once the run has stopped early.
+    if (this.simulator.stop) return
     const command = this.level.commands[index]
     if (!command) return
 
@@ -145,24 +149,37 @@ export default class CharacterManager {
 
   /** Shows the outcome of a step once the van has finished acting it out. */
   private onStepFinished(step: SimulatorStep, index: number, animate: boolean) {
-    this.level.obstacles.sync(this.simulator, { animate })
-    if (!step.collision) return
+    if (!step.stopReason) {
+      // The program ran to its end - work out whether the level's complete
+      // (which, with a single destination, also marks it delivered).
+      if (index === this.level.commands.length - 1) {
+        const outcome = this.simulator.evaluate()
+        // TODO: Show the outcome in a win/fail popup.
+        console.info("Level outcome:", outcome)
+      }
+      this.level.obstacles.sync(this.simulator, { animate })
+      this.level.destinations.sync(this.simulator)
+      return
+    }
 
-    // Running a red light isn't a crash - the van's still in one piece.
-    if (step.collision !== "red_light") this.sprite.wreck()
-    // Report the collision back to React as an event arg, not via the
+    this.level.obstacles.sync(this.simulator, { animate })
+    // Only driving into something wrecks the van - not running a red light,
+    // nor delivering somewhere invalid.
+    if (step.stopReason === "off_road" || step.stopReason === "animal")
+      this.sprite.wreck()
+    // Report the early stop back to React as an event arg, not via the
     // registry, so a React write racing shortly after can't clobber it.
     this.level.game.events.emit(Events.FINISH_EARLY, index)
   }
 
   /** Animates the van acting out a step, then calls `onComplete`. */
   private animate(
-    { command, from, to, collision }: SimulatorStep,
+    { command, from, to, stopReason }: SimulatorStep,
     onComplete: () => void,
   ) {
     // The van never actually moves into an animal - it lurches forward into
     // it and stops dead.
-    if (collision === "animal") {
+    if (stopReason === "animal") {
       const start = this.boundaryPoint(from)
       const step = STEP_BY_DIRECTION[from.heading]
       this.sprite.move(

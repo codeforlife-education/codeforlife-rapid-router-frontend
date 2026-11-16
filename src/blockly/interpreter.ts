@@ -1,6 +1,6 @@
 import * as Blockly from "blockly/core"
 
-import { LevelCrash, type LevelSimulator } from "../phaser"
+import { type LevelSimulator, LevelStop } from "../phaser"
 import type { BlockType } from "./blocks"
 import { PROCEDURES_DEFINE_BLOCK_TYPE } from "./blocks/defaults"
 
@@ -260,8 +260,9 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         throw new Error(`Unsupported block: ${block.type}`)
     }
   } catch (error) {
-    // A collision isn't an error in the program - let it stop the run as is.
-    if (error instanceof LevelCrash) throw error
+    // The run ending early (e.g. a collision) isn't an error in the program -
+    // let it stop the run as is.
+    if (error instanceof LevelStop) throw error
     if (error instanceof InterpreterError) {
       if (error.blockIds.length === 0)
         error.blockIds = collectConnectedBlockIds(block)
@@ -318,10 +319,10 @@ export function runBlockly(
     runStatements(startBlock.getNextBlock(), ctx)
     return { ok: true }
   } catch (error) {
-    // The character collided with something, which ends the run early - the
-    // program itself ran fine, and the colliding command is the last one the
-    // simulator recorded, so playback shows the collision.
-    if (error instanceof LevelCrash) return { ok: true }
+    // The run ended early (e.g. a collision) - the program itself ran fine,
+    // and the command that ended it is the last one the simulator recorded,
+    // so playback shows it.
+    if (error instanceof LevelStop) return { ok: true }
     if (error instanceof InterpreterError)
       return { ok: false, message: error.message, blockIds: error.blockIds }
     return {
