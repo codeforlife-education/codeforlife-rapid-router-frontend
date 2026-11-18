@@ -35,6 +35,7 @@ export const Events = createIdRegistry({
   "react-set-variable": "REACT_SET_VARIABLE",
   "export-level": "EXPORT_LEVEL",
   "finish-early": "FINISH_EARLY",
+  "level-outcome": "LEVEL_OUTCOME",
 } as const)
 export type Event = (typeof Events)[keyof typeof Events]
 

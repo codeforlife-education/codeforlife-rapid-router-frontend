@@ -16,6 +16,7 @@ import {
   useBlocklyWorkspaceContext,
   useConsoleLogContext,
   useGameCommandIndex,
+  usePhaserGameContext,
   usePythonEditorContext,
 } from "../../../app/hooks"
 import type { CharacterCommand } from "../../../app/character"
@@ -63,6 +64,7 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
   const [lineNos, setLineNos] = useState<(number | undefined)[]>([])
   const [errorLineNo, setErrorLineNo] = useState<number | undefined>()
   const consoleLogContext = useConsoleLogContext()
+  const { setLevelResult, maxFuel } = usePhaserGameContext()
 
   // Interpret the given code using Pyodide.
   const handleInterpret = async (code: string) => {
@@ -70,8 +72,10 @@ const WriteablePythonEditor: FC<WriteablePythonEditorProps> = ({
     dispatch(setGameCommands([]))
     setLineNos([])
     setErrorLineNo(undefined)
-    const result = await run({ code, levelId, tilemapGroup, tilemap })
+    const result = await run({ code, levelId, maxFuel, tilemapGroup, tilemap })
     if (result.ok) {
+      // Nothing to play back - show the outcome straight away.
+      if (result.commands.length === 0) setLevelResult?.(result.outcome)
       setLineNos(result.commands.map(c => c.lineNo))
       return result.commands.map(c => c.command)
     }

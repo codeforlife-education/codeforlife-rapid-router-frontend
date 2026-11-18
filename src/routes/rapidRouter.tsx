@@ -1300,6 +1300,9 @@ export default (
         path={paths.rapidRouter.level.id[id]._}
         element={
           <Level
+            // Remount when moving between levels (e.g. "Next level"), so no
+            // state carries over from the previous one.
+            key={`${tilemapGroup}-level-${id}`}
             id={id}
             tilemap={undefined}
             tilemapGroup={tilemapGroup}

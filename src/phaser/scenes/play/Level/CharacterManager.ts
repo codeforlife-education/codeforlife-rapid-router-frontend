@@ -8,6 +8,7 @@ import {
 import { Events, TILE_WIDTH } from "../../../globals"
 import LevelSimulator, {
   type CharacterState,
+  type LevelOutcome,
   type SimulatorStep,
 } from "../../../LevelSimulator"
 import type Level from "."
@@ -26,6 +27,10 @@ const ROTATION_BY_DIRECTION: Record<Direction, number> = {
 /** How far off the tile-boundary center the van sits, so it drives on the left. */
 const LANE_OFFSET = 0.125 * TILE_WIDTH
 
+/** How long to wait before reporting a win or a crash, so the player can
+ * see the van arrive or the wreck burn before the popup covers it. */
+const OUTCOME_DELAY_MS = 1000
+
 /** How far (as a fraction of a tile, and of a full move's duration) the van
  * lurches forward when it drives into an animal. */
 const ANIMAL_BUMP_RATIO = 0.25
@@ -43,9 +48,11 @@ const ANIMAL_BUMP_RATIO = 0.25
  * - Off road: the van drives off the road, then is wrecked.
  * - Into an animal: the van lurches forward into it, then is wrecked.
  * - Through a red light: the van drives through it (but isn't wrecked).
- * An invalid delivery also ends the run early, without wrecking the van.
+ * An invalid delivery, or running out of fuel, also ends the run early,
+ * without wrecking the van.
  *
- * Once the last command finishes, the level's outcome is evaluated.
+ * Once the run's over - the last command finishes, or it ends early - its
+ * outcome is reported back to React to show the player.
  */
 export default class CharacterManager {
   private readonly level: Level
@@ -60,6 +67,10 @@ export default class CharacterManager {
   /** Bumped on every respawn, so a previous run's animation can't finish
    * into (and so affect) the current run. */
   private spawnCount = 0
+  /** Whether this run's outcome has been reported yet. */
+  private outcomeReported = false
+  /** A delayed outcome report still pending, if any. */
+  private outcomeTimer?: Phaser.Time.TimerEvent
 
   constructor(level: Level) {
     this.level = level
@@ -89,8 +100,12 @@ export default class CharacterManager {
     // Skip any still-running animation (now stale) straight to its end.
     this.sprite.finishAnimation()
 
-    this.simulator = new LevelSimulator(this.tilemapData)
+    this.simulator = new LevelSimulator(this.tilemapData, this.level.maxFuel)
     this.lastCommandIndex = -1
+    this.outcomeReported = false
+    // A new run - the previous run's outcome no longer applies.
+    this.outcomeTimer?.remove()
+    this.outcomeTimer = undefined
 
     this.sprite.repair().setVisible(true)
     this.placeAt(this.simulator.state)
@@ -130,7 +145,7 @@ export default class CharacterManager {
   /** Replays the command at `index`, either animated or instantly. */
   private play(index: number, instant: boolean) {
     // Nothing more happens once the run has stopped early.
-    if (this.simulator.stop) return
+    if (this.simulator.stop || this.outcomeReported) return
     const command = this.level.commands[index]
     if (!command) return
 
@@ -152,24 +167,42 @@ export default class CharacterManager {
     if (!step.stopReason) {
       // The program ran to its end - work out whether the level's complete
       // (which, with a single destination, also marks it delivered).
-      if (index === this.level.commands.length - 1) {
-        const outcome = this.simulator.evaluate()
-        // TODO: Show the outcome in a win/fail popup.
-        console.info("Level outcome:", outcome)
-      }
+      const isLast = index === this.level.commands.length - 1
+      const outcome = isLast ? this.simulator.evaluate() : undefined
       this.level.obstacles.sync(this.simulator, { animate })
       this.level.destinations.sync(this.simulator)
+      if (outcome)
+        this.reportOutcome(outcome, outcome.success ? OUTCOME_DELAY_MS : 0)
       return
     }
 
     this.level.obstacles.sync(this.simulator, { animate })
     // Only driving into something wrecks the van - not running a red light,
     // nor delivering somewhere invalid.
-    if (step.stopReason === "off_road" || step.stopReason === "animal")
-      this.sprite.wreck()
+    const crashed =
+      step.stopReason === "off_road" || step.stopReason === "animal"
+    if (crashed) this.sprite.wreck()
     // Report the early stop back to React as an event arg, not via the
     // registry, so a React write racing shortly after can't clobber it.
     this.level.game.events.emit(Events.FINISH_EARLY, index)
+    this.reportOutcome(
+      this.simulator.evaluate(),
+      crashed ? OUTCOME_DELAY_MS : 0,
+    )
+  }
+
+  /** Reports the run's outcome back to React (once per run), optionally
+   * after a delay - cancelled if a new run starts in the meantime. */
+  private reportOutcome(outcome: LevelOutcome, delayMs = 0) {
+    if (this.outcomeReported) return
+    this.outcomeReported = true
+    const emit = () => {
+      this.outcomeTimer = undefined
+      this.level.game.events.emit(Events.LEVEL_OUTCOME, outcome)
+    }
+    if (delayMs > 0)
+      this.outcomeTimer = this.level.time.delayedCall(delayMs, emit)
+    else emit()
   }
 
   /** Animates the van acting out a step, then calls `onComplete`. */
@@ -177,6 +210,12 @@ export default class CharacterManager {
     { command, from, to, stopReason }: SimulatorStep,
     onComplete: () => void,
   ) {
+    // Out of fuel, the van can't do anything at all.
+    if (stopReason === "out_of_fuel") {
+      onComplete()
+      return
+    }
+
     // The van never actually moves into an animal - it lurches forward into
     // it and stops dead.
     if (stopReason === "animal") {

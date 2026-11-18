@@ -20,6 +20,7 @@ import type {
 } from "../../phaser/tilemaps"
 import {
   type GamePhase,
+  type LevelResult,
   PhaserGameContext,
   type PhaserGameRef,
   type SceneKey,
@@ -28,6 +29,7 @@ import {
   type Level as LevelModel,
   useRetrieveLevelQuery,
 } from "../../api/level"
+import OutcomeModal, { type OutcomeModalProps } from "./OutcomeModal"
 import Panels, { type PanelsProps } from "./Panels"
 import {
   PythonEditorContext,
@@ -49,6 +51,7 @@ const Base: FC<
   ControlsProps["level"] &
     PanelsProps["level"] &
     DescriptionModalProps["level"] &
+    OutcomeModalProps["level"] &
     Pick<DescriptionModalProps, "video"> &
     TilemapProps
 > = ({ video, ...level }) => (
@@ -59,6 +62,7 @@ const Base: FC<
       <Panels level={level} />
     </Box>
     <DescriptionModal level={level} video={video} />
+    <OutcomeModal level={level} />
   </Box>
 )
 
@@ -178,6 +182,7 @@ const Resolved: FC<ResolvedProps> = ({ maxFuel, ...level }) => {
   const phaserGameRef = useRef<PhaserGameRef>(null)
   const [activeSceneKeys, setActiveSceneKeys] = useState<SceneKey[]>([])
   const [phase, setPhase] = useState<GamePhase>("idle")
+  const [levelResult, setLevelResult] = useState<LevelResult>()
 
   return (
     <PhaserGameContext.Provider
@@ -188,6 +193,8 @@ const Resolved: FC<ResolvedProps> = ({ maxFuel, ...level }) => {
         phase,
         setPhase,
         maxFuel,
+        levelResult,
+        setLevelResult,
       }}
     >
       {level.mode === "blockly" ? (

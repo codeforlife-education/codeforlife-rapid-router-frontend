@@ -4,6 +4,7 @@ import type * as images from "./images"
 import type * as layers from "./layers"
 import type * as tilesets from "./tilesets"
 import type { Variable, SceneKey } from "./globals"
+import type { LevelOutcome as _LevelOutcome } from "./LevelSimulator"
 
 type _Toolbox<B extends string, T> = { box: B; tool: T }
 
@@ -31,6 +32,9 @@ declare module "phaser" {
 
     /** The index of the command the game ended early on (e.g. the van crashed). */
     type FinishEarly = (commandIndex: number) => void
+
+    /** The run's outcome, once it's over (finished or ended early). */
+    type LevelOutcome = (outcome: _LevelOutcome) => void
   }
 
   namespace GameObjects {
