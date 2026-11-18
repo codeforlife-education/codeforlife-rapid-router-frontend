@@ -1,27 +1,13 @@
 import Phaser from "phaser"
 
 import { Events } from "../../../globals"
-import type { GameCommand } from "../../../../app/slices"
+import { FUEL_COST } from "../../../LevelSimulator"
 import type Level from "."
 
-/** The amount of fuel each command costs to execute. Neither `wait` nor
- * `observe` (a step synthesised purely for editor highlighting, e.g. a
- * loop/if header or sensing check) cost fuel - only actual movement/action
- * commands do. */
-export const FUEL_COST: Record<GameCommand, number> = {
-  move_forwards: 1,
-  turn_left: 1,
-  turn_right: 1,
-  turn_around: 1,
-  wait: 0,
-  deliver: 1,
-  sound_horn: 1,
-  observe: 0,
-}
-
 /**
- * Tracks how much fuel remains as the player's commands are executed, and
- * ends the game early (same as a crash) once it runs out. Fuel is always
+ * Shows how much fuel remains as the player's commands are executed. Running
+ * out is a rule of the game, so it's the \`LevelSimulator\` (replayed by
+ * \`CharacterManager\`) that ends the run early when it happens. Fuel is always
  * recomputed from scratch from `level.commands`/`level.commandIndex` rather
  * than decremented incrementally, so it stays correct no matter how the
  * command index jumps around (Step, Play, restart, etc.).
@@ -55,24 +41,11 @@ export default class FuelManager {
       return
     }
 
-    // The earliest command index at which cumulative cost reaches the
-    // level's max fuel, i.e. where the game should stop for running out.
-    const commands = this.level.commands
-    const maxFuel = this.level.maxFuel
-    let emptyAtIndex = -1
+    const { commands, maxFuel } = this.level
     let cost = 0
-    for (let i = 0; i <= index; i++) {
-      cost += FUEL_COST[commands[i]]
-      // Further commands only increase cost, which is already clamped below.
-      if (cost >= maxFuel) {
-        emptyAtIndex = i
-        break
-      }
-    }
-
+    for (let i = 0; i <= index; i++) cost += FUEL_COST[commands[i]]
+    // The command the character couldn't afford (if any) is never
+    // performed, so the gauge bottoms out at empty.
     this.level.setVariable("fuel", Math.max(0, maxFuel - cost))
-
-    if (emptyAtIndex !== -1)
-      this.level.game.events.emit(Events.FINISH_EARLY, emptyAtIndex)
   }
 }

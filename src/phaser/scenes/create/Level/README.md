@@ -6,8 +6,8 @@ behaviour is split across a hierarchy of **manager** classes, one instance per
 concrete manager, owned by the `Level` scene (`level.road`, `level.endpoint`,
 `level.obstacle`, `level.scenery`).
 
-Each concrete manager defines *what* it manages (its toolbox `box`, its
-storage, its placement rules); the base classes define *how* the common
+Each concrete manager defines _what_ it manages (its toolbox `box`, its
+storage, its placement rules); the base classes define _how_ the common
 patterns work (claiming the toolbox, drag tracking, selection, ghost
 previews). Concrete managers should stay focused on their own domain rules and
 inherit everything else.
@@ -38,7 +38,7 @@ The root of every manager. Owns:
 - `claimToolbox(tool)`, which switches `level.toolbox` to this manager's box
   (so React mirrors the change and every other manager deactivates).
 - `isDragging`, a flag every manager exposes so `Level.isDragging` can tell if
-  *any* manager currently has a drag in progress.
+  _any_ manager currently has a drag in progress.
 
 ### `BaseTileLayerManager`
 

@@ -43,6 +43,18 @@ export default ({ isSsrBuild }: ViteConfigEnv) => {
           rename: { stripBase: true },
         })),
       }),
+      viteStaticCopy({
+        // Self-host Blockly's media (zoom/trashcan sprites, sounds, cursors).
+        // Blockly otherwise fetches them from blockly-demo.appspot.com, which
+        // no longer serves the sprite sheet our Blockly version expects.
+        targets: [
+          {
+            src: "node_modules/blockly/media/*",
+            dest: "blockly/media",
+            rename: { stripBase: true },
+          },
+        ],
+      }),
     ],
     build: {
       // Phaser is a massive game engine. Even when heavily minified, the core

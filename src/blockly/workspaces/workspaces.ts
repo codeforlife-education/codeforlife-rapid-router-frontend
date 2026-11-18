@@ -155,6 +155,9 @@ function updateFlyoutInstanceLabels(
   if (needsReflow) flyout.reflow()
 }
 
+/** Where Blockly's media is self-hosted (copied there by vite.config.ts). */
+const BLOCKLY_MEDIA_PATH = "/blockly/media/"
+
 function initializeWorkspace(
   div: HTMLDivElement,
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
@@ -162,6 +165,7 @@ function initializeWorkspace(
 ) {
   const workspace = Blockly.inject(div, {
     toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
+    media: BLOCKLY_MEDIA_PATH,
     trashcan: true,
     zoom: {
       controls: true,
@@ -434,6 +438,7 @@ export function initializeBlockPreview(
 
   const workspace = Blockly.inject(div, {
     readOnly: true,
+    media: BLOCKLY_MEDIA_PATH,
     trashcan: false,
     sounds: false,
     scrollbars: false,
