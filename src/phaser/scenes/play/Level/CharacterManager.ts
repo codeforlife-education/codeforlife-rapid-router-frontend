@@ -323,8 +323,6 @@ export default class CharacterManager {
         onComplete()
         return
       case "deliver":
-        // As in the legacy game, only each of several destinations gets a
-        // delivery sound - delivering to the only one just wins the level.
         if (delivered && this.simulator.destinations.length > 1)
           this.level.sounds.delivery()
         onComplete()

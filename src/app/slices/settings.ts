@@ -24,7 +24,6 @@ export interface SettingsState {
   threePanelLayout: ThreePanelLayout
   playSpeed: PlaySpeed
   language: Language
-  /** Whether the game's (and Blockly's) sounds are muted. */
   muted: boolean
 }
 

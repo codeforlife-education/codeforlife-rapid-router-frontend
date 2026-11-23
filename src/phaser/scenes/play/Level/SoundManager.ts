@@ -15,7 +15,7 @@ const ENGINE_START_DELAY_MS = 820
 
 /**
  * Plays the level's sound effects. Which engine and crash sounds play depends
- * on the character, as in the legacy game:
+ * on the character:
  * - Van: a starting sound, then the engine (played once), and a crash.
  * - Electric van: an electric starting sound, no engine, and the failure
  *   jingle as its crash.
