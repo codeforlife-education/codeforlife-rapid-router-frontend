@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/compare/v1.8.0...v1.9.0) (2026-11-23)
+
+
+### Features
+
+* Popups for failing / winning a level ([#115](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/issues/115)) ([8144eab](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/commit/8144eab00341454a57ef59fcdd141e8359c6bf70))
+
 # [1.8.0](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/compare/v1.7.0...v1.8.0) (2026-11-16)
 
 
