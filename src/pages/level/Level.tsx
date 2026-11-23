@@ -76,6 +76,7 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
   ...props
 }) => {
   const blocklyWorkspaceRef = useRef<BlocklyWorkspaceRef>(null)
+  const onStartBlockClickRef = useRef<() => void>(null)
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({
     code: "",
     lineNos: [],
@@ -97,6 +98,7 @@ const BlocklyContext: FC<BlocklyProps & { children: ReactNode }> = ({
     <BlocklyWorkspaceContext.Provider
       value={{
         ref: blocklyWorkspaceRef,
+        onStartBlockClickRef,
         toolboxContents,
         maxInstances,
         generatedCode,

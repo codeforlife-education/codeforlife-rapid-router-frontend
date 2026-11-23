@@ -3,9 +3,14 @@ import Phaser from "phaser"
 import * as images from "../images"
 import * as tilesets from "../tilesets"
 import type { default as BaseLevel, BaseLevelData } from "./BaseLevel"
-import { TILE_HEIGHT, TILE_WIDTH } from "../globals"
+import { LOGO_WIDTH, TILE_HEIGHT, TILE_WIDTH } from "../globals"
 import BaseScene from "./BaseScene"
 import type { OrthogonalTilemap } from "../tilemaps"
+
+/** The height (in pixels) of the loading bar's outline. */
+const BAR_HEIGHT = 32
+/** The gap (in pixels) between the logo and the loading bar beneath it. */
+const BAR_GAP = 24
 
 export default class BasePreloader<
   Data extends object | undefined = undefined,
@@ -25,8 +30,15 @@ export default class BasePreloader<
     const centerX = this.scale.width / 2
     const centerY = this.scale.height / 2
 
-    // We loaded this image in our Boot Scene, so we can display it here
+    // We loaded this image in our Boot Scene, so we can display it here. The
+    // logos are different sizes (see `BaseBoot`), so scale it to a fixed width.
     const logo = this.add.image(centerX, centerY, "logo")
+    logo.setScale(LOGO_WIDTH / logo.width)
+
+    // The logo and loading bar (beneath it) are centered together.
+    const totalHeight = logo.displayHeight + BAR_GAP + BAR_HEIGHT
+    logo.setY(centerY - totalHeight / 2 + logo.displayHeight / 2)
+    const barY = centerY + totalHeight / 2 - BAR_HEIGHT / 2
 
     // Render a tile sprite behind everything as the background.
     const background = this.add
@@ -40,9 +52,8 @@ export default class BasePreloader<
       .setDepth(-1) // Render behind everything
 
     // A simple progress bar. This is the outline of the bar.
-    const barY = centerY + logo.height / 2
     const outline = this.add
-      .rectangle(centerX, barY, 468, 32)
+      .rectangle(centerX, barY, 468, BAR_HEIGHT)
       .setStrokeStyle(1, 0xffffff)
 
     // This is the progress bar itself. It will increase in size from the left

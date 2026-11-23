@@ -32,6 +32,100 @@ function moveStartBlockToDefaultPosition(
 }
 
 /**
+ * Finds the workspace's start block. It must be looked up whenever it's
+ * needed (rather than kept), since it's recreated whenever the workspace is
+ * reloaded (e.g. by `setBlocklyLanguage()`).
+ */
+function findStartBlock(workspace: Blockly.WorkspaceSvg) {
+  return workspace
+    .getTopBlocks(false)
+    .find(block => START_BLOCK_TYPES.includes(block.type as StartBlockType))
+}
+
+/**
+ * Calls `onClick` whenever the player clicks (without dragging) the start
+ * block. The listener is removed along with the workspace when it's disposed.
+ */
+export function addStartBlockClickListener(
+  workspace: Blockly.WorkspaceSvg,
+  onClick: () => void,
+) {
+  workspace.addChangeListener(event => {
+    if (
+      event instanceof Blockly.Events.Click &&
+      event.targetType === Blockly.Events.ClickTarget.BLOCK &&
+      event.blockId !== undefined &&
+      event.blockId === findStartBlock(workspace)?.id
+    )
+      onClick()
+  })
+}
+
+/**
+ * Lets the player double-click a block in the toolbox to add it to their
+ * program, like in the legacy game: a block that can be stacked is appended
+ * to the end of the start block's stack, and any other block (e.g. a
+ * procedure definition) is placed on its own beneath it. Nothing is added if
+ * it would exceed the block's max instances.
+ *
+ * The listener is attached to the workspace's injection div (which contains
+ * the flyout), so it's removed along with it when the workspace is disposed.
+ */
+function enableFlyoutDoubleClick(workspace: Blockly.WorkspaceSvg) {
+  workspace.getInjectionDiv().addEventListener("dblclick", event => {
+    const flyoutWorkspace = workspace.getFlyout()?.getWorkspace()
+    if (!flyoutWorkspace || !(event.target instanceof Element)) return
+
+    // Every block's SVG group is tagged with the block's id. Double-clicking a
+    // nested block (e.g. a condition in an "if") adds the whole outer block.
+    const id = event.target.closest("[data-id]")?.getAttribute("data-id")
+    const flyoutBlock = id ? flyoutWorkspace.getBlockById(id) : null
+    if (!flyoutBlock) return
+    const rootFlyoutBlock = flyoutBlock.getRootBlock()
+
+    if (
+      !workspace.isCapacityAvailable(
+        Blockly.common.getBlockTypeCounts(rootFlyoutBlock),
+      )
+    )
+      return
+
+    const startBlock = findStartBlock(workspace)
+    if (!startBlock) return
+
+    // Group the events so it can be undone in one step.
+    Blockly.Events.setGroup(true)
+    try {
+      // Copy the block's state (e.g. its fields' values and, for a procedure
+      // call, which procedure it calls) rather than just its type.
+      const block = Blockly.serialization.blocks.append(
+        Blockly.serialization.blocks.save(rootFlyoutBlock)!,
+        workspace,
+      ) as Blockly.BlockSvg
+
+      const lastConnection = startBlock.lastConnectionInStack(false)
+      if (block.previousConnection && lastConnection) {
+        lastConnection.connect(block.previousConnection)
+      } else {
+        // Place it beneath the start block's stack, out of the way.
+        Blockly.renderManagement.triggerQueuedRenders(workspace)
+        const { x, y } = startBlock.getRelativeToSurfaceXY()
+        block.moveTo(
+          new Blockly.utils.Coordinate(
+            x,
+            y +
+              startBlock.getHeightWidth().height +
+              Blockly.config.snapRadius * 2,
+          ),
+        )
+      }
+    } finally {
+      Blockly.Events.setGroup(false)
+    }
+  })
+}
+
+/**
  * Makes the zoom controls' reset (target) button reset the zoom and move the
  * start block back to its default position, instead of Blockly's default of
  * centering the workspace's content.
@@ -59,11 +153,7 @@ function overrideZoomResetControl(workspace: Blockly.WorkspaceSvg) {
     event.stopPropagation()
     event.preventDefault()
 
-    // The start block is looked up each time, since it's recreated whenever
-    // the workspace is reloaded (e.g. by `setBlocklyLanguage()`).
-    const startBlock = workspace
-      .getTopBlocks(false)
-      .find(block => START_BLOCK_TYPES.includes(block.type as StartBlockType))
+    const startBlock = findStartBlock(workspace)
 
     workspace.markFocused()
     workspace.setScale(workspace.options.zoomOptions.startScale)
@@ -394,6 +484,7 @@ export function initializeBlockly(
 
   const workspace = initializeWorkspace(div, toolboxContents, maxInstances)
   overrideZoomResetControl(workspace)
+  enableFlyoutDoubleClick(workspace)
 
   const startBlock = initializeStartBlock(workspace, startBlockType)
 

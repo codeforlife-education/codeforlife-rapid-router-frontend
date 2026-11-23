@@ -25,6 +25,9 @@ export const RUN_START_DELAY_MS = 1000
 /** The size (in pixels) of the fuel gauge, used for both the dial and the pointer. */
 export const FUEL_GAUGE_SIZE = 100
 
+/** The width (in pixels) of the logo shown above the loading bar. */
+export const LOGO_WIDTH = 400
+
 /** The size (in pixels) of a single fire/smoke particle in a crash. */
 export const CRASH_PARTICLE_SIZE = 20
 
