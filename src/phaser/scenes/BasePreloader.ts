@@ -95,8 +95,8 @@ export default class BasePreloader<
     this.levelData.character.normalKey = normalKey
 
     // Only vans are wrecked when they crash - other characters keep their
-    // normal texture. There's no electric van wreckage art (in this or the
-    // legacy game), so it reuses the van's.
+    // normal texture. There's no electric van wreckage art, so it reuses the
+    // van's.
     const wreckageKey = (
       {
         VAN: "VAN",

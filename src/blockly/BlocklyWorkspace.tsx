@@ -147,9 +147,8 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     const result = runBlockly(startBlock, simulator, lineByBlockId)
     if (result.ok) {
       const commands = simulator.commands.map(c => c.command)
-      // Nothing to play back - show the outcome straight away. Like the
-      // legacy game, blocks left unconnected to an empty start block get
-      // their own message.
+      // Nothing to play back - show the outcome straight away. Blocks left
+      // unconnected to an empty start block get their own message.
       if (commands.length === 0)
         setLevelResult?.(
           !startBlock.getNextBlock() && workspace.getAllBlocks(false).length > 1

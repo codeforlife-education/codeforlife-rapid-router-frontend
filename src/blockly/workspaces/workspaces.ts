@@ -545,8 +545,7 @@ function getSolutionXml(tilemapGroup: TilemapGroup, levelId: Level["id"]) {
 }
 
 /**
- * Replace the current program with the level's model solution (the legacy
- * game's export format, stored as Blockly XML - see `blockly/workspaces`).
+ * Replace the current program with the level's model solution.
  * Only the chain connected to the XML's own "start" block is reattached
  * beneath this workspace's persistent start block; any other top-level
  * block (e.g. a legacy procedure definition) is loaded as-is, best effort,

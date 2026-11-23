@@ -6,12 +6,9 @@ export interface LevelModalProps {
   onClose: () => void
   title: ReactNode
   children: ReactNode
-  /** The modal's buttons, shown in a row at the bottom right. */
   actions: ReactNode
 }
 
-/** The shared look of every popup shown on the level page - centred, and
- * scrolling if its content doesn't fit the screen. */
 const LevelModal: FC<LevelModalProps> = ({
   open,
   onClose,

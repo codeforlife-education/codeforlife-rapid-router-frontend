@@ -73,8 +73,7 @@ export function mapBlocksToPythonLines(code: string) {
 
 /** Maps a boolean block's dropdown `CHOICE` field value (e.g. `"FORWARD"`,
  * `"RED"`) to the Python string argument the matching `Van` sensing method
- * expects - the legacy `Van` API takes the same uppercase values Blockly's
- * dropdowns already store, so no case conversion is needed. */
+ * expects. */
 export const pythonChoiceArg = (block: Blockly.Block) =>
   JSON.stringify(String(block.getFieldValue("CHOICE")))
 

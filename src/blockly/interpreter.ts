@@ -225,7 +225,7 @@ function runStatement(block: Blockly.Block, ctx: InterpreterContext) {
         return runLoop(block, true, ctx)
 
       // Setting/changing a variable is a real `wait` (advancing the traffic
-      // lights), matching the legacy game.
+      // lights).
       case "variables_set": {
         const value = evalValue(block.getInputTargetBlock("VALUE"), ctx)
         ctx.vars.set(block.getFieldValue("VAR") as string, value as number)

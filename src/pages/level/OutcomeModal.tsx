@@ -16,8 +16,6 @@ import { setGameCommands } from "../../app/slices"
 const ROUTE_SCORE = { score: 10, maxScore: 10 }
 const ALGORITHM_SCORE = { score: 10, maxScore: 10 }
 
-/** What to tell the player about why the level wasn't completed - the
- * legacy game's messages. */
 function failureMessage(failure: LevelResultFailure): string {
   switch (failure.reason) {
     case "out_of_instructions":

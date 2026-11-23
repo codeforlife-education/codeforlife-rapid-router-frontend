@@ -20,7 +20,6 @@ import { createRoadNavigator } from "./tilegrid/road"
 export type RelativeDirection = "forward" | "left" | "right"
 export type TrafficLightColour = "RED" | "GREEN"
 
-/** A physical collision that ended the character's run early. */
 export type Collision =
   /** The character drove off the road. */
   | "off_road"
@@ -29,15 +28,12 @@ export type Collision =
   /** The character drove through a red traffic light. */
   | "red_light"
 
-/** A rule broken by the student's program that ended the run early, without
- * the character colliding with anything. */
 export type Mistake =
   /** The character delivered somewhere that isn't a destination. */
   | "delivered_to_non_destination"
   /** The character delivered to a destination it had already delivered to. */
   | "already_delivered"
 
-/** Why the character's run ended early. */
 export type StopReason =
   | Collision
   | Mistake
@@ -135,9 +131,8 @@ export type SimulatorStep = {
 /**
  * Thrown by the program-facing command methods (`moveForwards`, `wait`, etc.)
  * once the run ends early (a collision or an invalid delivery), to stop
- * running the student's program - matching the legacy game, which ends the
- * run there. The command that ended it is always the last one recorded.
- */
+ * running the student's program. The command that ended it is always the last
+ * one recorded. */
 export class LevelStop extends Error {
   readonly reason: StopReason
 
@@ -154,11 +149,11 @@ const PIGEON_ID: number = tilesets.IDs.Obstacles.Animal.PIGEON
 const RED_TRAFFIC_LIGHT_ID: number = tilesets.IDs.Obstacles.TrafficLight.RED
 const TRAFFIC_LIGHT_IDS: readonly number[] = tilesets.obstacles.trafficLight.IDs
 
-/** The amount of fuel each command costs to execute - matching the legacy
- * game, where every action that goes through \`moveVan\` (moving, turning,
- * waiting and sounding the horn) burns fuel, but delivering doesn't. Nor does
- * \`observe\`, a step synthesised purely for editor highlighting (e.g. a
- * loop/if header or sensing check), which isn't an action at all. */
+/** The amount of fuel each command costs to execute - where every action that
+ * goes through \`moveVan\` (moving, turning, waiting and sounding the horn)
+ * burns fuel, but delivering doesn't. Nor does \`observe\`, a step synthesised
+ * purely for editor highlighting (e.g. a loop/if header or sensing check),
+ * which isn't an action at all. */
 export const FUEL_COST: Record<GameCommand, number> = {
   move_forwards: 1,
   turn_left: 1,
@@ -226,12 +221,11 @@ function readTrafficLight(gid: number, properties: unknown): TrafficLight {
 
 /**
  * A headless, Phaser-free model of a play-mode level - the single source of
- * truth for the game's rules, mirroring the legacy game's `model.js`. It's
- * used both to run the student's program upfront (collecting the flat
- * `SimulatorCommand[]` list to play back) and by Phaser to replay those
- * commands, so both always agree on where the character is, what colour each
- * traffic light is, which animals are on the road and when the character
- * collides with something.
+ * truth for the game's rules. It's used both to run the student's program
+ * upfront (collecting the flat `SimulatorCommand[]` list to play back) and by
+ * Phaser to replay those commands, so both always agree on where the character
+ * is, what colour each traffic light is, which animals are on the road and when
+ * the character collides with something.
  */
 export default class LevelSimulator {
   private readonly roadData: readonly number[]
@@ -240,8 +234,7 @@ export default class LevelSimulator {
   private readonly navigator: ReturnType<typeof createRoadNavigator<Tile>>
   private tile: Tile
   private heading: Direction
-  /** Every tile the character's front half has been on - the legacy game's
-   * `visitedNodes`. */
+  /** Every tile the character's front half has been on. */
   private readonly visitedTiles: Tile[]
   readonly destinations: Destination[]
   readonly trafficLights: TrafficLight[]
@@ -249,13 +242,8 @@ export default class LevelSimulator {
   readonly commands: SimulatorCommand[] = []
   /** Set once the run has ended early. */
   stop?: { reason: StopReason; commandIndex: number }
-  /** How many moving commands the character has completed without
-   * colliding - the legacy game's \`getDistanceTravelled\`. */
   private correctMoves = 0
-  /** The animal the character drove into, if any. */
   private collidedAnimal?: Animal
-  /** The fuel left - the character can use up exactly all of it, matching
-   * the legacy game, but can't perform a command it can't afford. */
   fuel: number
 
   constructor(tilemap: OrthogonalTilemap, maxFuel = DEFAULT_MAX_FUEL) {
@@ -317,8 +305,7 @@ export default class LevelSimulator {
     return a.row === b.row && a.col === b.col
   }
 
-  /** The tile the character's front half is on - the tile it's "at", in the
-   * legacy game's terms (its `currentNode`). */
+  /** The tile the character's front half is on - the tile it's "at". */
   private aheadTile({ tile, heading }: CharacterState = this.state): Tile {
     return this.navigator.moveFromTile(tile, heading)
   }
@@ -341,8 +328,7 @@ export default class LevelSimulator {
     )
   }
 
-  /** The destination on the given tile not yet delivered to, if any - the
-   * legacy game's `getDestinationForNode`, which ignores delivered ones. */
+  /** The destination on the given tile not yet delivered to, if any. */
   private destinationAt(tile: Tile) {
     return this.destinations.find(
       destination =>
@@ -385,8 +371,7 @@ export default class LevelSimulator {
   }
 
   /**
-   * Records and performs a single command, applying the legacy game's rules
-   * (`model.js`'s `moveVan`) in order:
+   * Records and performs a single command:
    * 1. Driving on while an animal is on the tile ahead is a collision.
    * 2. Driving off the road is a collision.
    * 3. Leaving a red traffic light's tile (by moving or turning in any
@@ -435,9 +420,6 @@ export default class LevelSimulator {
     let stopReason: StopReason | undefined
     let to = from
 
-    // NOTE: The legacy game checks the tile behind for `wait` - but that's
-    // only reachable by having already crashed into that animal, so waiting
-    // can never collide with an animal here.
     const animal = moving ? this.animalAt(this.aheadTile()) : undefined
     if (animal) {
       stopReason = "animal"
@@ -479,8 +461,7 @@ export default class LevelSimulator {
   }
 
   /**
-   * Whether the level was completed, once the student's program has ended -
-   * the legacy game's `programExecutionEnded`:
+   * Whether the level was completed, once the student's program has ended:
    * - With a single destination, the character just has to stop on it (no
    *   delivery needed) - which then counts as delivering to it.
    * - With several, every destination must have been delivered to, wherever
@@ -569,8 +550,7 @@ export default class LevelSimulator {
     (["forward", "left", "right"] as const).every(d => !this.roadExists(d))
 
   // The van "arrives" once its front half reaches the destination tile,
-  // matching the real van sprite's position (see `CharacterManager`). Like
-  // the legacy game, destinations already delivered to no longer count.
+  // matching the real van sprite's position (see `CharacterManager`)..
   atDestination = (): boolean =>
     this.destinationAt(this.aheadTile()) !== undefined
   // The van is at a traffic light once its front half reaches the light's

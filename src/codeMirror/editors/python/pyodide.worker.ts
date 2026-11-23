@@ -37,7 +37,6 @@ export type RunRequest = {
   id: number
   code: string
   levelId: number
-  /** The level's max fuel, or the default if it didn't specify one. */
   maxFuel?: number
 } & (
   | { tilemapGroup: TilemapGroup; tilemap: undefined }
@@ -50,7 +49,6 @@ export type WorkerResponse =
       type: "result"
       id: number
       commands: SimulatorCommand[]
-      /** The level's outcome, were the commands played back. */
       outcome: LevelOutcome
     }
   | { type: "error"; id: number; message: string; lineNo?: number }
