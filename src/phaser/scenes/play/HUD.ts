@@ -9,9 +9,8 @@ import {
 import BaseScene from "../BaseScene"
 
 /** The gauge's size as a fraction of the canvas's shortest side. It's capped
- * at FUEL_GAUGE_SIZE (the size its texture is loaded at), so it never scales
- * up past that on big screens, and at MIN_GAUGE_SIZE, so it stays readable on
- * small ones. */
+ * at FUEL_GAUGE_SIZE, so it doesn't get too big on big screens, and at
+ * MIN_GAUGE_SIZE, so it stays readable on small ones (both in CSS pixels). */
 const GAUGE_SIZE_RATIO = 0.2
 const MIN_GAUGE_SIZE = 56
 /** The gap between the gauge and the canvas's edges, as a fraction of the
@@ -44,10 +43,12 @@ export default class extends BaseScene {
     // Size the gauge relative to the canvas and keep it pinned to the canvas's
     // bottom-right corner.
     const layoutGauge = (width: number, height: number) => {
+      // The canvas's size is in canvas pixels, but the gauge's limits are in
+      // CSS pixels (see `pixelRatio`).
       const size = Phaser.Math.Clamp(
         Math.min(width, height) * GAUGE_SIZE_RATIO,
-        MIN_GAUGE_SIZE,
-        FUEL_GAUGE_SIZE,
+        MIN_GAUGE_SIZE * this.pixelRatio,
+        FUEL_GAUGE_SIZE * this.pixelRatio,
       )
       const margin = size * MARGIN_RATIO
       const x = width - margin - size / 2

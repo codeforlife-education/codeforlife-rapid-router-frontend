@@ -3,7 +3,12 @@ import Phaser from "phaser"
 import * as images from "../images"
 import * as tilesets from "../tilesets"
 import type { default as BaseLevel, BaseLevelData } from "./BaseLevel"
-import { LOGO_WIDTH, TILE_HEIGHT, TILE_WIDTH } from "../globals"
+import {
+  LOGO_WIDTH,
+  TEXTURE_RESOLUTION,
+  TILE_HEIGHT,
+  TILE_WIDTH,
+} from "../globals"
 import BaseScene from "./BaseScene"
 import type { OrthogonalTilemap } from "../tilemaps"
 
@@ -30,17 +35,13 @@ export default class BasePreloader<
     const centerX = this.scale.width / 2
     const centerY = this.scale.height / 2
 
-    // We loaded this image in our Boot Scene, so we can display it here. The
-    // logos are different sizes (see `BaseBoot`), so scale it to a fixed width.
-    const logo = this.add.image(centerX, centerY, "logo")
-    logo.setScale(LOGO_WIDTH / logo.width)
-
-    // The logo and loading bar (beneath it) are centered together.
-    const totalHeight = logo.displayHeight + BAR_GAP + BAR_HEIGHT
-    logo.setY(centerY - totalHeight / 2 + logo.displayHeight / 2)
-    const barY = centerY + totalHeight / 2 - BAR_HEIGHT / 2
-
-    // Render a tile sprite behind everything as the background.
+    // Render a tile sprite behind everything as the background. Its texture
+    // was rendered at a higher resolution (see `BaseBoot`), so scale its tiles
+    // to the map's tile size in CSS pixels. Its mipmaps are disabled, for the
+    // same reason as the level's background (see `BaseLevel.setBackgroundTexture`).
+    this.textures
+      .get(images.URLs.Background.GRASS)
+      .setFilter(Phaser.Textures.FilterMode.LINEAR)
     const background = this.add
       .tileSprite(
         centerX,
@@ -49,25 +50,39 @@ export default class BasePreloader<
         this.scale.height,
         images.URLs.Background.GRASS,
       )
+      .setTileScale(this.pixelRatio / TEXTURE_RESOLUTION)
       .setDepth(-1) // Render behind everything
+
+    // We loaded this image in our Boot Scene, so we can display it here. The
+    // logos are different sizes (see `BaseBoot`), so scale it to a fixed width.
+    // Its position (like the loading bar's) is relative to the container below.
+    const logo = this.add.image(0, 0, "logo")
+    logo.setScale(LOGO_WIDTH / logo.width)
+
+    // The logo and loading bar (beneath it) are centered together.
+    const totalHeight = logo.displayHeight + BAR_GAP + BAR_HEIGHT
+    logo.setY(-totalHeight / 2 + logo.displayHeight / 2)
+    const barY = totalHeight / 2 - BAR_HEIGHT / 2
 
     // A simple progress bar. This is the outline of the bar.
     const outline = this.add
-      .rectangle(centerX, barY, 468, BAR_HEIGHT)
+      .rectangle(0, barY, 468, BAR_HEIGHT)
       .setStrokeStyle(1, 0xffffff)
 
     // This is the progress bar itself. It will increase in size from the left
     // based on the % of progress.
-    const bar = this.add.rectangle(centerX - 230, barY, 4, 28, 0xffffff)
+    const bar = this.add.rectangle(-230, barY, 4, 28, 0xffffff)
+
+    // The logo and loading bar are laid out in CSS pixels, so scale them up to
+    // the canvas's pixel density.
+    const content = this.add
+      .container(centerX, centerY, [logo, outline, bar])
+      .setScale(this.pixelRatio)
 
     // Keep everything centered and the background filling the canvas.
     this.onResize((width, height) => {
-      const dx = width / 2 - background.x
-      const dy = height / 2 - background.y
-      background.setSize(width, height)
-      for (const obj of [background, logo, outline, bar]) {
-        obj.setPosition(obj.x + dx, obj.y + dy)
-      }
+      background.setPosition(width / 2, height / 2).setSize(width, height)
+      content.setPosition(width / 2, height / 2)
     })
 
     // Use the 'progress' event emitted by the LoaderPlugin to update the
@@ -88,7 +103,12 @@ export default class BasePreloader<
     height: number,
   ) {
     const backgroundUrl = images.URLs.Background[backgroundKey]
-    this.load.svg(backgroundKey, backgroundUrl, { width, height })
+    // Rendered at a higher resolution, and displayed at the given size (see
+    // `BaseLevel.createBackgroundTileSprite`).
+    this.load.svg(backgroundKey, backgroundUrl, {
+      width: width * TEXTURE_RESOLUTION,
+      height: height * TEXTURE_RESOLUTION,
+    })
     this.levelData.backgroundKey = backgroundKey
   }
 
@@ -114,7 +134,11 @@ export default class BasePreloader<
 
     const characterUrl = images.URLs.Character.Normal[normalKey]
     const normalSvgKey = `character_normal_${normalKey}`
-    this.load.svg(normalSvgKey, characterUrl, { scale })
+    // Rendered at a higher resolution, and displayed at the given scale (see
+    // `CharacterSprite`).
+    this.load.svg(normalSvgKey, characterUrl, {
+      scale: scale * TEXTURE_RESOLUTION,
+    })
     this.levelData.character.normalKey = normalKey
 
     // Only vans are wrecked when they crash - other characters keep their
@@ -143,7 +167,9 @@ export default class BasePreloader<
 
     const wreckageUrl = images.URLs.Character.Wreckage[wreckageKey]
     const wreckageSvgKey = `character_wreckage_${wreckageKey}`
-    this.load.svg(wreckageSvgKey, wreckageUrl, { scale })
+    this.load.svg(wreckageSvgKey, wreckageUrl, {
+      scale: scale * TEXTURE_RESOLUTION,
+    })
   }
 
   /**
@@ -175,12 +201,16 @@ export default class BasePreloader<
         throw new Error(`Unknown tileset GID: ${id} (tileset name: ${name})`)
       }
 
-      // Load the image.
+      // Load the image, rendered at a higher resolution and displayed at its
+      // given size (see `BaseLevel.createTileLayer` and
+      // `Image.setRequiredProperties`).
       if (image.endsWith(".svg")) {
+        const scaleUp = (value?: number) =>
+          value === undefined ? undefined : value * TEXTURE_RESOLUTION
         this.load.svg(name, image, {
-          width: imagewidth,
-          height: imageheight,
-          scale: imagescale,
+          width: scaleUp(imagewidth),
+          height: scaleUp(imageheight),
+          scale: scaleUp(imagescale),
         })
       } else throw new Error(`Unsupported tileset image format: ${image}`)
     }

@@ -55,6 +55,16 @@ export default class BaseScene<
   }
 
   /**
+   * How many canvas pixels there are per CSS pixel. The canvas is rendered at
+   * the screen's pixel density (see `PhaserGame`) and then scaled down to its
+   * CSS size, by a zoom of `1 / pixelRatio`. Anything sized in CSS pixels that
+   * isn't scaled by a camera's zoom (e.g. the HUD) must be scaled up by this.
+   */
+  get pixelRatio() {
+    return 1 / this.scale.zoom
+  }
+
+  /**
    * Calls the callback whenever the game canvas is resized (e.g. when its
    * container is resized), until this scene shuts down. The scene's cameras
    * have already been resized to the new size when the callback is called.

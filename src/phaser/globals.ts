@@ -14,6 +14,17 @@ export const TILE_HEIGHT = 64
 export const MAP_WIDTH = COLS * TILE_WIDTH
 export const MAP_HEIGHT = ROWS * TILE_HEIGHT
 
+/**
+ * How many texture pixels the level's (SVG) images are rendered at per world
+ * unit. The camera usually zooms in on the level (more so on high-DPI
+ * screens - see `PhaserGame`), so rendering them at their world size would
+ * leave them blurry/pixelated once scaled up. Instead, they're rendered at a
+ * higher resolution and then displayed at their world size. A power of two,
+ * so that the tile-sized textures (e.g. roads and backgrounds) are too, and
+ * can have mipmaps (WebGL1 only supports mipmaps for power-of-two textures).
+ */
+export const TEXTURE_RESOLUTION = 4
+
 /** The amount of fuel a character starts a level with, when the level
  * doesn't specify its own `maxFuel`. */
 export const DEFAULT_MAX_FUEL = 50

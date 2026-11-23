@@ -48,6 +48,23 @@ let sharedAudioContext: AudioContext | undefined
 let lastGameDestroyed: Promise<void> = Promise.resolve()
 const GAME_DESTROY_TIMEOUT_MS = 1000
 
+/**
+ * The size the game's canvas should be to fill the given container. Phaser
+ * sizes its canvas in CSS pixels, so on high-DPI screens (e.g. Retina displays
+ * and most tablets/phones) the browser would scale it up, blurring everything.
+ * Instead, the canvas is sized in physical pixels, and then scaled back down to
+ * the container's (CSS) size by a zoom of `1 / devicePixelRatio`.
+ */
+function getCanvasSize(container: HTMLElement) {
+  const pixelRatio = window.devicePixelRatio || 1
+  const { width, height } = container.getBoundingClientRect()
+  return {
+    width: Math.max(1, Math.round(width * pixelRatio)),
+    height: Math.max(1, Math.round(height * pixelRatio)),
+    zoom: 1 / pixelRatio,
+  }
+}
+
 export type PhaserGameProps =
   | ({ mode: "play"; levelId: Level["id"] } & (
       | { tilemapGroup: TilemapGroup; tilemap: undefined }
@@ -188,16 +205,24 @@ const PhaserGame: FC<PhaserGameProps> = props => {
 
       // Find out more information about the Game Config at:
       // https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
+      const { width, height, zoom } = getCanvasSize(containerRef.current)
       gameRef.current = new Phaser.Game({
         type: Phaser.AUTO,
         scale: {
-          // Resize the game canvas to always fill the whole parent container.
-          // The scenes listen for resizes to reposition and resize their
-          // contents (see `BaseScene.onResize`).
-          mode: Phaser.Scale.RESIZE,
-          width: "100%", // Use the full width of the parent container.
-          height: "100%", // Use the full height of the parent container.
-          resizeInterval: 100, // Check for resize every 100ms.
+          // The game canvas is sized to always fill the whole parent container
+          // - by us, rather than Phaser (see the resize observer below), as
+          // Phaser doesn't account for the screen's pixel density. The scenes
+          // listen for resizes to reposition and resize their contents (see
+          // `BaseScene.onResize`).
+          mode: Phaser.Scale.NONE,
+          width,
+          height,
+          zoom,
+        },
+        render: {
+          // Smoothly scale down textures displayed smaller than their size
+          // (e.g. when zoomed out), rather than leaving them jagged.
+          mipmapFilter: "LINEAR_MIPMAP_LINEAR",
         },
         parent: containerRef.current,
         scene,
@@ -240,17 +265,24 @@ const PhaserGame: FC<PhaserGameProps> = props => {
     }
   }, [mode, levelId, setActiveSceneKeys])
 
-  // Resize the game as soon as its container is resized (e.g. a device is
-  // rotated or a panel is resized), rather than waiting for Phaser's own
-  // periodic check (see `resizeInterval`).
+  // Resize the game whenever its container is resized (e.g. a device is
+  // rotated or a panel is resized) - see `getCanvasSize`.
   useEffect(() => {
     const container = containerRef.current
     if (!gameIsInitialized || !gameRef.current || !container) return
     const { scale, loop } = gameRef.current
 
     const observer = new ResizeObserver(() => {
-      if (!scale.getParentBounds()) return
-      scale.refresh()
+      const { width, height, zoom } = getCanvasSize(container)
+      if (
+        width === scale.width &&
+        height === scale.height &&
+        zoom === scale.zoom
+      )
+        return
+      // The pixel density changes too, e.g. when the browser is zoomed.
+      if (zoom !== scale.zoom) scale.setZoom(zoom)
+      scale.resize(width, height)
       // Resizing the canvas clears it, so render a frame straight away.
       // Otherwise, the cleared (black) canvas would be painted until Phaser's
       // next frame, making it flicker while being resized. Resize observers
