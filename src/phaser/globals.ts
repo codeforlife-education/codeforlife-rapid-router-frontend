@@ -23,7 +23,7 @@ export const DEFAULT_MAX_FUEL = 50
 export const RUN_START_DELAY_MS = 1000
 
 /** The size (in pixels) of the fuel gauge, used for both the dial and the pointer. */
-export const FUEL_GAUGE_SIZE = 130
+export const FUEL_GAUGE_SIZE = 100
 
 /** The size (in pixels) of a single fire/smoke particle in a crash. */
 export const CRASH_PARTICLE_SIZE = 20

@@ -54,6 +54,28 @@ export default class BaseScene<
     this.events.on(Phaser.Scenes.Events.SLEEP, emitActivity(false))
   }
 
+  /**
+   * Calls the callback whenever the game canvas is resized (e.g. when its
+   * container is resized), until this scene shuts down. The scene's cameras
+   * have already been resized to the new size when the callback is called.
+   */
+  onResize(callback: (width: number, height: number) => void) {
+    const onScaleResize = (gameSize: Phaser.Structs.Size) => {
+      // Phaser only resizes a camera if its size exactly matches the canvas's
+      // previous size, so one that ever drifts out of sync (e.g. through
+      // rounding while a device is rotated) is never resized again - leaving
+      // part of the canvas blank. Our cameras always fill the whole canvas, so
+      // resize them all explicitly.
+      this.cameras.resize(gameSize.width, gameSize.height)
+      callback(gameSize.width, gameSize.height)
+    }
+
+    this.scale.on(Phaser.Scale.Events.RESIZE, onScaleResize)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off(Phaser.Scale.Events.RESIZE, onScaleResize)
+    })
+  }
+
   /** Converts a MUI icon to a data-URI string. */
   muiIconToDataUriString(
     icon: typeof SvgIcon,

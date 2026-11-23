@@ -2,6 +2,7 @@ import {
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
   Check as CheckIcon,
   Delete as DeleteIcon,
+  ExitToApp as ExitToAppIcon,
   Help as HelpIcon,
   Language as LanguageIcon,
   Pause as PauseIcon,
@@ -15,6 +16,7 @@ import {
 import { type FC, useCallback, useState } from "react"
 import { Divider } from "@mui/material"
 import type { PayloadAction } from "@reduxjs/toolkit"
+import { useNavigate } from "react-router"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import {
@@ -48,6 +50,7 @@ import {
 import HintModal from "./HintModal"
 import { type Level } from "../../api/level"
 import { ZoomControls } from "../../phaser"
+import { paths } from "../../routes"
 import { usePlayInterval } from "../../phaser/usePlayInterval"
 
 type BaseControlsProps = { level: Pick<Level, "hint"> }
@@ -75,6 +78,7 @@ const Base: FC<
   const [hintModalOpen, setHintModalOpen] = useState(false)
   const [solving, setSolving] = useState(false)
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
   const gameOnLastStep = useGameOnLastStep()
@@ -237,6 +241,12 @@ const Base: FC<
           text={settings.muted ? "Unmute" : "Mute"}
           icon={settings.muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
           onClick={() => dispatch(setMuted(!settings.muted))}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Exit"
+          icon={<ExitToAppIcon />}
+          onClick={() => void navigate(paths._)}
         />
       </miniDrawers.MiniDrawer>
       <HintModal

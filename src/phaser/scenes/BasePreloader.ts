@@ -29,7 +29,7 @@ export default class BasePreloader<
     const logo = this.add.image(centerX, centerY, "logo")
 
     // Render a tile sprite behind everything as the background.
-    this.add
+    const background = this.add
       .tileSprite(
         centerX,
         centerY,
@@ -41,11 +41,23 @@ export default class BasePreloader<
 
     // A simple progress bar. This is the outline of the bar.
     const barY = centerY + logo.height / 2
-    this.add.rectangle(centerX, barY, 468, 32).setStrokeStyle(1, 0xffffff)
+    const outline = this.add
+      .rectangle(centerX, barY, 468, 32)
+      .setStrokeStyle(1, 0xffffff)
 
     // This is the progress bar itself. It will increase in size from the left
     // based on the % of progress.
     const bar = this.add.rectangle(centerX - 230, barY, 4, 28, 0xffffff)
+
+    // Keep everything centered and the background filling the canvas.
+    this.onResize((width, height) => {
+      const dx = width / 2 - background.x
+      const dy = height / 2 - background.y
+      background.setSize(width, height)
+      for (const obj of [background, logo, outline, bar]) {
+        obj.setPosition(obj.x + dx, obj.y + dy)
+      }
+    })
 
     // Use the 'progress' event emitted by the LoaderPlugin to update the
     // loading bar

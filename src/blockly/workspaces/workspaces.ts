@@ -14,6 +14,67 @@ import type { Level } from "../../api/level"
 import type { TilemapGroup } from "../../phaser/tilemaps"
 import { getSettingsCookie } from "../../app/utils"
 
+/**
+ * The start block's default distance (in screen pixels) from the top-left
+ * corner of the workspace's visible area (i.e. excluding the flyout).
+ */
+const START_BLOCK_OFFSET = 100
+
+/** Moves the start block to its default position (see START_BLOCK_OFFSET). */
+function moveStartBlockToDefaultPosition(
+  workspace: Blockly.WorkspaceSvg,
+  startBlock: Blockly.BlockSvg,
+) {
+  // The view's top-left corner in workspace coordinates.
+  const { left, top } = workspace.getMetricsManager().getViewMetrics(true)
+  const offset = START_BLOCK_OFFSET / workspace.scale
+  startBlock.moveTo(new Blockly.utils.Coordinate(left + offset, top + offset))
+}
+
+/**
+ * Makes the zoom controls' reset (target) button reset the zoom and move the
+ * start block back to its default position, instead of Blockly's default of
+ * centering the workspace's content.
+ *
+ * Blockly binds the button's handler when it's created and doesn't expose a
+ * way to override it, so its pointer/keyboard events are intercepted in the
+ * capture phase on the workspace's SVG, before they ever reach the button.
+ * The SVG is removed when the workspace is disposed, taking these listeners
+ * with it (unlike the injection div, which is reused by the next workspace).
+ */
+function overrideZoomResetControl(workspace: Blockly.WorkspaceSvg) {
+  const onEvent = (event: Event) => {
+    if (
+      !(event.target instanceof Element) ||
+      !event.target.closest(".blocklyZoomReset")
+    )
+      return
+    if (
+      event instanceof KeyboardEvent &&
+      event.key !== "Enter" &&
+      event.key !== " "
+    )
+      return
+
+    event.stopPropagation()
+    event.preventDefault()
+
+    // The start block is looked up each time, since it's recreated whenever
+    // the workspace is reloaded (e.g. by `setBlocklyLanguage()`).
+    const startBlock = workspace
+      .getTopBlocks(false)
+      .find(block => START_BLOCK_TYPES.includes(block.type as StartBlockType))
+
+    workspace.markFocused()
+    workspace.setScale(workspace.options.zoomOptions.startScale)
+    if (startBlock) moveStartBlockToDefaultPosition(workspace, startBlock)
+  }
+
+  const svg = workspace.getParentSvg()
+  svg.addEventListener("pointerdown", onEvent, { capture: true })
+  svg.addEventListener("keydown", onEvent, { capture: true })
+}
+
 function initializeStartBlock(
   workspace: Blockly.WorkspaceSvg,
   startBlockType: StartBlockType,
@@ -31,7 +92,7 @@ function initializeStartBlock(
     startBlock = workspace.newBlock(startBlockType)
     startBlock.initSvg()
     startBlock.render()
-    startBlock.moveBy(10, 10)
+    moveStartBlockToDefaultPosition(workspace, startBlock)
   }
   if (startBlock.isDeletable()) startBlock.setDeletable(false)
 
@@ -332,6 +393,7 @@ export function initializeBlockly(
   ensureBlocklyInitialized()
 
   const workspace = initializeWorkspace(div, toolboxContents, maxInstances)
+  overrideZoomResetControl(workspace)
 
   const startBlock = initializeStartBlock(workspace, startBlockType)
 
@@ -617,5 +679,34 @@ export async function loadWorkspace(
     }
   }
 
-  workspace.cleanUp()
+  arrangeTopBlocks(workspace, startBlock)
+}
+
+/**
+ * Moves the start block (and its attached chain) to its default position and
+ * stacks every other top block (e.g. procedure definitions) in a column
+ * beneath it. Used instead of `workspace.cleanUp()`, which would stack the
+ * start block from the workspace's origin instead.
+ */
+function arrangeTopBlocks(
+  workspace: Blockly.WorkspaceSvg,
+  startBlock: Blockly.BlockSvg,
+) {
+  // Blocks are rendered asynchronously, so render them now to measure them.
+  Blockly.renderManagement.triggerQueuedRenders(workspace)
+
+  moveStartBlockToDefaultPosition(workspace, startBlock)
+
+  const gap = Blockly.config.snapRadius * 2
+  const { x } = startBlock.getRelativeToSurfaceXY()
+  let y =
+    startBlock.getRelativeToSurfaceXY().y +
+    startBlock.getHeightWidth().height +
+    gap
+
+  for (const block of workspace.getTopBlocks(true)) {
+    if (block.id === startBlock.id) continue
+    block.moveTo(new Blockly.utils.Coordinate(x, y))
+    y += block.getHeightWidth().height + gap
+  }
 }

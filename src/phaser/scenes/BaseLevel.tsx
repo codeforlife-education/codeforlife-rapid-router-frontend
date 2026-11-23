@@ -61,24 +61,79 @@ export default class BaseLevel<
       this.game.events.off(Events.ZOOM_IN, zoomIn)
       this.game.events.off(Events.ZOOM_OUT, zoomOut)
     })
+
+    // When the canvas is resized (e.g. a device is rotated or a panel is
+    // resized), re-fit the zoom so the whole tilemap is visible again, grow/
+    // shrink the background (and camera bounds) so it still fills the whole
+    // canvas, and re-center the tilemap. This resets any zooming/panning the
+    // player did, as it may no longer make sense at the new size.
+    this.onResize(() => {
+      this.setZoomInBounds()
+      this.fitBackgroundTileSprite()
+      this.cameras.main.centerOn(...this.tilemapCenter)
+    })
+  }
+
+  /**
+   * Lets the player pan around the level by dragging it (with a mouse, pen or
+   * finger). The camera's bounds (see `fitBackgroundTileSprite`) stop them
+   * panning past the edge of the background.
+   */
+  enableDragToPan() {
+    const camera = this.cameras.main
+    this.input.setDefaultCursor("grab")
+
+    const onPointerDown = () => this.input.setDefaultCursor("grabbing")
+    const onPointerUp = () => this.input.setDefaultCursor("grab")
+    const onPointerMove = (pointer: Phaser.Input.Pointer) => {
+      if (!pointer.isDown) return
+      // Pointer positions are in screen pixels, so convert them to world
+      // units at the current zoom level.
+      camera.scrollX -= (pointer.x - pointer.prevPosition.x) / camera.zoom
+      camera.scrollY -= (pointer.y - pointer.prevPosition.y) / camera.zoom
+    }
+
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+    this.input.on(Phaser.Input.Events.POINTER_UP, onPointerUp)
+    this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, onPointerUp)
+    this.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+      this.input.off(Phaser.Input.Events.POINTER_UP, onPointerUp)
+      this.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, onPointerUp)
+      this.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+    })
   }
 
   /** Creates the background tile sprite. */
   private createBackgroundTileSprite() {
-    // Size the background to exactly cover the camera's viewport once zoomed
-    // all the way out, so no black borders appear around it.
-    const { min: minZoom } = this.zoomBounds
-    const width = this.cameras.main.width / minZoom
-    const height = this.cameras.main.height / minZoom
-
-    this.backgroundTileSprite = this.add.tileSprite(
-      ...this.tilemapCenter,
-      width,
-      height,
-      this.initData.backgroundKey,
-    )
-    this.backgroundTileSprite
+    this.backgroundTileSprite = this.add
+      .tileSprite(...this.tilemapCenter, 0, 0, this.initData.backgroundKey)
       .setOrigin(0.5, 0.5)
+      .setDepth(-1) // Render behind everything
+
+    this.fitBackgroundTileSprite()
+  }
+
+  /**
+   * Sizes the background to cover the tilemap plus half the camera's viewport
+   * (once zoomed all the way out) on every side, and bounds the camera to it.
+   * That way, no borders appear around the background at any zoom level, even
+   * while panning (see `enableDragToPan`), and any part of the tilemap can
+   * still be panned to the center of the view.
+   */
+  private fitBackgroundTileSprite() {
+    const camera = this.cameras.main
+    const { min: minZoom } = this.zoomBounds
+    const padX = Math.ceil(camera.width / minZoom / 2)
+    const padY = Math.ceil(camera.height / minZoom / 2)
+    const width = this.tilemap.widthInPixels + padX * 2
+    const height = this.tilemap.heightInPixels + padY * 2
+
+    camera.setBounds(-padX, -padY, width, height)
+
+    this.backgroundTileSprite
+      .setSize(width, height)
       // Shift the tile pattern so it aligns with world (0, 0). The sprite's
       // top-left corner is at (widthInPixels/2 - spriteW/2, ...) in world
       // space. If that position isn't a multiple of tileWidth/tileHeight, the
@@ -93,7 +148,6 @@ export default class BaseLevel<
           this.tilemap.tileHeight) %
           this.tilemap.tileHeight,
       )
-      .setDepth(-1) // Render behind everything
   }
 
   /** Creates a tile layer for the specified layer name. */

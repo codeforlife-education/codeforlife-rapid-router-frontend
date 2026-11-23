@@ -62,6 +62,7 @@ export default class extends BaseLevel<LevelData> {
     this.scene.launch(HUD.KEY)
 
     super.create()
+    this.enableDragToPan()
 
     // Initialize the managers. The sounds, obstacles and destinations must
     // exist before the character, which resets them whenever it (re)spawns.
