@@ -9,6 +9,8 @@ import {
   Redo as RedoIcon,
   Speed as SpeedIcon,
   Stop as StopIcon,
+  VolumeOff as VolumeOffIcon,
+  VolumeUp as VolumeUpIcon,
 } from "@mui/icons-material"
 import { type FC, useCallback, useState } from "react"
 import { Divider } from "@mui/material"
@@ -23,6 +25,7 @@ import {
   nextGameCommand,
   restartGame,
   setLanguage,
+  setMuted,
   setPlaySpeed,
   setThreePanelLayout,
   setTwoPanelLayout,
@@ -114,10 +117,12 @@ const Base: FC<
             }
             if (gameIsDefined) {
               if (gameOnLastStep || phase === "crashed") dispatch(restartGame())
-              setPlayInterval()
+              // Anything but resuming a paused run starts it from the top.
+              setPlayInterval({ isRunStart: phase !== "paused" })
             } else
               void interpretCommands().then(
-                commands => commands?.length && setPlayInterval(),
+                commands =>
+                  commands?.length && setPlayInterval({ isRunStart: true }),
               )
           }}
         />
@@ -226,6 +231,12 @@ const Base: FC<
             onClick: () => dispatch(setPlaySpeed(playSpeed)),
           }))}
           selectedValue={settings.playSpeed}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text={settings.muted ? "Unmute" : "Mute"}
+          icon={settings.muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+          onClick={() => dispatch(setMuted(!settings.muted))}
         />
       </miniDrawers.MiniDrawer>
       <HintModal

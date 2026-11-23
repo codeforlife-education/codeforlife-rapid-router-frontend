@@ -27,6 +27,7 @@ import {
   useBlocklyWorkspaceContext,
   useGameCommandIndex,
   usePhaserGameContext,
+  useSettings,
 } from "../app/hooks"
 import type { GameCommand } from "../app/slices/game"
 import { type Language } from "./messages"
@@ -58,6 +59,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
   const dispatch = useAppDispatch()
   const { phase, setPhase, setLevelResult, maxFuel } = usePhaserGameContext()
   const gameCommandIndex = useGameCommandIndex()
+  const { muted } = useSettings()
   const [gameCommandBlockIds, setGameCommandBlockIds] = useState<string[][]>([])
 
   if (!blocklyWorkspaceContext)
@@ -252,6 +254,14 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       blockly.workspace.dispose()
     }
   }, [startBlockType, toolboxContents, maxInstances, setGame])
+
+  // Mute (or unmute) Blockly's own sounds (e.g. connecting a block).
+  useEffect(() => {
+    if (!blockly) return
+    const { workspace } = blockly
+    workspace.getAudioManager().setMuted(muted)
+    workspace.getFlyout()?.getWorkspace().getAudioManager().setMuted(muted)
+  }, [blockly, muted])
 
   // Highlight the current block during game play.
   useEffect(() => {

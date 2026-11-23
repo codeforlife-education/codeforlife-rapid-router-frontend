@@ -18,15 +18,16 @@ import type Phaser from "phaser"
 
 import { Events, type Variable } from "./globals"
 import type { ExportedOrthogonalTilemap, TilemapGroup } from "./tilemaps"
+import type { LevelResult, PhaserGameRef } from "./PhaserGameContext"
 import {
   useAppDispatch,
   useGameCommandIndex,
   useGameCommands,
   useGameRunId,
   usePhaserGameContext,
+  useSettings,
 } from "../app/hooks"
 import type { Level } from "../api/level"
-import type { PhaserGameRef } from "./PhaserGameContext"
 import { finishGameEarly } from "../app/slices"
 
 export type PhaserGameProps =
@@ -45,14 +46,24 @@ const PhaserGame: FC<PhaserGameProps> = props => {
   const gameCommands = useGameCommands()
   const gameCommandIndex = useGameCommandIndex()
   const gameRunId = useGameRunId()
+  const { muted } = useSettings()
   const [gameIsInitialized, setGameIsInitialized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const gameRef = useRef<Phaser.Game>(null)
+  /** The last outcome Phaser reported (and so already played a sound for). */
+  const phaserOutcomeRef = useRef<LevelResult>(undefined)
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
-  const { ref, setActiveSceneKeys, phase, setPhase, maxFuel, setLevelResult } =
-    phaserGameContext
+  const {
+    ref,
+    setActiveSceneKeys,
+    phase,
+    setPhase,
+    maxFuel,
+    levelResult,
+    setLevelResult,
+  } = phaserGameContext
 
   const getVariable = useCallback(
     (<T,>(
@@ -232,6 +243,7 @@ const PhaserGame: FC<PhaserGameProps> = props => {
       setPhase("crashed")
     }
     const onLevelOutcome: Phaser.Events.LevelOutcome = outcome => {
+      phaserOutcomeRef.current = outcome
       setLevelResult?.(outcome)
     }
     events.on(Events.FINISH_EARLY, onFinishEarly)
@@ -241,6 +253,30 @@ const PhaserGame: FC<PhaserGameProps> = props => {
       events.off(Events.LEVEL_OUTCOME, onLevelOutcome)
     }
   }, [mode, gameIsInitialized, dispatch, setPhase, setLevelResult])
+
+  // Mute (or unmute) all of the game's sounds.
+  useEffect(() => {
+    if (gameIsInitialized && gameRef.current) gameRef.current.sound.mute = muted
+  }, [gameIsInitialized, muted])
+
+  // Pass the run's phase to Phaser when in play mode (e.g. to pause sounds).
+  useEffect(() => {
+    if (mode === "play") setVariable("phase", phase)
+  }, [mode, phase, setVariable])
+
+  // Play a sound for a result that didn't come from Phaser playing the run
+  // back (which plays its own) - e.g. the program couldn't be run at all.
+  useEffect(() => {
+    if (mode !== "play" || !gameIsInitialized || !gameRef.current) return
+    if (!levelResult || levelResult === phaserOutcomeRef.current) return
+    gameRef.current.sound.play(
+      levelResult.success
+        ? "win"
+        : levelResult.reason === "program_error"
+          ? "tension"
+          : "failure",
+    )
+  }, [mode, gameIsInitialized, levelResult])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

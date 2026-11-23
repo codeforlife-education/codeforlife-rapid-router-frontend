@@ -7,6 +7,7 @@ import {
   usePhaserGameContext,
   useSettings,
 } from "../app/hooks"
+import { RUN_START_DELAY_MS } from "./globals"
 import { nextGameCommand } from "../app/slices"
 
 /**
@@ -21,21 +22,36 @@ export function usePlayInterval() {
   const gameOnLastStep = useGameOnLastStep()
   const { phase, setPhase } = usePhaserGameContext()
   const intervalRef = useRef<null | ReturnType<typeof setInterval>>(null)
+  const startTimeoutRef = useRef<null | ReturnType<typeof setTimeout>>(null)
 
   const clearPlayInterval = useCallback(() => {
-    if (!intervalRef.current) return false
-    clearInterval(intervalRef.current)
+    if (!intervalRef.current && !startTimeoutRef.current) return false
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (startTimeoutRef.current) clearTimeout(startTimeoutRef.current)
     intervalRef.current = null
+    startTimeoutRef.current = null
     return true
   }, [])
 
-  const setPlayInterval = useCallback(() => {
-    clearPlayInterval()
-    setPhase("playing")
-    intervalRef.current = setInterval(() => {
-      dispatch(nextGameCommand())
-    }, 1000 / playSpeed)
-  }, [clearPlayInterval, dispatch, playSpeed, setPhase])
+  /** Starts auto-advancing. Pass `isRunStart` when the run's first command is
+   * about to be shown, so the first tick also waits for the character to
+   * start up (see `RUN_START_DELAY_MS`) before moving on. */
+  const setPlayInterval = useCallback(
+    ({ isRunStart = false }: { isRunStart?: boolean } = {}) => {
+      clearPlayInterval()
+      setPhase("playing")
+      const startInterval = () => {
+        startTimeoutRef.current = null
+        intervalRef.current = setInterval(() => {
+          dispatch(nextGameCommand())
+        }, 1000 / playSpeed)
+      }
+      if (isRunStart)
+        startTimeoutRef.current = setTimeout(startInterval, RUN_START_DELAY_MS)
+      else startInterval()
+    },
+    [clearPlayInterval, dispatch, playSpeed, setPhase],
+  )
 
   // Stop once playback reaches the last command - covers both auto-play
   // reaching the end and the player manually stepping to it.

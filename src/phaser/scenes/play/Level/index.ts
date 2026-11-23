@@ -8,6 +8,7 @@ import FuelManager from "./FuelManager"
 import type { GameCommand } from "../../../../app/slices"
 import HUD from "../HUD"
 import ObstacleManager from "./ObstacleManager"
+import SoundManager from "./SoundManager"
 
 export interface LevelData extends BaseLevelData {}
 
@@ -34,6 +35,9 @@ export default class extends BaseLevel<LevelData> {
   /** Destination manager responsible for showing each destination's border. */
   destinations!: DestinationManager
 
+  /** Sound manager responsible for playing the level's sound effects. */
+  sounds!: SoundManager
+
   /** The commands compiled from the player's program. */
   get commands() {
     return this.getVariable<GameCommand[]>("commands", [])
@@ -59,8 +63,9 @@ export default class extends BaseLevel<LevelData> {
 
     super.create()
 
-    // Initialize the managers. The obstacles and destinations must exist
-    // before the character, which resets them whenever it (re)spawns.
+    // Initialize the managers. The sounds, obstacles and destinations must
+    // exist before the character, which resets them whenever it (re)spawns.
+    this.sounds = new SoundManager(this)
     this.obstacles = new ObstacleManager(this)
     this.destinations = new DestinationManager(this)
     this.character = new CharacterManager(this)

@@ -24,6 +24,8 @@ export interface SettingsState {
   threePanelLayout: ThreePanelLayout
   playSpeed: PlaySpeed
   language: Language
+  /** Whether the game's (and Blockly's) sounds are muted. */
+  muted: boolean
 }
 
 const DEFAULT_SETTINGS: SettingsState = Object.freeze({
@@ -31,11 +33,13 @@ const DEFAULT_SETTINGS: SettingsState = Object.freeze({
   threePanelLayout: undefined, // "auto"
   playSpeed: 1,
   language: DEFAULT_LANGUAGE,
+  muted: false,
 })
 
 export const settingsSlice = createSlice({
   name: "settings",
-  initialState: getSettingsCookie() ?? DEFAULT_SETTINGS,
+  // Fill in any settings added since the cookie was saved.
+  initialState: { ...DEFAULT_SETTINGS, ...getSettingsCookie() },
   reducers: create => ({
     setTwoPanelLayout: create.reducer(
       (state, action: PayloadAction<TwoPanelLayout>) => {
@@ -53,6 +57,9 @@ export const settingsSlice = createSlice({
     setLanguage: create.reducer((state, action: PayloadAction<Language>) => {
       state.language = action.payload
     }),
+    setMuted: create.reducer((state, action: PayloadAction<boolean>) => {
+      state.muted = action.payload
+    }),
   }),
   selectors: { selectSettings: settings => settings },
 })
@@ -62,5 +69,6 @@ export const {
   setThreePanelLayout,
   setPlaySpeed,
   setLanguage,
+  setMuted,
 } = settingsSlice.actions
 export const { selectSettings } = settingsSlice.selectors

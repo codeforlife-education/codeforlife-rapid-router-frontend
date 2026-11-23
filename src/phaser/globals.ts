@@ -18,6 +18,10 @@ export const MAP_HEIGHT = ROWS * TILE_HEIGHT
  * doesn't specify its own `maxFuel`. */
 export const DEFAULT_MAX_FUEL = 50
 
+/** How long the character waits (starting up) before acting out a run's first
+ * command, in milliseconds. */
+export const RUN_START_DELAY_MS = 1000
+
 /** The size (in pixels) of the fuel gauge, used for both the dial and the pointer. */
 export const FUEL_GAUGE_SIZE = 130
 
@@ -50,6 +54,7 @@ export const Variables = createIdRegistry({
   tilemapGroup: "TILEMAP_GROUP",
   fuel: "FUEL",
   maxFuel: "MAX_FUEL",
+  phase: "PHASE",
 } as const)
 export type Variable = (typeof Variables)[keyof typeof Variables]
 

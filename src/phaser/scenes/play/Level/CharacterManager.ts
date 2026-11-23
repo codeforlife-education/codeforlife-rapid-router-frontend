@@ -5,7 +5,7 @@ import {
   STEP_BY_DIRECTION,
   turnLeft,
 } from "../../../tilegrid/navigation"
-import { Events, TILE_WIDTH } from "../../../globals"
+import { Events, RUN_START_DELAY_MS, TILE_WIDTH } from "../../../globals"
 import LevelSimulator, {
   type CharacterState,
   type LevelOutcome,
@@ -71,6 +71,10 @@ export default class CharacterManager {
   private outcomeReported = false
   /** A delayed outcome report still pending, if any. */
   private outcomeTimer?: Phaser.Time.TimerEvent
+  /** Holds back the run's first command while the character starts up. */
+  private startTimer?: Phaser.Time.TimerEvent
+  /** Applies the held-back first command instantly, if it's cut short. */
+  private skipStart?: () => void
 
   constructor(level: Level) {
     this.level = level
@@ -99,6 +103,7 @@ export default class CharacterManager {
     this.spawnCount++
     // Skip any still-running animation (now stale) straight to its end.
     this.sprite.finishAnimation()
+    this.cancelStart(false)
 
     this.simulator = new LevelSimulator(this.tilemapData, this.level.maxFuel)
     this.lastCommandIndex = -1
@@ -107,6 +112,7 @@ export default class CharacterManager {
     this.outcomeTimer?.remove()
     this.outcomeTimer = undefined
 
+    this.level.sounds.stopEngine()
     this.sprite.repair().setVisible(true)
     this.placeAt(this.simulator.state)
     this.level.obstacles.sync(this.simulator, { animate: false })
@@ -128,6 +134,7 @@ export default class CharacterManager {
     }
 
     // Skip any still-running animation straight to its end state first.
+    this.cancelStart(true)
     this.sprite.finishAnimation()
 
     if (index === -1) return // Not playing yet this run.
@@ -149,6 +156,11 @@ export default class CharacterManager {
     const command = this.level.commands[index]
     if (!command) return
 
+    // The run's first command - the character starts up. Only once there's
+    // actually a command to play: a new run with no commands (e.g. the
+    // program was just edited) can briefly push index 0 before going idle.
+    if (index === 0) this.level.sounds.start()
+
     const step = this.simulator.perform(command)
     if (instant) {
       this.placeAt(step.to)
@@ -157,9 +169,36 @@ export default class CharacterManager {
     }
 
     const spawnCount = this.spawnCount
-    this.animate(step, () => {
-      if (spawnCount === this.spawnCount) this.onStepFinished(step, index, true)
-    })
+    const animate = () =>
+      this.animate(step, () => {
+        if (spawnCount === this.spawnCount)
+          this.onStepFinished(step, index, true)
+      })
+
+    // The character takes a moment to start up before its first command.
+    if (index === 0) {
+      this.skipStart = () => {
+        this.placeAt(step.to)
+        this.onStepFinished(step, index, false)
+      }
+      this.startTimer = this.level.time.delayedCall(RUN_START_DELAY_MS, () => {
+        this.startTimer = this.skipStart = undefined
+        animate()
+      })
+      return
+    }
+
+    animate()
+  }
+
+  /** Cancels the held-back first command, if it's still waiting - applying
+   * it instantly if `apply` (e.g. the next command's already arrived). */
+  private cancelStart(apply: boolean) {
+    if (!this.startTimer) return
+    this.startTimer.remove()
+    const skipStart = this.skipStart
+    this.startTimer = this.skipStart = undefined
+    if (apply) skipStart?.()
   }
 
   /** Shows the outcome of a step once the van has finished acting it out. */
@@ -169,19 +208,27 @@ export default class CharacterManager {
       // (which, with a single destination, also marks it delivered).
       const isLast = index === this.level.commands.length - 1
       const outcome = isLast ? this.simulator.evaluate() : undefined
-      this.level.obstacles.sync(this.simulator, { animate })
+      this.level.obstacles.sync(this.simulator, { animate, step })
       this.level.destinations.sync(this.simulator)
-      if (outcome)
+      if (outcome) {
+        this.level.sounds.stopEngine()
+        if (outcome.success) this.level.sounds.win()
+        else this.level.sounds.failure()
         this.reportOutcome(outcome, outcome.success ? OUTCOME_DELAY_MS : 0)
+      }
       return
     }
 
-    this.level.obstacles.sync(this.simulator, { animate })
+    this.level.obstacles.sync(this.simulator, { animate, step })
     // Only driving into something wrecks the van - not running a red light,
     // nor delivering somewhere invalid.
     const crashed =
       step.stopReason === "off_road" || step.stopReason === "animal"
-    if (crashed) this.sprite.wreck()
+    this.level.sounds.stopEngine()
+    if (crashed) {
+      this.sprite.wreck()
+      this.level.sounds.crash()
+    } else this.level.sounds.failure()
     // Report the early stop back to React as an event arg, not via the
     // registry, so a React write racing shortly after can't clobber it.
     this.level.game.events.emit(Events.FINISH_EARLY, index)
@@ -207,7 +254,7 @@ export default class CharacterManager {
 
   /** Animates the van acting out a step, then calls `onComplete`. */
   private animate(
-    { command, from, to, stopReason }: SimulatorStep,
+    { command, from, to, stopReason, scaredAnimal, delivered }: SimulatorStep,
     onComplete: () => void,
   ) {
     // Out of fuel, the van can't do anything at all.
@@ -270,9 +317,20 @@ export default class CharacterManager {
         )
         return
       }
+      case "sound_horn":
+        this.level.sounds.horn()
+        if (scaredAnimal) this.level.sounds.animal(scaredAnimal.kind)
+        onComplete()
+        return
+      case "deliver":
+        // As in the legacy game, only each of several destinations gets a
+        // delivery sound - delivering to the only one just wins the level.
+        if (delivered && this.simulator.destinations.length > 1)
+          this.level.sounds.delivery()
+        onComplete()
+        return
       default:
-        // No movement for the rest (wait, deliver, sound_horn, observe) yet -
-        // future sound/animation hooks.
+        // No movement for the rest (wait, observe).
         onComplete()
     }
   }

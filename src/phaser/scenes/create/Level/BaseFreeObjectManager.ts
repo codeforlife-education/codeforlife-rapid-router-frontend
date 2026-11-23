@@ -1,7 +1,7 @@
 import Phaser from "phaser"
 
 import * as layers from "../../../layers"
-import * as objects from "../../../layers/objectGroup/objects"
+import type * as objects from "../../../layers/objectGroup/objects"
 import * as tilesets from "../../../tilesets"
 import BaseObjectGroupLayerManager, {
   type Placed,
@@ -9,6 +9,7 @@ import BaseObjectGroupLayerManager, {
 import { Events, TILE_HEIGHT, TILE_WIDTH, Variables } from "../../../globals"
 import type { ExportedFreeObject } from "../../../tilemaps"
 import type { default as Level } from "."
+import { canOverlap } from "../../../layers/objectGroup/objects/overlap"
 
 type Drag = {
   obj: Phaser.GameObjects.Image
@@ -325,47 +326,6 @@ export default abstract class BaseFreeObjectManager<
     )
   }
 
-  /** Check if `obj1` can overlap `obj2`. */
-  private canOverlapPlacedObject(
-    obj1: Phaser.GameObjects.Image,
-    obj2: Phaser.GameObjects.Image,
-    obj1Bounds = obj1.getBounds(),
-  ) {
-    if (obj1 === obj2) return true
-
-    const obj2Bounds = obj2.getBounds()
-
-    // The centre of one object can never be inside the bounds of another.
-    if (obj2Bounds.contains(obj1Bounds.centerX, obj1Bounds.centerY))
-      return false
-
-    // The bounds of the objects don't overlap - no need for further checks.
-    if (!Phaser.Geom.Rectangle.Overlaps(obj1Bounds, obj2Bounds)) return true
-
-    // 2 objects that are both below ground can't overlap.
-    if (
-      obj1.depth === objects.Depths.BELOW_GROUND &&
-      obj2.depth === objects.Depths.BELOW_GROUND
-    )
-      return false
-
-    // A solid object can't overlap another object unless one is above ground
-    // and the other is below ground.
-    if (
-      (objects.getDensity(obj1.name) === objects.Densities.SOLID ||
-        objects.getDensity(obj2.name) === objects.Densities.SOLID) &&
-      !(
-        (obj1.depth === objects.Depths.BELOW_GROUND &&
-          obj2.depth === objects.Depths.ABOVE_GROUND) ||
-        (obj1.depth === objects.Depths.ABOVE_GROUND &&
-          obj2.depth === objects.Depths.BELOW_GROUND)
-      )
-    )
-      return false
-
-    return true // The objects are allowed to overlap.
-  }
-
   private isOverlappingPlacedObject(obj: Phaser.GameObjects.Image): boolean
   private isOverlappingPlacedObject(
     obj: Phaser.GameObjects.Image,
@@ -390,9 +350,7 @@ export default abstract class BaseFreeObjectManager<
     const bounds = obj.getRelativeBounds(x, y)
 
     return [
-      ...this.placedObjects.filter(
-        o => !this.canOverlapPlacedObject(obj, o, bounds),
-      ),
+      ...this.placedObjects.filter(o => !canOverlap(obj, o, bounds)),
       ...this.endpoints.filter(e => this.isOverlappingEndpoint(obj, e, bounds)),
     ]
   }
