@@ -2,6 +2,7 @@ import { type Middleware, isAction } from "@reduxjs/toolkit"
 
 import {
   setLanguage,
+  setMuted,
   setPlaySpeed,
   setThreePanelLayout,
   setTwoPanelLayout,
@@ -16,6 +17,7 @@ const SETTINGS_WRITE_ACTIONS = [
   setTwoPanelLayout,
   setPlaySpeed,
   setLanguage,
+  setMuted,
 ]
 
 // Middleware to save settings to cookies whenever user makes changes

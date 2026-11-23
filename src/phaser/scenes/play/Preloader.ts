@@ -1,6 +1,7 @@
 import Phaser from "phaser"
 
 import * as images from "../../images"
+import * as sounds from "../../sounds"
 import * as tilemaps from "../../tilemaps"
 import { CRASH_PARTICLE_SIZE, FUEL_GAUGE_SIZE, SceneKeys } from "../../globals"
 import BasePreloader from "../BasePreloader"
@@ -33,6 +34,9 @@ export default class extends BasePreloader {
       width: CRASH_PARTICLE_SIZE,
       height: CRASH_PARTICLE_SIZE,
     })
+    for (const [key, url] of Object.entries(sounds.URLs)) {
+      this.load.audio(key, url)
+    }
   }
 
   create() {
