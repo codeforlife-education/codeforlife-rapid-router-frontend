@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/compare/v1.9.0...v1.10.0) (2026-11-23)
+
+
+### Features
+
+* Sound effects and remaining animations ([#116](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/issues/116)) ([8021716](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/commit/802171658fe54020b3861d50aa08e5a36215432b))
+
 # [1.9.0](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/compare/v1.8.0...v1.9.0) (2026-11-23)
 
 
