@@ -51,7 +51,7 @@ const PhaserGame: FC<PhaserGameProps> = props => {
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
-  const { ref, setActiveSceneKeys, phase, setPhase, maxFuel } =
+  const { ref, setActiveSceneKeys, phase, setPhase, maxFuel, setLevelResult } =
     phaserGameContext
 
   const getVariable = useCallback(
@@ -222,7 +222,7 @@ const PhaserGame: FC<PhaserGameProps> = props => {
   }, [mode, gameRunId, gameCommandIndex, phase, setVariable])
 
   // Listen for Phaser reporting a crash, and end the game early at whichever
-  // command index it passes.
+  // command index it passes - and for the run's outcome, to show the player.
   useEffect(() => {
     if (mode !== "play" || !gameIsInitialized || !gameRef.current) return
     const { events } = gameRef.current
@@ -231,11 +231,16 @@ const PhaserGame: FC<PhaserGameProps> = props => {
       dispatch(finishGameEarly(commandIndex))
       setPhase("crashed")
     }
+    const onLevelOutcome: Phaser.Events.LevelOutcome = outcome => {
+      setLevelResult?.(outcome)
+    }
     events.on(Events.FINISH_EARLY, onFinishEarly)
+    events.on(Events.LEVEL_OUTCOME, onLevelOutcome)
     return () => {
       events.off(Events.FINISH_EARLY, onFinishEarly)
+      events.off(Events.LEVEL_OUTCOME, onLevelOutcome)
     }
-  }, [mode, gameIsInitialized, dispatch, setPhase])
+  }, [mode, gameIsInitialized, dispatch, setPhase, setLevelResult])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

@@ -56,7 +56,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     (blockly: Blockly, generator?: string): Promise<GameCommand[] | undefined>
   }>(async () => new Promise(resolve => resolve(undefined)))
   const dispatch = useAppDispatch()
-  const { phase, setPhase } = usePhaserGameContext()
+  const { phase, setPhase, setLevelResult, maxFuel } = usePhaserGameContext()
   const gameCommandIndex = useGameCommandIndex()
   const [gameCommandBlockIds, setGameCommandBlockIds] = useState<string[][]>([])
 
@@ -143,10 +143,18 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     const resolvedTilemap = tilemap
       ? importOrthogonal(tilemap)
       : await getTilemap(levelId, tilemapGroup)
-    const simulator = new LevelSimulator(resolvedTilemap)
+    const simulator = new LevelSimulator(resolvedTilemap, maxFuel)
     const result = runBlockly(startBlock, simulator, lineByBlockId)
     if (result.ok) {
       const commands = simulator.commands.map(c => c.command)
+      // Nothing to play back - show the outcome straight away. Blocks left
+      // unconnected to an empty start block get their own message.
+      if (commands.length === 0)
+        setLevelResult?.(
+          !startBlock.getNextBlock() && workspace.getAllBlocks(false).length > 1
+            ? { success: false, reason: "start_disconnected" }
+            : simulator.evaluate(),
+        )
       setGame(
         commands,
         simulator.commands.map(c => c.blockIds ?? []),
@@ -155,6 +163,11 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
       return commands
     }
     setPhase("crashed")
+    setLevelResult?.({
+      success: false,
+      reason: "program_error",
+      message: result.message,
+    })
     highlightBlock(workspace, result.blockIds, { error: true })
     setGeneratedCode(prev => ({
       ...prev,

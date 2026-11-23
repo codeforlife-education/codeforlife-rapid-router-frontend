@@ -14,6 +14,7 @@ import {
   importOrthogonal,
 } from "../../../phaser/tilemaps"
 import LevelSimulator, {
+  type LevelOutcome,
   type SimulatorCommand,
 } from "../../../phaser/LevelSimulator"
 import { getTilemap } from "../../../phaser/tilemaps/load"
@@ -36,6 +37,7 @@ export type RunRequest = {
   id: number
   code: string
   levelId: number
+  maxFuel?: number
 } & (
   | { tilemapGroup: TilemapGroup; tilemap: undefined }
   | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
@@ -47,6 +49,7 @@ export type WorkerResponse =
       type: "result"
       id: number
       commands: SimulatorCommand[]
+      outcome: LevelOutcome
     }
   | { type: "error"; id: number; message: string; lineNo?: number }
 
@@ -65,7 +68,7 @@ void getPyodide().then(() => {
 })
 
 self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
-  const { id, code, levelId, tilemapGroup, tilemap } = data
+  const { id, code, levelId, maxFuel, tilemapGroup, tilemap } = data
   let errorLine: number | undefined
   // Kept outside the `try` so an early stop can still be reported from `catch`.
   let runSimulator: LevelSimulator | undefined
@@ -78,7 +81,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
           )
         : getTilemap(levelId, tilemapGroup),
     ])
-    const simulator = new LevelSimulator(resolvedTilemap)
+    const simulator = new LevelSimulator(resolvedTilemap, maxFuel)
     runSimulator = simulator
 
     // A fresh globals dict per run - keeps runs isolated from each other.
@@ -119,6 +122,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
       type: "result",
       id,
       commands: simulator.commands,
+      outcome: simulator.evaluate(),
     }
     self.postMessage(response)
   } catch (error) {
@@ -131,6 +135,7 @@ self.onmessage = async ({ data }: MessageEvent<RunRequest>) => {
         type: "result",
         id,
         commands: runSimulator.commands,
+        outcome: runSimulator.evaluate(),
       }
       self.postMessage(response)
       return

@@ -11,6 +11,8 @@ export {
 export {
   default as PhaserGameContext,
   type GamePhase,
+  type LevelResult,
+  type LevelResultFailure,
   type PhaserGameContextValue,
   type PhaserGameRef,
 } from "./PhaserGameContext"
@@ -21,7 +23,9 @@ export {
   LevelStop,
   type Collision,
   type Destination,
+  type AnimalKind,
   type FailureReason,
+  type LevelFailure,
   type LevelOutcome,
   type Mistake,
   type StopReason,

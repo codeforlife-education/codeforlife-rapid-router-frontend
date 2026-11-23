@@ -155,6 +155,15 @@ function updateFlyoutInstanceLabels(
   if (needsReflow) flyout.reflow()
 }
 
+/** Where Blockly's media is self-hosted (copied there by vite.config.ts). */
+const BLOCKLY_MEDIA_PATH = "/blockly/media/"
+
+/**
+ * Blockly v13 changed the default renderer from geras to thrasos. Pin geras so
+ * blocks keep their classic look, which most closely matches the legacy game.
+ */
+const BLOCKLY_RENDERER = "geras"
+
 function initializeWorkspace(
   div: HTMLDivElement,
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[],
@@ -162,6 +171,8 @@ function initializeWorkspace(
 ) {
   const workspace = Blockly.inject(div, {
     toolbox: { kind: "flyoutToolbox", contents: toolboxContents },
+    media: BLOCKLY_MEDIA_PATH,
+    renderer: BLOCKLY_RENDERER,
     trashcan: true,
     zoom: {
       controls: true,
@@ -434,6 +445,8 @@ export function initializeBlockPreview(
 
   const workspace = Blockly.inject(div, {
     readOnly: true,
+    media: BLOCKLY_MEDIA_PATH,
+    renderer: BLOCKLY_RENDERER,
     trashcan: false,
     sounds: false,
     scrollbars: false,
@@ -540,8 +553,7 @@ function getSolutionXml(tilemapGroup: TilemapGroup, levelId: Level["id"]) {
 }
 
 /**
- * Replace the current program with the level's model solution (the legacy
- * game's export format, stored as Blockly XML - see `blockly/workspaces`).
+ * Replace the current program with the level's model solution.
  * Only the chain connected to the XML's own "start" block is reattached
  * beneath this workspace's persistent start block; any other top-level
  * block (e.g. a legacy procedure definition) is loaded as-is, best effort,

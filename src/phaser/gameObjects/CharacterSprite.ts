@@ -100,9 +100,9 @@ export default class extends Phaser.GameObjects.Sprite {
   finishAnimation = () => this._finishAnimation?.()
 
   /**
-   * Wrecks the character in a burst of fire and smoke (like the legacy
-   * game's `_animateCollision`) - only if it has a wreckage texture, as only
-   * vans can be wrecked; other characters are left as they are.
+   * Wrecks the character in a burst of fire and smoke - only if it has a
+   * wreckage texture, as only vans can be wrecked; other characters are left as
+   * they are.
    */
   wreck() {
     if (!this.wreckageTexture) return

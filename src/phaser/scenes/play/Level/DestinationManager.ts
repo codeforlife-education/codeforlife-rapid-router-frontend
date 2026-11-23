@@ -6,8 +6,7 @@ import type LevelSimulator from "../../../LevelSimulator"
 
 type Tile = Phaser.Types.Tilemaps.Tile
 
-/** The border's colour before/after the destination's been delivered to -
- * the legacy game's `DESTINATION_NOT_VISITED_COLOUR`/`_VISITED_COLOUR`. */
+/** The border's colour before/after the destination's been delivered to. */
 const NOT_DELIVERED_COLOUR = 0xff0000
 const DELIVERED_COLOUR = 0x008000
 const BORDER_WIDTH = 1
@@ -16,8 +15,7 @@ const tileKey = ({ row, col }: Tile) => `${row},${col}`
 
 /**
  * Draws a border around each destination tile, kept in sync with the level's
- * `LevelSimulator`: red until the destination's been delivered to, then green
- * - matching the legacy game.
+ * `LevelSimulator`: red until the destination's been delivered to, then green.
  */
 export default class DestinationManager {
   private readonly level: Level

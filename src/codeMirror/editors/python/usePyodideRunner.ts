@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import type { LevelOutcome, SimulatorCommand } from "../../../phaser"
 import type { RunRequest, WorkerResponse } from "./pyodide.worker"
-import type { SimulatorCommand } from "../../../phaser"
 
 export type PyodideRunResult =
-  | { ok: true; commands: SimulatorCommand[] }
+  | { ok: true; commands: SimulatorCommand[]; outcome: LevelOutcome }
   | { ok: false; message: string; lineNo?: number }
 
 type Pending = {
@@ -48,7 +48,7 @@ export function usePyodideRunner() {
       pendingRef.current.delete(data.id)
       pending.resolve(
         data.type === "result"
-          ? { ok: true, commands: data.commands }
+          ? { ok: true, commands: data.commands, outcome: data.outcome }
           : { ok: false, message: data.message, lineNo: data.lineNo },
       )
     }
