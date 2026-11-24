@@ -21,7 +21,7 @@ export {
   default as ObstaclesButton,
   type ObstaclesButtonProps,
 } from "./ObstaclesButton"
-export { default as QuitButton, type QuitButtonProps } from "./QuitButton"
+export { default as ExitButton, type ExitButtonProps } from "./ExitButton"
 export { default as RoadButton, type RoadButtonProps } from "./RoadButton"
 export { default as SaveButton, type SaveButtonProps } from "./SaveButton"
 export {

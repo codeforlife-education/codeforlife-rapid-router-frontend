@@ -8,6 +8,7 @@ import {
   getFlipX,
   getFlipY,
 } from "../layers/objectGroup/objects"
+import { TEXTURE_RESOLUTION } from "../globals"
 
 Phaser.GameObjects.Image.prototype.getRelativeBounds = function (
   this: Phaser.GameObjects.Image,
@@ -58,8 +59,12 @@ Phaser.GameObjects.Image.prototype.setRequiredProperties = function (
   return (
     this
       // Set the display size to the real size of the image to maintain its
-      // aspect ratio.
-      .setDisplaySize(this.frame.realWidth, this.frame.realHeight)
+      // aspect ratio - scaled down, as tilesets' images are rendered at a
+      // higher resolution (see `BasePreloader.loadTilesetImages`).
+      .setDisplaySize(
+        this.frame.realWidth / TEXTURE_RESOLUTION,
+        this.frame.realHeight / TEXTURE_RESOLUTION,
+      )
       // Tile[map]-objects don't support these properties, so we set them
       // based on their globally registered values.
       .setDepth(getDepth(id))

@@ -5,8 +5,8 @@
 // for importing and re-exporting the typed versions of hooks.
 /* eslint-disable @typescript-eslint/no-restricted-imports */
 import { type Breakpoint, useMediaQuery, useTheme } from "@mui/material"
+import { useContext, useSyncExternalStore } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { useContext } from "react"
 
 import type { AppDispatch, RootState } from "./store"
 import {
@@ -28,10 +28,22 @@ export type ScreenOrientation = "portrait" | "landscape"
 export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
 export const useAppSelector = useSelector.withTypes<RootState>()
 
+const subscribeToScreenOrientation = (onChange: () => void) => {
+  window.screen.orientation.addEventListener("change", onChange)
+  return () => window.screen.orientation.removeEventListener("change", onChange)
+}
+
+/**
+ * The screen's current orientation, updated whenever it changes. It's always
+ * "landscape" on the server and while hydrating (React then rerenders with the
+ * real value), so the client's first render matches the server-rendered HTML.
+ */
 export const useScreenOrientation = () =>
-  typeof window !== "undefined"
-    ? (window.screen.orientation.type.split("-")[0] as ScreenOrientation)
-    : "landscape"
+  useSyncExternalStore<ScreenOrientation>(
+    subscribeToScreenOrientation,
+    () => window.screen.orientation.type.split("-")[0] as ScreenOrientation,
+    () => "landscape",
+  )
 
 export function useBreakpoint() {
   let result

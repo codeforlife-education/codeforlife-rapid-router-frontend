@@ -14,6 +14,157 @@ import type { Level } from "../../api/level"
 import type { TilemapGroup } from "../../phaser/tilemaps"
 import { getSettingsCookie } from "../../app/utils"
 
+/**
+ * The start block's default distance (in screen pixels) from the top-left
+ * corner of the workspace's visible area (i.e. excluding the flyout).
+ */
+const START_BLOCK_OFFSET = 100
+
+/** Moves the start block to its default position (see START_BLOCK_OFFSET). */
+function moveStartBlockToDefaultPosition(
+  workspace: Blockly.WorkspaceSvg,
+  startBlock: Blockly.BlockSvg,
+) {
+  // The view's top-left corner in workspace coordinates.
+  const { left, top } = workspace.getMetricsManager().getViewMetrics(true)
+  const offset = START_BLOCK_OFFSET / workspace.scale
+  startBlock.moveTo(new Blockly.utils.Coordinate(left + offset, top + offset))
+}
+
+/**
+ * Finds the workspace's start block. It must be looked up whenever it's
+ * needed (rather than kept), since it's recreated whenever the workspace is
+ * reloaded (e.g. by `setBlocklyLanguage()`).
+ */
+function findStartBlock(workspace: Blockly.WorkspaceSvg) {
+  return workspace
+    .getTopBlocks(false)
+    .find(block => START_BLOCK_TYPES.includes(block.type as StartBlockType))
+}
+
+/**
+ * Calls `onClick` whenever the player clicks (without dragging) the start
+ * block. The listener is removed along with the workspace when it's disposed.
+ */
+export function addStartBlockClickListener(
+  workspace: Blockly.WorkspaceSvg,
+  onClick: () => void,
+) {
+  workspace.addChangeListener(event => {
+    if (
+      event instanceof Blockly.Events.Click &&
+      event.targetType === Blockly.Events.ClickTarget.BLOCK &&
+      event.blockId !== undefined &&
+      event.blockId === findStartBlock(workspace)?.id
+    )
+      onClick()
+  })
+}
+
+/**
+ * Lets the player double-click a block in the toolbox to add it to their
+ * program: a block that can be stacked is appended to the end of the start
+ * block's stack, and any other block (e.g. a procedure definition) is placed on
+ * its own beneath it. Nothing is added if it would exceed the block's max
+ * instances.
+ *
+ * The listener is attached to the workspace's injection div (which contains
+ * the flyout), so it's removed along with it when the workspace is disposed.
+ */
+function enableFlyoutDoubleClick(workspace: Blockly.WorkspaceSvg) {
+  workspace.getInjectionDiv().addEventListener("dblclick", event => {
+    const flyoutWorkspace = workspace.getFlyout()?.getWorkspace()
+    if (!flyoutWorkspace || !(event.target instanceof Element)) return
+
+    // Every block's SVG group is tagged with the block's id. Double-clicking a
+    // nested block (e.g. a condition in an "if") adds the whole outer block.
+    const id = event.target.closest("[data-id]")?.getAttribute("data-id")
+    const flyoutBlock = id ? flyoutWorkspace.getBlockById(id) : null
+    if (!flyoutBlock) return
+    const rootFlyoutBlock = flyoutBlock.getRootBlock()
+
+    if (
+      !workspace.isCapacityAvailable(
+        Blockly.common.getBlockTypeCounts(rootFlyoutBlock),
+      )
+    )
+      return
+
+    const startBlock = findStartBlock(workspace)
+    if (!startBlock) return
+
+    // Group the events so it can be undone in one step.
+    Blockly.Events.setGroup(true)
+    try {
+      // Copy the block's state (e.g. its fields' values and, for a procedure
+      // call, which procedure it calls) rather than just its type.
+      const block = Blockly.serialization.blocks.append(
+        Blockly.serialization.blocks.save(rootFlyoutBlock)!,
+        workspace,
+      ) as Blockly.BlockSvg
+
+      const lastConnection = startBlock.lastConnectionInStack(false)
+      if (block.previousConnection && lastConnection) {
+        lastConnection.connect(block.previousConnection)
+      } else {
+        // Place it beneath the start block's stack, out of the way.
+        Blockly.renderManagement.triggerQueuedRenders(workspace)
+        const { x, y } = startBlock.getRelativeToSurfaceXY()
+        block.moveTo(
+          new Blockly.utils.Coordinate(
+            x,
+            y +
+              startBlock.getHeightWidth().height +
+              Blockly.config.snapRadius * 2,
+          ),
+        )
+      }
+    } finally {
+      Blockly.Events.setGroup(false)
+    }
+  })
+}
+
+/**
+ * Makes the zoom controls' reset (target) button reset the zoom and move the
+ * start block back to its default position, instead of Blockly's default of
+ * centering the workspace's content.
+ *
+ * Blockly binds the button's handler when it's created and doesn't expose a
+ * way to override it, so its pointer/keyboard events are intercepted in the
+ * capture phase on the workspace's SVG, before they ever reach the button.
+ * The SVG is removed when the workspace is disposed, taking these listeners
+ * with it (unlike the injection div, which is reused by the next workspace).
+ */
+function overrideZoomResetControl(workspace: Blockly.WorkspaceSvg) {
+  const onEvent = (event: Event) => {
+    if (
+      !(event.target instanceof Element) ||
+      !event.target.closest(".blocklyZoomReset")
+    )
+      return
+    if (
+      event instanceof KeyboardEvent &&
+      event.key !== "Enter" &&
+      event.key !== " "
+    )
+      return
+
+    event.stopPropagation()
+    event.preventDefault()
+
+    const startBlock = findStartBlock(workspace)
+
+    workspace.markFocused()
+    workspace.setScale(workspace.options.zoomOptions.startScale)
+    if (startBlock) moveStartBlockToDefaultPosition(workspace, startBlock)
+  }
+
+  const svg = workspace.getParentSvg()
+  svg.addEventListener("pointerdown", onEvent, { capture: true })
+  svg.addEventListener("keydown", onEvent, { capture: true })
+}
+
 function initializeStartBlock(
   workspace: Blockly.WorkspaceSvg,
   startBlockType: StartBlockType,
@@ -31,7 +182,7 @@ function initializeStartBlock(
     startBlock = workspace.newBlock(startBlockType)
     startBlock.initSvg()
     startBlock.render()
-    startBlock.moveBy(10, 10)
+    moveStartBlockToDefaultPosition(workspace, startBlock)
   }
   if (startBlock.isDeletable()) startBlock.setDeletable(false)
 
@@ -332,6 +483,8 @@ export function initializeBlockly(
   ensureBlocklyInitialized()
 
   const workspace = initializeWorkspace(div, toolboxContents, maxInstances)
+  overrideZoomResetControl(workspace)
+  enableFlyoutDoubleClick(workspace)
 
   const startBlock = initializeStartBlock(workspace, startBlockType)
 
@@ -617,5 +770,34 @@ export async function loadWorkspace(
     }
   }
 
-  workspace.cleanUp()
+  arrangeTopBlocks(workspace, startBlock)
+}
+
+/**
+ * Moves the start block (and its attached chain) to its default position and
+ * stacks every other top block (e.g. procedure definitions) in a column
+ * beneath it. Used instead of `workspace.cleanUp()`, which would stack the
+ * start block from the workspace's origin instead.
+ */
+function arrangeTopBlocks(
+  workspace: Blockly.WorkspaceSvg,
+  startBlock: Blockly.BlockSvg,
+) {
+  // Blocks are rendered asynchronously, so render them now to measure them.
+  Blockly.renderManagement.triggerQueuedRenders(workspace)
+
+  moveStartBlockToDefaultPosition(workspace, startBlock)
+
+  const gap = Blockly.config.snapRadius * 2
+  const { x } = startBlock.getRelativeToSurfaceXY()
+  let y =
+    startBlock.getRelativeToSurfaceXY().y +
+    startBlock.getHeightWidth().height +
+    gap
+
+  for (const block of workspace.getTopBlocks(true)) {
+    if (block.id === startBlock.id) continue
+    block.moveTo(new Blockly.utils.Coordinate(x, y))
+    y += block.getHeightWidth().height + gap
+  }
 }

@@ -2,6 +2,7 @@ import {
   AutoAwesomeMosaic as AutoAwesomeMosaicIcon,
   Check as CheckIcon,
   Delete as DeleteIcon,
+  ExitToApp as ExitToAppIcon,
   Help as HelpIcon,
   Language as LanguageIcon,
   Pause as PauseIcon,
@@ -12,9 +13,10 @@ import {
   VolumeOff as VolumeOffIcon,
   VolumeUp as VolumeUpIcon,
 } from "@mui/icons-material"
-import { type FC, useCallback, useState } from "react"
+import { type FC, useCallback, useEffect, useState } from "react"
 import { Divider } from "@mui/material"
 import type { PayloadAction } from "@reduxjs/toolkit"
+import { useNavigate } from "react-router"
 
 import * as miniDrawers from "../../components/miniDrawers"
 import {
@@ -47,10 +49,40 @@ import {
 } from "../../app/hooks"
 import HintModal from "./HintModal"
 import { type Level } from "../../api/level"
+import type { TilemapGroup } from "../../phaser/tilemaps"
 import { ZoomControls } from "../../phaser"
+import { paths } from "../../routes"
 import { usePlayInterval } from "../../phaser/usePlayInterval"
 
-type BaseControlsProps = { level: Pick<Level, "hint"> }
+type BaseControlsProps = {
+  level: Pick<Level, "id" | "hint"> & { tilemapGroup?: TilemapGroup }
+}
+
+const RAPID_ROUTER_SIDEBAR_COLOURS: { lastLevelId: number; colour: string }[] =
+  [
+    { lastLevelId: 32, colour: "#86ae18" },
+    { lastLevelId: 50, colour: "#00a3e0" },
+    { lastLevelId: 67, colour: "#008cc1" },
+    { lastLevelId: 79, colour: "#c90548" },
+  ]
+
+const PYTHON_DEN_SIDEBAR_COLOUR = "#152584"
+
+function getSidebarColour({
+  id,
+  tilemapGroup,
+}: BaseControlsProps["level"]): string | undefined {
+  switch (tilemapGroup) {
+    case "rapidRouter":
+      return RAPID_ROUTER_SIDEBAR_COLOURS.find(
+        ({ lastLevelId }) => id <= lastLevelId,
+      )?.colour
+    case "pythonDen":
+      return PYTHON_DEN_SIDEBAR_COLOUR
+    default: // Custom levels.
+      return undefined
+  }
+}
 
 const Base: FC<
   BaseControlsProps &
@@ -75,11 +107,41 @@ const Base: FC<
   const [hintModalOpen, setHintModalOpen] = useState(false)
   const [solving, setSolving] = useState(false)
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const settings = useSettings()
   const gameIsDefined = useGameIsDefined()
   const gameOnLastStep = useGameOnLastStep()
   const [setPlayInterval, clearPlayInterval] = usePlayInterval()
   const { activeSceneKeys, phase, setPhase } = usePhaserGameContext()
+  // Only provided in levels with a Blockly workspace.
+  const onStartBlockClickRef =
+    useBlocklyWorkspaceContext()?.onStartBlockClickRef
+
+  // Plays (or pauses) the game, as the Play button does.
+  const togglePlay = () => {
+    if (clearPlayInterval()) {
+      setPhase("paused")
+      return
+    }
+    if (gameIsDefined) {
+      if (gameOnLastStep || phase === "crashed") dispatch(restartGame())
+      // Anything but resuming a paused run starts it from the top.
+      setPlayInterval({ isRunStart: phase !== "paused" })
+    } else
+      void interpretCommands().then(
+        commands => commands?.length && setPlayInterval({ isRunStart: true }),
+      )
+  }
+
+  // Keep the start block (if there is one) pointed at the latest handler, as
+  // clicking it acts like clicking the Play button.
+  useEffect(() => {
+    if (!onStartBlockClickRef) return
+    onStartBlockClickRef.current = togglePlay
+    return () => {
+      onStartBlockClickRef.current = null
+    }
+  })
 
   // Helper to map panel layout options to menu items.
   function mapPanelLayoutsToMenuItems<
@@ -105,26 +167,13 @@ const Base: FC<
         }}
         onOpened={onOpened}
         onClosed={onClosed}
+        backgroundColor={getSidebarColour(level)}
       >
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
           text={phase === "playing" ? "Pause" : "Play"}
           icon={phase === "playing" ? <PauseIcon /> : <PlayArrowIcon />}
-          onClick={() => {
-            if (clearPlayInterval()) {
-              setPhase("paused")
-              return
-            }
-            if (gameIsDefined) {
-              if (gameOnLastStep || phase === "crashed") dispatch(restartGame())
-              // Anything but resuming a paused run starts it from the top.
-              setPlayInterval({ isRunStart: phase !== "paused" })
-            } else
-              void interpretCommands().then(
-                commands =>
-                  commands?.length && setPlayInterval({ isRunStart: true }),
-              )
-          }}
+          onClick={togglePlay}
         />
         <miniDrawers.ButtonItem
           isDrawerOpen={isDrawerOpen}
@@ -237,6 +286,12 @@ const Base: FC<
           text={settings.muted ? "Unmute" : "Mute"}
           icon={settings.muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
           onClick={() => dispatch(setMuted(!settings.muted))}
+        />
+        <miniDrawers.ButtonItem
+          isDrawerOpen={isDrawerOpen}
+          text="Exit"
+          icon={<ExitToAppIcon />}
+          onClick={() => void navigate(paths._)}
         />
       </miniDrawers.MiniDrawer>
       <HintModal

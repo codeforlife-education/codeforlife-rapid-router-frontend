@@ -23,6 +23,7 @@ export interface MiniDrawerProps {
   onClosed?: () => void
   width?: number
   tooltipProps?: Omit<TooltipProps, "title" | "placement">
+  backgroundColor?: string
 }
 
 const MiniDrawer: FC<MiniDrawerProps> = ({
@@ -33,6 +34,7 @@ const MiniDrawer: FC<MiniDrawerProps> = ({
   children,
   width = 240,
   tooltipProps = {},
+  backgroundColor,
 }) => {
   // The tooltip's Popper doesn't reposition on its own as the drawer's width
   // transitions, so it must be told to update once the transition ends.
@@ -79,9 +81,27 @@ const MiniDrawer: FC<MiniDrawerProps> = ({
           overflowX: "hidden",
         }
 
+        const coloured: CSSObject = backgroundColor
+          ? {
+              bgcolor: backgroundColor,
+              color: theme.palette.common.white,
+              "& .MuiIconButton-root, & .MuiListItemIcon-root, & .MuiListItemText-root, & .MuiTypography-root":
+                { color: "inherit" },
+              "& .MuiDivider-root": { borderColor: "rgba(255, 255, 255, 0.3)" },
+            }
+          : {}
+
         return open
-          ? { ...base, ...opened, "& .MuiDrawer-paper": opened }
-          : { ...base, ...closed, "& .MuiDrawer-paper": closed }
+          ? {
+              ...base,
+              ...opened,
+              "& .MuiDrawer-paper": { ...opened, ...coloured },
+            }
+          : {
+              ...base,
+              ...closed,
+              "& .MuiDrawer-paper": { ...closed, ...coloured },
+            }
       }}
     >
       <Box sx={theme => ({ width: "100%", ...theme.mixins.toolbar })}>

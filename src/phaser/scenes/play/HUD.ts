@@ -8,8 +8,14 @@ import {
 } from "../../globals"
 import BaseScene from "../BaseScene"
 
-const MARGIN_X = 20
-const MARGIN_Y = 20
+/** The gauge's size as a fraction of the canvas's shortest side. It's capped
+ * at FUEL_GAUGE_SIZE, so it doesn't get too big on big screens, and at
+ * MIN_GAUGE_SIZE, so it stays readable on small ones (both in CSS pixels). */
+const GAUGE_SIZE_RATIO = 0.2
+const MIN_GAUGE_SIZE = 56
+/** The gap between the gauge and the canvas's edges, as a fraction of the
+ * gauge's size. */
+const MARGIN_RATIO = 0.15
 /** The needle's angle (degrees) at empty/full - tuned visually against the
  * dial artwork: 0 is straight up (the needle's drawn orientation), positive
  * is clockwise. Full sits at the right-hand end of the dial, empty at the
@@ -30,11 +36,29 @@ export default class extends BaseScene {
   private pointer!: Phaser.GameObjects.Image
 
   create() {
-    const x = this.cameras.main.width - MARGIN_X - FUEL_GAUGE_SIZE / 2
-    const y = this.cameras.main.height - MARGIN_Y - FUEL_GAUGE_SIZE / 2
-    this.add.image(x, y, "gauge_dial")
-    this.pointer = this.add.image(x, y, "gauge_pointer")
+    const dial = this.add.image(0, 0, "gauge_dial")
+    this.pointer = this.add.image(0, 0, "gauge_pointer")
     this.updateGauge()
+
+    // Size the gauge relative to the canvas and keep it pinned to the canvas's
+    // bottom-right corner.
+    const layoutGauge = (width: number, height: number) => {
+      // The canvas's size is in canvas pixels, but the gauge's limits are in
+      // CSS pixels (see `pixelRatio`).
+      const size = Phaser.Math.Clamp(
+        Math.min(width, height) * GAUGE_SIZE_RATIO,
+        MIN_GAUGE_SIZE * this.pixelRatio,
+        FUEL_GAUGE_SIZE * this.pixelRatio,
+      )
+      const margin = size * MARGIN_RATIO
+      const x = width - margin - size / 2
+      const y = height - margin - size / 2
+      for (const image of [dial, this.pointer]) {
+        image.setDisplaySize(size, size).setPosition(x, y)
+      }
+    }
+    layoutGauge(this.cameras.main.width, this.cameras.main.height)
+    this.onResize(layoutGauge)
 
     const onPhaserSetVariable: Phaser.Events.PhaserSetVariable = key => {
       if (key === "fuel") this.updateGauge()

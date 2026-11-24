@@ -120,7 +120,7 @@ const Controls: FC = () => {
         <items.ShareButton isDrawerOpen={isDrawerOpen} />
         <Divider />
         <items.HelpButton isDrawerOpen={isDrawerOpen} />
-        <items.QuitButton isDrawerOpen={isDrawerOpen} />
+        <items.ExitButton isDrawerOpen={isDrawerOpen} />
       </MiniDrawer>
       <CodeModal
         open={activeModal === "code"}

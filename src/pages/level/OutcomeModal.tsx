@@ -9,7 +9,7 @@ import LevelModal from "./LevelModal"
 import type { LevelResultFailure } from "../../phaser"
 import { PLACEHOLDER_HINT } from "./HintModal"
 import type { TilemapGroup } from "../../phaser/tilemaps"
-import { paths } from "../../routes"
+import { getLevelPath } from "./levelPaths"
 import { setGameCommands } from "../../app/slices"
 
 // TODO: Replace with the real scoring algorithm.
@@ -47,16 +47,6 @@ function failureMessage(failure: LevelResultFailure): string {
     case "program_error":
       return "Your program doesn't look quite right..."
   }
-}
-
-/** The path to the level after `id` in the same group, if there is one. */
-function nextLevelPath(id: number, tilemapGroup?: TilemapGroup) {
-  if (!tilemapGroup) return undefined
-  const ids = paths[tilemapGroup].level.id as unknown as Record<
-    number,
-    { _: string } | undefined
-  >
-  return ids[id + 1]?._
 }
 
 const Score: FC<{ label: string; score: number; maxScore: number }> = ({
@@ -105,7 +95,7 @@ const OutcomeModal: FC<OutcomeModalProps> = ({ level }) => {
   const close = () => setLevelResult?.(undefined)
 
   if (levelResult.success) {
-    const nextPath = nextLevelPath(level.id, level.tilemapGroup)
+    const nextPath = getLevelPath(level.id + 1, level.tilemapGroup)
     const score = ROUTE_SCORE.score + ALGORITHM_SCORE.score
     const maxScore = ROUTE_SCORE.maxScore + ALGORITHM_SCORE.maxScore
 

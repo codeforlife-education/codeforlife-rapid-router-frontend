@@ -14,8 +14,13 @@ import { canOverlap } from "../../../layers/objectGroup/objects/overlap"
 type Drag = {
   obj: Phaser.GameObjects.Image
   start: { x: number; y: number }
+  /** The object's scale before it was enlarged for dragging. */
+  startScale: { x: number; y: number }
   listeners: { on: () => void; off: () => void }
 }
+
+/** How much an object is enlarged by while it's being dragged. */
+const DRAG_SCALE = 1.1
 
 /** In-progress state for a free-rotate drag, keyed to a pivot in world space. */
 type FreeRotateDrag = {
@@ -481,10 +486,13 @@ export default abstract class BaseFreeObjectManager<
     obj: Phaser.GameObjects.Image,
     listeners: Drag["listeners"],
   ) {
-    this.drag = { obj, start: { x: obj.x, y: obj.y }, listeners }
+    const startScale = { x: obj.scaleX, y: obj.scaleY }
+    this.drag = { obj, start: { x: obj.x, y: obj.y }, startScale, listeners }
     this.setIsDragging(true)
     this.level.input.setDefaultCursor("grabbing")
-    obj.setScale(1.1)
+    // Relative to its own scale, as objects aren't displayed at a scale of 1
+    // (see `Image.setRequiredProperties`).
+    obj.setScale(startScale.x * DRAG_SCALE, startScale.y * DRAG_SCALE)
     this.deselect()
     listeners.on()
   }
@@ -523,10 +531,11 @@ export default abstract class BaseFreeObjectManager<
 
     this.clearOverlapHighlight()
     this.drag.listeners.off()
+    const { startScale } = this.drag
     this.drag = null
     this.setIsDragging(false)
     this.level.input.setDefaultCursor("grab")
-    obj.setScale(1)
+    obj.setScale(startScale.x, startScale.y)
   }
 
   /**

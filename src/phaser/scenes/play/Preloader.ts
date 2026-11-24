@@ -3,7 +3,12 @@ import Phaser from "phaser"
 import * as images from "../../images"
 import * as sounds from "../../sounds"
 import * as tilemaps from "../../tilemaps"
-import { CRASH_PARTICLE_SIZE, FUEL_GAUGE_SIZE, SceneKeys } from "../../globals"
+import {
+  CRASH_PARTICLE_SIZE,
+  FUEL_GAUGE_SIZE,
+  SceneKeys,
+  TEXTURE_RESOLUTION,
+} from "../../globals"
 import BasePreloader from "../BasePreloader"
 import Level from "./Level"
 
@@ -17,22 +22,28 @@ export default class extends BasePreloader {
   static readonly KEY = SceneKeys.Play.PRELOADER
 
   preload() {
+    // The gauge isn't part of the (zoomable) level, so it's rendered at the
+    // size the HUD displays it at, at most (in canvas pixels). Rendering it any
+    // bigger would lose its fine detail once scaled down.
+    const gaugeSize = FUEL_GAUGE_SIZE * this.pixelRatio
     this.load.svg("gauge_dial", images.URLs.HUD.FuelGauge.FUEL_GAUGE, {
-      width: FUEL_GAUGE_SIZE,
-      height: FUEL_GAUGE_SIZE,
+      width: gaugeSize,
+      height: gaugeSize,
     })
     this.load.svg("gauge_pointer", images.URLs.HUD.FuelGauge.POINTER, {
-      width: FUEL_GAUGE_SIZE,
-      height: FUEL_GAUGE_SIZE,
+      width: gaugeSize,
+      height: gaugeSize,
     })
-    // The fire and smoke a character bursts into when it crashes.
+    // The fire and smoke a character bursts into when it crashes - rendered at
+    // a higher resolution, as the crash scales them (see `CharacterSprite`).
+    const particleSize = CRASH_PARTICLE_SIZE * TEXTURE_RESOLUTION
     this.load.svg("particle_fire", images.URLs.Particles.FIRE, {
-      width: CRASH_PARTICLE_SIZE,
-      height: CRASH_PARTICLE_SIZE,
+      width: particleSize,
+      height: particleSize,
     })
     this.load.svg("particle_smoke", images.URLs.Particles.SMOKE, {
-      width: CRASH_PARTICLE_SIZE,
-      height: CRASH_PARTICLE_SIZE,
+      width: particleSize,
+      height: particleSize,
     })
     for (const [key, url] of Object.entries(sounds.URLs)) {
       this.load.audio(key, url)

@@ -1,3 +1,4 @@
+import { type Breakpoint, useMediaQuery } from "@mui/material"
 import { type FC, type ReactNode, useCallback } from "react"
 import {
   Panel,
@@ -6,7 +7,6 @@ import {
   Separator as _Separator,
 } from "react-resizable-panels"
 import { type Theme, styled } from "@mui/material/styles"
-import { type Breakpoint } from "@mui/material"
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator"
 
 import type {
@@ -39,10 +39,15 @@ type TilemapProps =
   | { tilemapGroup: TilemapGroup; tilemap: undefined }
   | { tilemapGroup: undefined; tilemap: ExportedOrthogonalTilemap }
 
-type AutoPanelLayout<PL extends PanelLayout> = Record<
-  ScreenOrientation,
-  Record<Breakpoint, PL>
->
+type AutoPanelLayout<PL extends PanelLayout | "verticalWithLeftHorizontal"> =
+  Record<ScreenOrientation, Record<Breakpoint, PL>>
+
+/**
+ * Below this screen width (in pixels), the "auto" layout is always
+ * "horizontal" (the panels stacked on top of each other), as there isn't
+ * enough room to put them side by side.
+ */
+const AUTO_HORIZONTAL_MAX_WIDTH = 1100
 
 const AUTO_TWO_PANEL_LAYOUTS: AutoPanelLayout<TwoPanelLayout> = {
   landscape: {
@@ -61,7 +66,14 @@ const AUTO_TWO_PANEL_LAYOUTS: AutoPanelLayout<TwoPanelLayout> = {
   },
 }
 
-const AUTO_THREE_PANEL_LAYOUTS: AutoPanelLayout<ThreePanelLayout> = {
+/**
+ * The nested layout (two panels stacked on the left, the game on the right) is
+ * only used by the "auto" option - it isn't offered as a layout of its own,
+ * since picking it would look no different to "auto" in landscape.
+ */
+const AUTO_THREE_PANEL_LAYOUTS: AutoPanelLayout<
+  ThreePanelLayout | "verticalWithLeftHorizontal"
+> = {
   landscape: {
     xs: "verticalWithLeftHorizontal",
     sm: "verticalWithLeftHorizontal",
@@ -257,12 +269,19 @@ const Panels: FC<PanelsProps> = ({ level: { id, mode, ...tilemapProps } }) => {
   const settings = useSettings()
   const screenOrientation = useScreenOrientation()
   const breakpoint = useBreakpoint()
+  // NOTE: Always false on the server and while hydrating (MUI's default), so
+  // the client's first render matches the server-rendered HTML.
+  const isNarrowScreen = useMediaQuery(
+    `(max-width: ${AUTO_HORIZONTAL_MAX_WIDTH - 0.02}px)`,
+  )
 
   // Blockly mode only has 2 panel layouts.
   if (mode === "blockly") {
     let orientation =
       settings.twoPanelLayout ??
-      AUTO_TWO_PANEL_LAYOUTS[screenOrientation][breakpoint] ??
+      (isNarrowScreen
+        ? "horizontal"
+        : AUTO_TWO_PANEL_LAYOUTS[screenOrientation][breakpoint]) ??
       "vertical"
     orientation = orientation === "vertical" ? "horizontal" : "vertical"
     return (
@@ -277,7 +296,9 @@ const Panels: FC<PanelsProps> = ({ level: { id, mode, ...tilemapProps } }) => {
 
   switch (
     settings.threePanelLayout ??
-    AUTO_THREE_PANEL_LAYOUTS[screenOrientation][breakpoint]
+    (isNarrowScreen
+      ? "horizontal"
+      : AUTO_THREE_PANEL_LAYOUTS[screenOrientation][breakpoint])
   ) {
     case "verticalWithLeftHorizontal":
       return <Nested3PanelLayout level={{ id, mode, ...tilemapProps }} />

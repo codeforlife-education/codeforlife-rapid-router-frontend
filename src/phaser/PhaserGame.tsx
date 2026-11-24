@@ -30,6 +30,41 @@ import {
 import type { Level } from "../api/level"
 import { finishGameEarly } from "../app/slices"
 
+/**
+ * A single audio context shared by every Phaser game. Phaser closes a game's
+ * audio context when the game is destroyed, unless it was given one, in which
+ * case it only suspends it. Games are recreated whenever the panel layout
+ * changes, and closing each one's context left Phaser's own pending
+ * `suspend()`/`resume()` calls rejecting with "AudioContext is closed".
+ */
+let sharedAudioContext: AudioContext | undefined
+
+/**
+ * Resolves once the last destroyed game has actually been destroyed. Phaser
+ * defers destroying a game until its next frame, so a new game must wait for
+ * this, or the old game's teardown (which suspends the shared audio context)
+ * could run after the new game resumed it, silencing the new game.
+ */
+let lastGameDestroyed: Promise<void> = Promise.resolve()
+const GAME_DESTROY_TIMEOUT_MS = 1000
+
+/**
+ * The size the game's canvas should be to fill the given container. Phaser
+ * sizes its canvas in CSS pixels, so on high-DPI screens (e.g. Retina displays
+ * and most tablets/phones) the browser would scale it up, blurring everything.
+ * Instead, the canvas is sized in physical pixels, and then scaled back down to
+ * the container's (CSS) size by a zoom of `1 / devicePixelRatio`.
+ */
+function getCanvasSize(container: HTMLElement) {
+  const pixelRatio = window.devicePixelRatio || 1
+  const { width, height } = container.getBoundingClientRect()
+  return {
+    width: Math.max(1, Math.round(width * pixelRatio)),
+    height: Math.max(1, Math.round(height * pixelRatio)),
+    zoom: 1 / pixelRatio,
+  }
+}
+
 export type PhaserGameProps =
   | ({ mode: "play"; levelId: Level["id"] } & (
       | { tilemapGroup: TilemapGroup; tilemap: undefined }
@@ -52,6 +87,14 @@ const PhaserGame: FC<PhaserGameProps> = props => {
   const gameRef = useRef<Phaser.Game>(null)
   /** The last outcome Phaser reported (and so already played a sound for). */
   const phaserOutcomeRef = useRef<LevelResult>(undefined)
+  /**
+   * The variables the game's scenes need as soon as they start (e.g. which
+   * level to load), kept up to date on every render so they can be written to
+   * a new game's registry the moment it's created - rather than waiting for
+   * the effects below, which only run after a rerender and so could lose the
+   * race against the Preloader scene reading them.
+   */
+  const initialVariablesRef = useRef<Partial<Record<Variable, unknown>>>({})
 
   if (!phaserGameContext)
     throw ReferenceError("Phaser game context not provided.")
@@ -64,6 +107,11 @@ const PhaserGame: FC<PhaserGameProps> = props => {
     levelResult,
     setLevelResult,
   } = phaserGameContext
+
+  initialVariablesRef.current =
+    mode === "play"
+      ? { levelId, maxFuel, tilemapGroup, exportedLevel: tilemap }
+      : {}
 
   const getVariable = useCallback(
     (<T,>(
@@ -140,12 +188,14 @@ const PhaserGame: FC<PhaserGameProps> = props => {
       // Check if the container ref is set and the component is still active.
       if (!containerRef.current || !active) return
 
-      // Dynamically import Phaser and our scenes.
+      // Dynamically import Phaser and our scenes, and wait for any previous
+      // game to finish being destroyed (see `lastGameDestroyed`).
       // NOTE: This makes Phaser a browser-only dependency.
       const Phaser = await import("phaser")
       const { default: scene } = (await import(
         `./scenes/${mode}/index.ts`
       )) as { default: Phaser.Scene[] }
+      await lastGameDestroyed
 
       // Run the checks again to ensure that the component was not unmounted
       // and remounted while the imports were being asynchronously fetched.
@@ -155,22 +205,33 @@ const PhaserGame: FC<PhaserGameProps> = props => {
 
       // Find out more information about the Game Config at:
       // https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
+      const { width, height, zoom } = getCanvasSize(containerRef.current)
       gameRef.current = new Phaser.Game({
         type: Phaser.AUTO,
         scale: {
-          // Scale the game to fit inside the parent container while maintaining
-          // the aspect ratio.
-          mode: Phaser.Scale.FIT,
-          // Keep the game canvas centered horizontally and vertically within
-          // its container.
-          autoCenter: Phaser.Scale.CENTER_BOTH,
-          width: "100%", // Use the full width of the parent container.
-          height: "100%", // Use the full height of the parent container.
-          resizeInterval: 100, // Check for resize every 100ms.
+          // The game canvas is sized to always fill the whole parent container
+          // - by us, rather than Phaser (see the resize observer below), as
+          // Phaser doesn't account for the screen's pixel density. The scenes
+          // listen for resizes to reposition and resize their contents (see
+          // `BaseScene.onResize`).
+          mode: Phaser.Scale.NONE,
+          width,
+          height,
+          zoom,
+        },
+        render: {
+          // Smoothly scale down textures displayed smaller than their size
+          // (e.g. when zoomed out), rather than leaving them jagged.
+          mipmapFilter: "LINEAR_MIPMAP_LINEAR",
         },
         parent: containerRef.current,
         scene,
+        audio: { context: (sharedAudioContext ??= new AudioContext()) },
       })
+
+      // Seed the registry before any scene can start and read from it.
+      for (const [key, value] of Object.entries(initialVariablesRef.current))
+        gameRef.current.registry.set(key, value)
 
       // Listen for scene activity changes broadcast by each scene.
       gameRef.current.events.on(
@@ -185,16 +246,53 @@ const PhaserGame: FC<PhaserGameProps> = props => {
 
     return () => {
       active = false
-      if (gameRef.current) {
-        gameRef.current.events.off(
-          Events.SCENE_ACTIVITY_CHANGED,
-          onSceneActivityChanged,
-        )
-        gameRef.current.destroy(true)
+      const game = gameRef.current
+      if (game) {
+        game.events.off(Events.SCENE_ACTIVITY_CHANGED, onSceneActivityChanged)
+        // NOTE: "destroy" is `Phaser.Core.Events.DESTROY`, which can't be
+        // referenced here as Phaser is only imported as a type. Times out in
+        // case the game never gets to run the frame that destroys it.
+        lastGameDestroyed = new Promise(resolve => {
+          game.events.once("destroy", () => resolve())
+          setTimeout(resolve, GAME_DESTROY_TIMEOUT_MS)
+        })
+        game.destroy(true)
         gameRef.current = null
+        // So the effects that sync variables into the game rerun for the next
+        // game, rather than staying stuck on the destroyed one.
+        setGameIsInitialized(false)
       }
     }
   }, [mode, levelId, setActiveSceneKeys])
+
+  // Resize the game whenever its container is resized (e.g. a device is
+  // rotated or a panel is resized) - see `getCanvasSize`.
+  useEffect(() => {
+    const container = containerRef.current
+    if (!gameIsInitialized || !gameRef.current || !container) return
+    const { scale, loop } = gameRef.current
+
+    const observer = new ResizeObserver(() => {
+      const { width, height, zoom } = getCanvasSize(container)
+      if (
+        width === scale.width &&
+        height === scale.height &&
+        zoom === scale.zoom
+      )
+        return
+      // The pixel density changes too, e.g. when the browser is zoomed.
+      if (zoom !== scale.zoom) scale.setZoom(zoom)
+      scale.resize(width, height)
+      // Resizing the canvas clears it, so render a frame straight away.
+      // Otherwise, the cleared (black) canvas would be painted until Phaser's
+      // next frame, making it flicker while being resized. Resize observers
+      // are called before the browser paints, so this frame is painted
+      // instead.
+      loop.tick()
+    })
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [gameIsInitialized])
 
   // Pass the current level ID to Phaser when in play mode.
   useEffect(() => {
@@ -293,7 +391,12 @@ const PhaserGame: FC<PhaserGameProps> = props => {
       <div
         id="phaser-game"
         ref={containerRef}
-        style={{ width: "100%", height: "100%" }}
+        // Absolutely positioned to fill the wrapper, so the container's size
+        // only ever comes from its panel - never from the canvas inside it.
+        // Otherwise, the container could get stuck at the canvas's old size
+        // (e.g. after a device is rotated), and so the canvas too. Overflow is
+        // hidden for the same reason.
+        style={{ position: "absolute", inset: 0, overflow: "hidden" }}
       />
     </div>
   )

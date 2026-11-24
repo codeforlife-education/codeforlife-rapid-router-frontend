@@ -1,7 +1,13 @@
 import Phaser from "phaser"
 
 import * as images from "../../../images"
-import { Events, TILE_HEIGHT, TILE_WIDTH, Variables } from "../../../globals"
+import {
+  Events,
+  TEXTURE_RESOLUTION,
+  TILE_HEIGHT,
+  TILE_WIDTH,
+  Variables,
+} from "../../../globals"
 import BaseToolboxManager from "./BaseToolboxManager"
 import type { default as Level } from "."
 
@@ -32,13 +38,18 @@ export default class extends BaseToolboxManager<Tool> {
   private setBackground(key: Tool) {
     const url = images.URLs.Background[key]
     if (this.level.textures.exists(key)) {
-      this.level.backgroundTileSprite.setTexture(key)
+      this.level.setBackgroundTexture(key)
       return
     }
 
-    this.level.load.svg(key, url, { width: TILE_WIDTH, height: TILE_HEIGHT })
+    // Rendered at a higher resolution, like the level's own background (see
+    // `BasePreloader.loadBackgroundSvg`).
+    this.level.load.svg(key, url, {
+      width: TILE_WIDTH * TEXTURE_RESOLUTION,
+      height: TILE_HEIGHT * TEXTURE_RESOLUTION,
+    })
     this.level.load.once(Phaser.Loader.Events.COMPLETE, () => {
-      this.level.backgroundTileSprite.setTexture(key)
+      this.level.setBackgroundTexture(key)
     })
     this.level.load.start()
   }

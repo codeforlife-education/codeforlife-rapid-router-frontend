@@ -8,12 +8,14 @@ import { getSettingsCookie } from "../utils"
 export const TWO_PANEL_LAYOUTS = [undefined, "vertical", "horizontal"] as const
 export const THREE_PANEL_LAYOUTS = [
   undefined,
-  "verticalWithLeftHorizontal",
   "vertical",
   "horizontal",
 ] as const
 export type TwoPanelLayout = (typeof TWO_PANEL_LAYOUTS)[number]
 export type ThreePanelLayout = (typeof THREE_PANEL_LAYOUTS)[number]
+// The two- and three-panel layouts currently happen to be the same options,
+// but are kept as a union so this stays correct if they diverge again.
+// eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
 export type PanelLayout = TwoPanelLayout | ThreePanelLayout
 
 export const PLAY_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as const
@@ -35,11 +37,26 @@ const DEFAULT_SETTINGS: SettingsState = Object.freeze({
   muted: false,
 })
 
+/**
+ * Loads the settings saved in the cookie, filling in any settings added since
+ * it was saved.
+ */
+export function getSavedSettings(): SettingsState {
+  return { ...DEFAULT_SETTINGS, ...getSettingsCookie() }
+}
+
 export const settingsSlice = createSlice({
   name: "settings",
-  // Fill in any settings added since the cookie was saved.
-  initialState: { ...DEFAULT_SETTINGS, ...getSettingsCookie() },
+  // Always start from the defaults, as the cookie can't be read on the server,
+  // so the client's first render matches the server-rendered HTML. The saved
+  // settings are then loaded once hydrated (see `loadSavedSettings` in App).
+  initialState: DEFAULT_SETTINGS,
   reducers: create => ({
+    // NOTE: Deliberately not one of the settings middleware's write actions,
+    // as there's no need to write the cookie's own settings back to it.
+    loadSavedSettings: create.reducer(
+      (_state, action: PayloadAction<SettingsState>) => action.payload,
+    ),
     setTwoPanelLayout: create.reducer(
       (state, action: PayloadAction<TwoPanelLayout>) => {
         state.twoPanelLayout = action.payload
@@ -64,6 +81,7 @@ export const settingsSlice = createSlice({
 })
 
 export const {
+  loadSavedSettings,
   setTwoPanelLayout,
   setThreePanelLayout,
   setPlaySpeed,

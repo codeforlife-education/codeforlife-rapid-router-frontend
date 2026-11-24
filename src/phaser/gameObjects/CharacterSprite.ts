@@ -2,6 +2,7 @@ import Phaser from "phaser"
 
 import type * as images from "../images"
 import * as layers from "../layers"
+import { TEXTURE_RESOLUTION } from "../globals"
 
 // Shorthands
 type NormalKey = keyof typeof images.URLs.Character.Normal
@@ -48,7 +49,11 @@ export default class extends Phaser.GameObjects.Sprite {
     this.setDepth(
       // Place above all obstacles/endpoints/scenery.
       Math.max(...Object.values(layers.objectGroup.objects.Depths)) + 1,
-    ).setOrigin(0.5, 0.5) // Move the character from its center.
+    )
+      .setOrigin(0.5, 0.5) // Move the character from its center.
+      // Its textures are rendered at a higher resolution (see
+      // `BasePreloader.loadCharacterSvgs`), so display them at their real size.
+      .setScale(1 / TEXTURE_RESOLUTION)
 
     // Hide the character if its position is not explicitly set.
     if (x === undefined && y === undefined) this.setVisible(false)
@@ -114,8 +119,12 @@ export default class extends Phaser.GameObjects.Sprite {
           // Scatter the particles around the character's centre...
           x: { min: -10, max: 10 },
           y: { min: -10, max: 10 },
-          // ...growing and fading as they burn out...
-          scale: { start: 0.5, end: 1.5 },
+          // ...growing and fading as they burn out (their textures are
+          // rendered at a higher resolution - see `play/Preloader`)...
+          scale: {
+            start: 0.5 / TEXTURE_RESOLUTION,
+            end: 1.5 / TEXTURE_RESOLUTION,
+          },
           alpha: { start: 1, end: 0 },
           lifespan: 800,
           // ...staggered over a short burst.

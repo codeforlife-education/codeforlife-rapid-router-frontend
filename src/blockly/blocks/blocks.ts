@@ -16,6 +16,8 @@ export type BlockDefinition<T extends string> = {
       }
     | {
         type: "field_image"
+        /** Only needed to get the field later, e.g. to change its image. */
+        name?: string
         src: string
         width: number
         height: number

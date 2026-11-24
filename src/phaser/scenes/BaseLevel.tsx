@@ -3,8 +3,9 @@ import Phaser from "phaser"
 import type * as images from "../images"
 import * as layers from "../layers"
 import type * as tilesets from "../tilesets"
+import { Events, TEXTURE_RESOLUTION } from "../globals"
 import BaseScene from "./BaseScene"
-import { Events } from "../globals"
+import { enableHiResTiles } from "../renderNodes"
 
 const ZOOM_STEP = 0.125
 const MIN_VISIBLE_TILES = 4
@@ -61,47 +62,145 @@ export default class BaseLevel<
       this.game.events.off(Events.ZOOM_IN, zoomIn)
       this.game.events.off(Events.ZOOM_OUT, zoomOut)
     })
+
+    // When the canvas is resized (e.g. a device is rotated or a panel is
+    // resized), re-fit the zoom so the whole tilemap is visible again, grow/
+    // shrink the background (and camera bounds) so it still fills the whole
+    // canvas, and re-center the tilemap. This resets any zooming/panning the
+    // player did, as it may no longer make sense at the new size.
+    this.onResize(() => {
+      this.setZoomInBounds()
+      this.fitBackgroundTileSprite()
+      this.cameras.main.centerOn(...this.tilemapCenter)
+    })
+  }
+
+  /**
+   * Lets the player pan around the level by dragging it (with a mouse, pen or
+   * finger). The camera's bounds (see `fitBackgroundTileSprite`) stop them
+   * panning past the edge of the background.
+   */
+  enableDragToPan() {
+    const camera = this.cameras.main
+    this.input.setDefaultCursor("grab")
+
+    const onPointerDown = () => this.input.setDefaultCursor("grabbing")
+    const onPointerUp = () => this.input.setDefaultCursor("grab")
+    const onPointerMove = (pointer: Phaser.Input.Pointer) => {
+      if (!pointer.isDown) return
+      // Pointer positions are in screen pixels, so convert them to world
+      // units at the current zoom level.
+      camera.scrollX -= (pointer.x - pointer.prevPosition.x) / camera.zoom
+      camera.scrollY -= (pointer.y - pointer.prevPosition.y) / camera.zoom
+    }
+
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+    this.input.on(Phaser.Input.Events.POINTER_UP, onPointerUp)
+    this.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, onPointerUp)
+    this.input.on(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.off(Phaser.Input.Events.POINTER_DOWN, onPointerDown)
+      this.input.off(Phaser.Input.Events.POINTER_UP, onPointerUp)
+      this.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, onPointerUp)
+      this.input.off(Phaser.Input.Events.POINTER_MOVE, onPointerMove)
+    })
   }
 
   /** Creates the background tile sprite. */
   private createBackgroundTileSprite() {
-    // Size the background to exactly cover the camera's viewport once zoomed
-    // all the way out, so no black borders appear around it.
-    const { min: minZoom } = this.zoomBounds
-    const width = this.cameras.main.width / minZoom
-    const height = this.cameras.main.height / minZoom
-
-    this.backgroundTileSprite = this.add.tileSprite(
-      ...this.tilemapCenter,
-      width,
-      height,
-      this.initData.backgroundKey,
-    )
-    this.backgroundTileSprite
+    this.backgroundTileSprite = this.add
+      .tileSprite(...this.tilemapCenter, 0, 0, this.initData.backgroundKey)
       .setOrigin(0.5, 0.5)
+      // Its texture was rendered at TEXTURE_RESOLUTION (see `BasePreloader`),
+      // so display each tile at the map's tile size.
+      .setTileScale(1 / TEXTURE_RESOLUTION)
+      .setDepth(-1) // Render behind everything
+
+    this.setBackgroundTexture(this.initData.backgroundKey)
+    this.fitBackgroundTileSprite()
+  }
+
+  /**
+   * Sets the background's texture (which must already be loaded), disabling
+   * its mipmaps. A tile sprite repeats its texture by wrapping its texture
+   * coordinates in its shader, and that jump (from 1 back to 0) at the edge
+   * of every tile makes the GPU pick the smallest mipmap there - drawing a
+   * grid of thin lines across the background.
+   */
+  setBackgroundTexture(key: string) {
+    this.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR)
+    this.backgroundTileSprite.setTexture(key)
+  }
+
+  /**
+   * Sizes the background to cover the tilemap plus half the camera's viewport
+   * (once zoomed all the way out) on every side, and bounds the camera to it.
+   * That way, no borders appear around the background at any zoom level, even
+   * while panning (see `enableDragToPan`), and any part of the tilemap can
+   * still be panned to the center of the view.
+   */
+  private fitBackgroundTileSprite() {
+    const camera = this.cameras.main
+    const { min: minZoom } = this.zoomBounds
+    const padX = Math.ceil(camera.width / minZoom / 2)
+    const padY = Math.ceil(camera.height / minZoom / 2)
+    const width = this.tilemap.widthInPixels + padX * 2
+    const height = this.tilemap.heightInPixels + padY * 2
+
+    camera.setBounds(-padX, -padY, width, height)
+
+    this.backgroundTileSprite
+      .setSize(width, height)
       // Shift the tile pattern so it aligns with world (0, 0). The sprite's
       // top-left corner is at (widthInPixels/2 - spriteW/2, ...) in world
       // space. If that position isn't a multiple of tileWidth/tileHeight, the
-      // repeating pattern will be offset relative to the tilemap layer.
+      // repeating pattern will be offset relative to the tilemap layer. The
+      // tile position is in texture pixels, so it's scaled up to match the
+      // background's texture (see `createBackgroundTileSprite`).
       .setTilePosition(
-        (((this.backgroundTileSprite.x - this.backgroundTileSprite.width / 2) %
+        ((((this.backgroundTileSprite.x - this.backgroundTileSprite.width / 2) %
           this.tilemap.tileWidth) +
           this.tilemap.tileWidth) %
-          this.tilemap.tileWidth,
-        (((this.backgroundTileSprite.y - this.backgroundTileSprite.height / 2) %
+          this.tilemap.tileWidth) *
+          TEXTURE_RESOLUTION,
+        ((((this.backgroundTileSprite.y -
+          this.backgroundTileSprite.height / 2) %
           this.tilemap.tileHeight) +
           this.tilemap.tileHeight) %
-          this.tilemap.tileHeight,
+          this.tilemap.tileHeight) *
+          TEXTURE_RESOLUTION,
       )
-      .setDepth(-1) // Render behind everything
   }
 
   /** Creates a tile layer for the specified layer name. */
+  /**
+   * Stops the tilesets' textures repeating at their edges. Phaser makes
+   * power-of-two textures (like the tiles', rendered at TEXTURE_RESOLUTION)
+   * repeat, so when smoothly scaled, the pixels along each of their edges are
+   * blended with those along the opposite edge - drawing faint lines along the
+   * edges of tiles (e.g. a road's edge showing at the opposite side of a tile).
+   */
+  private clampTilesetTextures() {
+    for (const { name } of Object.values(this.initData.tilesets).flat()) {
+      this.textures.get(name).setWrap(Phaser.Textures.WrapMode.CLAMP_TO_EDGE)
+    }
+  }
+
   private createTileLayer(layer: layers.tile.Name) {
+    // The tilesets' images were rendered at TEXTURE_RESOLUTION (see
+    // `BasePreloader`), so their tiles are too.
     this.tilesets[layer] = this.initData.tilesets[layer].map(
-      ({ name }) => this.tilemap.addTilesetImage(name)!,
+      ({ name }) =>
+        this.tilemap.addTilesetImage(
+          name,
+          undefined,
+          this.tilemap.tileWidth * TEXTURE_RESOLUTION,
+          this.tilemap.tileHeight * TEXTURE_RESOLUTION,
+        )!,
     )
     this.layers[layer] = this.tilemap.createLayer(layer, this.tilesets[layer])
+    // Display the tiles at the map's tile size.
+    enableHiResTiles(this.layers[layer])
   }
 
   /** Creates an object group layer for the specified layer name. */
@@ -146,6 +245,7 @@ export default class BaseLevel<
   createTilemap() {
     // 1. Create a tilemap from the cached tilemap data.
     this.tilemap = this.make.tilemap({ key: "level" })
+    this.clampTilesetTextures()
 
     // 2. Render a tile sprite behind everything as the background.
     this.createBackgroundTileSprite()

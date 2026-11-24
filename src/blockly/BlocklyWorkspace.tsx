@@ -15,6 +15,7 @@ import type {
   GeneratedCode,
 } from "./BlocklyWorkspaceContext"
 import {
+  addStartBlockClickListener,
   clearWorkspace,
   getProgramSnapshot,
   initializeBlockly,
@@ -37,6 +38,7 @@ import { getTilemap } from "../phaser/tilemaps/load"
 import { importOrthogonal } from "../phaser/tilemaps"
 import { runBlockly } from "./interpreter"
 import { setGameCommands } from "../app/slices"
+import { setStartBlockCharacter } from "./blocks/starts"
 
 type Blockly = ReturnType<typeof initializeBlockly>
 type HighlightedBlock = { id: string; originalColour?: string }
@@ -66,6 +68,7 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
     throw ReferenceError("Blockly workspace context not provided.")
   const {
     ref,
+    onStartBlockClickRef,
     toolboxContents,
     maxInstances,
     setGeneratedCode,
@@ -249,11 +252,40 @@ const BlocklyWorkspace: FC<BlocklyWorkspaceProps> = ({
 
     blockly.workspace.addChangeListener(onChange)
 
+    // Clicking the start block acts like clicking the Play button.
+    addStartBlockClickListener(blockly.workspace, () =>
+      onStartBlockClickRef.current?.(),
+    )
+
     return () => {
       blockly.workspace.removeChangeListener(onChange)
       blockly.workspace.dispose()
     }
-  }, [startBlockType, toolboxContents, maxInstances, setGame])
+  }, [
+    startBlockType,
+    toolboxContents,
+    maxInstances,
+    setGame,
+    onStartBlockClickRef,
+  ])
+
+  // Show the level's character on the start block. Reapplied whenever the
+  // start block is recreated (e.g. when the language changes), as image
+  // fields aren't serialized.
+  useEffect(() => {
+    if (!blockly) return
+    let active = true
+
+    void (
+      tilemap ? Promise.resolve(tilemap) : getTilemap(levelId, tilemapGroup)
+    ).then(({ properties: [, { value: character }] }) => {
+      if (active) setStartBlockCharacter(blockly.startBlock, character)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [blockly, tilemap, levelId, tilemapGroup])
 
   // Mute (or unmute) Blockly's own sounds (e.g. connecting a block).
   useEffect(() => {
