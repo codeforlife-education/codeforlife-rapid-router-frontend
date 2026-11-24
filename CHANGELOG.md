@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/compare/v1.10.0...v1.10.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* Responsiveness and auto-scaling improvements ([#117](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/issues/117)) ([c6ff39c](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/commit/c6ff39c68eb51c7eb82a8d4813ed1c2259503969))
+
 # [1.10.0](https://github.com/codeforlife-education/codeforlife-rapid-router-frontend/compare/v1.9.0...v1.10.0) (2026-11-23)
 
 
