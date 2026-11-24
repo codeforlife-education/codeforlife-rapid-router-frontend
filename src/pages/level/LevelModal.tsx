@@ -31,7 +31,6 @@ const LevelModal: FC<LevelModalProps> = ({
         left: "50%",
         transform: "translate(-50%, -50%)",
         width: "90%",
-        // Roughly the width of the legacy game's modals on a large screen.
         maxWidth: "lg",
         maxHeight: "90%",
         overflowY: "auto",
