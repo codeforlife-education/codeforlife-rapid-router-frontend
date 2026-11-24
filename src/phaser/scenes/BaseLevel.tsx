@@ -182,9 +182,7 @@ export default class BaseLevel<
    */
   private clampTilesetTextures() {
     for (const { name } of Object.values(this.initData.tilesets).flat()) {
-      this.textures
-        .get(name)
-        .setWrap(Phaser.Textures.WrapMode.CLAMP_TO_EDGE)
+      this.textures.get(name).setWrap(Phaser.Textures.WrapMode.CLAMP_TO_EDGE)
     }
   }
 
