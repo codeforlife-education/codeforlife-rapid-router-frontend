@@ -12,9 +12,8 @@ const characterImageUrl = (view: "front_view" | "top_view", name: string) =>
   new URL(`../../images/characters/${view}/${name}.svg`, import.meta.url).href
 
 /**
- * The image of each character shown on the start block: a front view, like
- * the legacy game. There's no front view of the sleigh, so it's shown from the
- * top.
+ * The image of each character shown on the start block: a front view. There's
+ * no front view of the sleigh, so it's shown from the top.
  */
 const CHARACTER_IMAGE_URLS: Record<Character, string> = {
   DEE: characterImageUrl("front_view", "Dee"),

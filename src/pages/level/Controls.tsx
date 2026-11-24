@@ -58,10 +58,6 @@ type BaseControlsProps = {
   level: Pick<Level, "id" | "hint"> & { tilemapGroup?: TilemapGroup }
 }
 
-/**
- * The sidebar's background colour for each range of Rapid Router levels (by
- * their last level), like the legacy game's episodes.
- */
 const RAPID_ROUTER_SIDEBAR_COLOURS: { lastLevelId: number; colour: string }[] =
   [
     { lastLevelId: 32, colour: "#86ae18" },
@@ -70,10 +66,8 @@ const RAPID_ROUTER_SIDEBAR_COLOURS: { lastLevelId: number; colour: string }[] =
     { lastLevelId: 79, colour: "#c90548" },
   ]
 
-/** The sidebar's background colour for every Python Den level. */
 const PYTHON_DEN_SIDEBAR_COLOUR = "#152584"
 
-/** The sidebar's background colour for the level, if it has one. */
 function getSidebarColour({
   id,
   tilemapGroup,

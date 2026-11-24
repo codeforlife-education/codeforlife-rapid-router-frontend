@@ -41,8 +41,8 @@ export type BlocklyWorkspaceContextValue = {
   ref: RefObject<BlocklyWorkspaceRef | null>
   /**
    * Called when the player clicks the start block, which acts like clicking
-   * the Play button (like in the legacy game). The level's controls point
-   * this at their Play button's handler.
+   * the Play button. The level's controls point this at their Play button's
+   * handler.
    */
   onStartBlockClickRef: RefObject<(() => void) | null>
   toolboxContents: Blockly.utils.toolbox.ToolboxItemInfo[]

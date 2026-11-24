@@ -23,10 +23,6 @@ export interface MiniDrawerProps {
   onClosed?: () => void
   width?: number
   tooltipProps?: Omit<TooltipProps, "title" | "placement">
-  /**
-   * The drawer's background colour. When set, its text, icons and dividers
-   * are made white so they stand out against it.
-   */
   backgroundColor?: string
 }
 

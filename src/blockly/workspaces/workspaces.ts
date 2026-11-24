@@ -63,10 +63,10 @@ export function addStartBlockClickListener(
 
 /**
  * Lets the player double-click a block in the toolbox to add it to their
- * program, like in the legacy game: a block that can be stacked is appended
- * to the end of the start block's stack, and any other block (e.g. a
- * procedure definition) is placed on its own beneath it. Nothing is added if
- * it would exceed the block's max instances.
+ * program: a block that can be stacked is appended to the end of the start
+ * block's stack, and any other block (e.g. a procedure definition) is placed on
+ * its own beneath it. Nothing is added if it would exceed the block's max
+ * instances.
  *
  * The listener is attached to the workspace's injection div (which contains
  * the flyout), so it's removed along with it when the workspace is disposed.

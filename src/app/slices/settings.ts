@@ -39,16 +39,10 @@ const DEFAULT_SETTINGS: SettingsState = Object.freeze({
 
 /**
  * Loads the settings saved in the cookie, filling in any settings added since
- * it was saved and resetting any layout that's no longer an option (e.g. the
- * removed "verticalWithLeftHorizontal" three-panel layout) back to "auto".
+ * it was saved.
  */
 export function getSavedSettings(): SettingsState {
-  const settings = { ...DEFAULT_SETTINGS, ...getSettingsCookie() }
-  if (!TWO_PANEL_LAYOUTS.includes(settings.twoPanelLayout))
-    settings.twoPanelLayout = undefined
-  if (!THREE_PANEL_LAYOUTS.includes(settings.threePanelLayout))
-    settings.threePanelLayout = undefined
-  return settings
+  return { ...DEFAULT_SETTINGS, ...getSettingsCookie() }
 }
 
 export const settingsSlice = createSlice({

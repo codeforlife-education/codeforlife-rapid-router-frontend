@@ -18,11 +18,9 @@ export interface DescriptionModalProps {
   level: Pick<Level, "id" | "name" | "description"> & {
     tilemapGroup?: TilemapGroup
   }
-  // Direct URL to an mp4 video file.
   video?: string
 }
 
-// Renders a video that starts playing (with native controls) once clicked.
 const VideoEmbed: FC<{ src: string }> = ({ src }) => {
   const [playing, setPlaying] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -70,7 +68,6 @@ const VideoEmbed: FC<{ src: string }> = ({ src }) => {
   )
 }
 
-/** A button linking to a neighbouring level. */
 const LevelLinkButton: FC<{
   path: string
   direction: "previous" | "next"
@@ -105,11 +102,6 @@ const DescriptionModal: FC<DescriptionModalProps> = ({ level, video }) => {
       title={`Level ${level.id}`}
       fullWidthActions
       actions={
-        // Previous on the left, Play in the centre and Next on the right, like
-        // the legacy game. On small screens, they're stacked in a single
-        // column of full-width buttons, with Play first. Each button is pinned
-        // to its own column, so Play stays centred even when there's no
-        // previous/next level.
         <Box
           sx={{
             display: "grid",
